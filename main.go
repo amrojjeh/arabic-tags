@@ -2,17 +2,9 @@ package main
 
 import (
 	"net/http"
-	"os"
 	"time"
+	"os"
 )
-
-func hello(w http.ResponseWriter, r *http.Request) {
-	data, err := os.ReadFile("index.html")
-	if err != nil {
-		panic(err)
-	}
-	w.Write(data)
-}
 
 func main() {
 	mux := http.NewServeMux()
@@ -26,6 +18,13 @@ func main() {
 	defer s.Close()
 
 	mux.Handle("/", http.FileServer(http.Dir(".")))
+	mux.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
+		data, err := os.ReadFile("analyze.html")
+		if err != nil {
+			panic(err)
+		}
+		w.Write(data)
+	})
 
 	err := s.ListenAndServe()
 	if err != nil {

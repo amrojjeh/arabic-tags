@@ -18,32 +18,15 @@ body {
     font-family: Inter;
 }
 
-nav {
-    display: flex;
-    flex-direction: column;
-    width: 10vw;
-    margin-left: 2rem;
-    margin-right: 5rem;
-    height: 100%;
-    float: left;
+h1 {
+    text-align: center;
 }
 
-nav button {
-    margin-bottom: 2rem;
-}
-
-div {
+form {
     width: 40vw;
-    margin-top: 2rem;
+    margin: 2rem auto;
     display: flex;
     flex-direction: column;
-}
-
-div.center {
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
 }
 
 *[lang="ar"] {
@@ -54,6 +37,7 @@ div.center {
     display: flex;
     flex-direction: row;
     align-items: center;
+    margin-top: 1rem;
 }
 
 .sentence span {
