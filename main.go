@@ -3,8 +3,13 @@ package main
 import (
 	"net/http"
 	"os"
+	"log"
 	"time"
+	"html/template"
 )
+
+var templates = template.Must(template.ParseFiles("index.html"))
+
 
 type SpeechType int
 
@@ -46,6 +51,16 @@ type Word struct {
 	tokens   []int
 }
 
+type Sentence []Word
+
+type mainHandle struct {
+	Sentences []Sentence
+}
+
+func (m mainHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	templates.ExecuteTemplate(w, "index.html", nil)
+}
+
 func main() {
 	mux := http.NewServeMux()
 	s := http.Server{
@@ -57,7 +72,10 @@ func main() {
 	}
 	defer s.Close()
 
-	mux.Handle("/", http.FileServer(http.Dir(".")))
+	handle := mainHandle{nil}
+
+	mux.Handle("/", handle)
+	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./assets"))))
 	mux.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
 		data, err := os.ReadFile("analyze.html")
 		if err != nil {
@@ -66,10 +84,6 @@ func main() {
 		w.Write(data)
 	})
 
-	err := s.ListenAndServe()
-	if err != nil {
-		if err != http.ErrServerClosed {
-			panic(err)
-		}
-	}
+	log.Println("Listening on localhost:8080")
+	log.Fatal(s.ListenAndServe())
 }
