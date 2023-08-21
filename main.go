@@ -10,38 +10,8 @@ import (
 	"github.com/amrojjeh/arabic-tags/speech"
 )
 
+// TODO(Amr Ojjeh): Consider moving into a context
 var templates = template.Must(template.ParseFiles("index.html"))
-
-type SpeechType int
-
-type Function int
-
-type Case struct {
-	class     CaseClass
-	explicit  bool
-	indicator string
-}
-
-type CaseClass int
-
-const (
-	Noun     SpeechType = iota // اسم
-	Verb                       // فعل
-	Particle                   // حرف
-)
-
-const (
-	Subject Function = iota
-	Object
-)
-
-const (
-	NA CaseClass = iota // not applicable
-	Nominative
-	Accusative
-	Genetive
-	// Add case for jazm
-)
 
 type mainHandle struct {
 	Sentences []speech.Sentence
