@@ -65,14 +65,14 @@ button {
     background-color: var(--background-odd);
 }
 
-.inspector {
+#inspector {
     position: sticky;
     background-color: #eee;
     display: inline-block;
     width: 20%;
 }
 
-.inspector h1 {
+#inspector h1 {
     margin-top: 1rem;
     text-align: center;
 }
