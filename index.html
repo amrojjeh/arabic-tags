@@ -20,14 +20,16 @@
     </header>
     <div class="main">
         <div class="sentences">
+            {{- range . -}}
             <div class="sentence-outer">
                 <button>Select</button>
-                <p>هذا مثال</p>
+                <p>{{- . -}}</p>
             </div>
-            <div class="sentence-outer">
-                <button>Select</button>
-                <p>هذا مثال</p>
-            </div>
+            {{- else -}}
+                <div class="sentence-outer">
+                    <p>THERE MUST AT LEAST BE ONE SENTENCE</p>
+                </div>            
+            {{- end -}}
         </div>
         <div id="inspector">
             <h1>(nothing selected)</h1>

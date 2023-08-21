@@ -1,15 +1,16 @@
 package main
 
 import (
+	"html/template"
+	"log"
 	"net/http"
 	"os"
-	"log"
 	"time"
-	"html/template"
+
+	"github.com/amrojjeh/arabic-tags/speech"
 )
 
 var templates = template.Must(template.ParseFiles("index.html"))
-
 
 type SpeechType int
 
@@ -19,7 +20,6 @@ type Case struct {
 	class     CaseClass
 	explicit  bool
 	indicator string
-	index int // the index in which the case is explicit within the word
 }
 
 type CaseClass int
@@ -43,22 +43,12 @@ const (
 	// Add case for jazm
 )
 
-type Word struct {
-	value    string
-	speech   SpeechType
-	function Function
-	cas      Case // so that it doesn't conflict with case; also how it's named in CAMeL tools
-	tokens   []int
-}
-
-type Sentence []Word
-
 type mainHandle struct {
-	Sentences []Sentence
+	Sentences []speech.Sentence
 }
 
 func (m mainHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "index.html", nil)
+	templates.ExecuteTemplate(w, "index.html", m.Sentences)
 }
 
 func main() {
@@ -72,7 +62,32 @@ func main() {
 	}
 	defer s.Close()
 
-	handle := mainHandle{nil}
+	// TODO(Amr Ojjeh): Load from a json file
+	// TODO(Amr Ojjeh): Add an option to connect to the db (requires auth)
+	handle := mainHandle{[]speech.Sentence{{speech.Word{{
+		Value: "هذا",
+		Case: speech.CaseType{
+			Type:      speech.CaseNA,
+			Indicator: speech.IndicatorDammah,
+		},
+	}},
+		speech.Word{
+			{
+				Value: "بيتُ",
+				Case: speech.CaseType{
+					Type:      speech.CaseNominative,
+					Indicator: speech.IndicatorDammah,
+				},
+			},
+			{
+				Value: "ه",
+				Case: speech.CaseType{
+					Type:      speech.CaseNA,
+					Indicator: speech.IndicatorNA,
+				},
+			},
+		},
+	}}}
 
 	mux.Handle("/", handle)
 	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./assets"))))
@@ -84,6 +99,6 @@ func main() {
 		w.Write(data)
 	})
 
-	log.Println("Listening on localhost:8080")
+	log.Println("Listening on http://127.0.0.1:8080")
 	log.Fatal(s.ListenAndServe())
 }
