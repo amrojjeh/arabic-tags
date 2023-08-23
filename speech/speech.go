@@ -1,44 +1,40 @@
 package speech
 
+import "strings"
+
 // TODO(Amr Ojjeh): Write documentation
 
-type Sentence []Word
+type Sentence struct {
+	Words []Word
+}
 
 func (s Sentence) String() string {
 	sum := ""
-	for _, w := range s {
-		sum += w.String() + " "
+	for _, w := range s.Words {
+		sum += w.Value + " "
 	}
 	return sum
 }
 
-type Word []Token
-
-func (w Word) String() string {
-	sum := ""
-	for _, t := range w {
-		sum += t.Value
+func NewSentence(v string) Sentence {
+	ws := strings.Split(" ", v)
+	words := make([]Word, len(ws))
+	for i, w := range ws {
+		words[i] = Word{
+			Value:              w,
+			Case:               CaseNA,
+			CaseIndicatorIndex: 0,
+			CaseCause:          CauseNA}
 	}
-	return sum
+	return Sentence{Words: words}
 }
 
-type Token struct {
-	Value string
-	Case  CaseType
+type Word struct {
+	Value              string    `json:"value"`
+	Case               caseClass `json:"case"`
+	CaseIndicatorIndex int       `json:"case_index"`
+	CaseCause          caseCause `json:"case_cause"`
 }
-
-type CaseType struct {
-	Type      caseClass
-	Indicator caseIndicator
-}
-
-type caseIndicator string
-
-const (
-	IndicatorNA       caseIndicator = "INDICATOR_NA"
-	IndicatorImplicit caseIndicator = "INDICATOR_IMPLICIT"
-	IndicatorDammah   caseIndicator = "INDICATOR_DAMMAH"
-)
 
 type caseClass string
 
@@ -48,4 +44,13 @@ const (
 	CaseAccusative caseClass = "CASE_ACCUSATIVE"
 	CaseGenitive   caseClass = "CASE_GENITIVE"
 	CaseJussive    caseClass = "CASE_JUSSIVE"
+)
+
+type caseCause string
+
+const (
+	CauseNA        caseCause = "CAUSE_NA"
+	CausePredicate caseCause = "CAUSE_PREDICATE"
+	CauseSubject   caseCause = "CAUSE_SUBJECT"
+	CausePastVerb  caseCause = "CAUSE_PAST_VERB"
 )

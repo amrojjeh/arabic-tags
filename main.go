@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
@@ -8,60 +9,67 @@ import (
 	"time"
 
 	"github.com/amrojjeh/arabic-tags/speech"
+	"github.com/gorilla/mux"
 )
 
-// TODO(Amr Ojjeh): Consider moving into a context
-var templates = template.Must(template.ParseFiles("index.html"))
-
-type mainHandle struct {
-	Sentences []speech.Sentence
+type app struct {
+	templates *template.Template
+	data      []speech.Sentence
 }
 
-func (m mainHandle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "index.html", m.Sentences)
+func (a app) index() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO(Amr Ojjeh): If there aren't any sentences, change the current message to be a button to add a new sentence
+		a.templates.ExecuteTemplate(w, "index.html", a.data)
+	})
+}
+
+func (a app) newSentence() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		a.templates.ExecuteTemplate(w, "new_sentence.html", nil)
+	})
 }
 
 func main() {
-	mux := http.NewServeMux()
+	r := mux.NewRouter()
 	s := http.Server{
 		Addr:           ":8080",
-		Handler:        mux,
+		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 	defer s.Close()
 
-	// TODO(Amr Ojjeh): Load from a json file
-	// TODO(Amr Ojjeh): Add an option to connect to the db (requires auth)
-	handle := mainHandle{[]speech.Sentence{{speech.Word{{
-		Value: "هذا",
-		Case: speech.CaseType{
-			Type:      speech.CaseNA,
-			Indicator: speech.IndicatorDammah,
-		},
-	}},
-		speech.Word{
-			{
-				Value: "بيتُ",
-				Case: speech.CaseType{
-					Type:      speech.CaseNominative,
-					Indicator: speech.IndicatorDammah,
-				},
-			},
-			{
-				Value: "ه",
-				Case: speech.CaseType{
-					Type:      speech.CaseNA,
-					Indicator: speech.IndicatorNA,
-				},
-			},
-		},
-	}}}
+	f, err := os.OpenFile("data.json", os.O_RDONLY|os.O_CREATE, 0o755)
+	if err != nil {
+		log.Fatal("Could not read or create file:", err)
+	}
+	data := make([]speech.Sentence, 0, 50)
+	dec := json.NewDecoder(f)
+	for dec.More() {
+		var sen speech.Sentence
+		dec.Decode(&sen)
+		data = append(data, sen)
+	}
+	f.Close()
 
-	mux.Handle("/", handle)
-	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./assets"))))
-	mux.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
+	// TODO(Amr Ojjeh): Add an option to connect to the db (requires auth)
+	a := app{
+		templates: template.Must(template.ParseGlob("templates/*.html")),
+		data:      data}
+
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./assets")))).
+		Methods("GET")
+
+	r.Handle("/sentence/new", a.newSentence()).
+		Methods("GET")
+
+	r.Handle("/", a.index()).
+		Methods("GET")
+
+	// TODO(Amr Ojjeh): Add analyze option
+	r.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
 		data, err := os.ReadFile("analyze.html")
 		if err != nil {
 			panic(err)
