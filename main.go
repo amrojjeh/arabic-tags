@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/amrojjeh/arabic-tags/speech"
+	"github.com/amrojjeh/goarabic"
 	"github.com/gorilla/mux"
 )
 
@@ -17,20 +18,25 @@ type app struct {
 	data      []speech.Sentence
 }
 
-func (a app) index() http.Handler {
+func (a *app) index() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// TODO(Amr Ojjeh): If there aren't any sentences, change the current message to be a button to add a new sentence
 		a.templates.ExecuteTemplate(w, "index.html", a.data)
 	})
 }
 
-func (a app) newSentence() http.Handler {
+func (a *app) newSentence() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		a.templates.ExecuteTemplate(w, "new_sentence.html", nil)
+		ar, _ := goarabic.SafeBWToAr("hVA mvAl")
+		sen := speech.NewSentence(ar)
+		a.data = append(a.data, sen)
+		log.Println("New Sentence:", sen)
+		a.templates.ExecuteTemplate(w, "sentence-outer", a.data[len(a.data)-1])
 	})
 }
 
 func main() {
+	log.SetPrefix("main:")
 	r := mux.NewRouter()
 	s := http.Server{
 		Addr:           ":8080",
@@ -62,8 +68,8 @@ func main() {
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./assets")))).
 		Methods("GET")
 
-	r.Handle("/sentence/new", a.newSentence()).
-		Methods("GET")
+	r.Handle("/sentence", a.newSentence()).
+		Methods("POST")
 
 	r.Handle("/", a.index()).
 		Methods("GET")

@@ -12,7 +12,7 @@
     <link rel="stylesheet" type="text/css" href="static/style.css">
     <script src="/static/htmx-1.9.4.min.js"></script>
 </head>
-<body>
+<body hx-boost="true">
     <header>
         <button>Import</button>
         <p>Arabic Tag</p>
@@ -21,14 +21,16 @@
     <div class="main">
         <div class="sentences">
             {{- range . -}}
-            <div class="sentence-outer">
-                <button>Select</button>
-                <p>{{- . -}}</p>
-            </div>
+                {{- block "sentence-outer" . -}}
+                    <div class="sentence-outer">
+                        <button>Select</button>
+                        <p>{{- . -}}</p>
+                    </div>
+                {{- end -}}
             {{- else -}}
                 <div class="sentence-outer">
-                    <p>THERE MUST AT LEAST BE ONE SENTENCE</p>
-                </div>            
+                    <button hx-swap="outerHTML" hx-target="closest .sentence-outer" hx-post="/sentence">Add sentence</button>
+                </div>
             {{- end -}}
         </div>
         <div id="inspector">

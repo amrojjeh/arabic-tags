@@ -1,6 +1,8 @@
 package speech
 
-import "strings"
+import (
+	"strings"
+)
 
 // TODO(Amr Ojjeh): Write documentation
 
@@ -17,7 +19,7 @@ func (s Sentence) String() string {
 }
 
 func NewSentence(v string) Sentence {
-	ws := strings.Split(" ", v)
+	ws := strings.Split(v, " ")
 	words := make([]Word, len(ws))
 	for i, w := range ws {
 		words[i] = Word{
@@ -29,6 +31,7 @@ func NewSentence(v string) Sentence {
 	return Sentence{Words: words}
 }
 
+// TODO(Amr Ojjeh): Save JSON in SafeBW
 type Word struct {
 	Value              string    `json:"value"`
 	Case               caseClass `json:"case"`
