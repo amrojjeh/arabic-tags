@@ -21,15 +21,15 @@
     <div class="main">
         <div class="sentences">
             {{- range .Sentences -}}
-                {{- block "sentence-outer" . -}}
+                {{- block "sentence-outer.tmpl" . -}}
                     <div class="sentence-outer space-between">
-                        <button hx-get="/sentences/{{.Id}}/inspector">Select</button>
+                        <button hx-get="/sentences/{{.Id}}/inspector" hx-target="#inspector">Select</button>
                         <p>{{- . -}}</p>
                     </div>
                 {{- end -}}
             {{- else -}}
                 <div class="sentence-outer center">
-                    <button hx-swap="outerHTML" hx-target="closest .sentence-outer" hx-post="/sentence">Add sentence</button>
+                    <button hx-swap="outerHTML" hx-target="closest .sentence-outer" hx-post="/sentences">Add sentence</button>
                 </div>
             {{- end -}}
         </div>
