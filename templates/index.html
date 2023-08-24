@@ -20,15 +20,15 @@
     </header>
     <div class="main">
         <div class="sentences">
-            {{- range . -}}
+            {{- range .Sentences -}}
                 {{- block "sentence-outer" . -}}
-                    <div class="sentence-outer">
-                        <button>Select</button>
+                    <div class="sentence-outer space-between">
+                        <button hx-get="/sentences/{{.Id}}/inspector">Select</button>
                         <p>{{- . -}}</p>
                     </div>
                 {{- end -}}
             {{- else -}}
-                <div class="sentence-outer">
+                <div class="sentence-outer center">
                     <button hx-swap="outerHTML" hx-target="closest .sentence-outer" hx-post="/sentence">Add sentence</button>
                 </div>
             {{- end -}}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"html/template"
 	"log"
 	"net/http"
@@ -15,13 +16,46 @@ import (
 
 type app struct {
 	templates *template.Template
-	data      []speech.Sentence
+	paragraph speech.Paragraph
+	fileName  string
+}
+
+func (a *app) load() error {
+	a.paragraph = speech.Paragraph{}
+	b, err := os.ReadFile(a.fileName)
+	if errors.Is(err, os.ErrNotExist) {
+		log.Println("File", a.fileName, "does not exist. Starting from zero...")
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(b, &a.paragraph)
+	if err != nil {
+		return err
+	}
+	log.Println("Loaded paragraph from:", a.fileName)
+	return nil
+}
+
+func (a *app) save() error {
+	b, err := json.Marshal(a.paragraph)
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile(a.fileName, b, 0o666)
+	if err != nil {
+		return err
+	}
+
+	log.Println("Paragraph was saved to:", a.fileName)
+	return nil
 }
 
 func (a *app) index() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// TODO(Amr Ojjeh): If there aren't any sentences, change the current message to be a button to add a new sentence
-		a.templates.ExecuteTemplate(w, "index.html", a.data)
+		a.templates.ExecuteTemplate(w, "index.html", a.paragraph)
 	})
 }
 
@@ -29,9 +63,10 @@ func (a *app) newSentence() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ar, _ := goarabic.SafeBWToAr("hVA mvAl")
 		sen := speech.NewSentence(ar)
-		a.data = append(a.data, sen)
+		a.paragraph.AddSentence(sen)
+		a.save()
 		log.Println("New Sentence:", sen)
-		a.templates.ExecuteTemplate(w, "sentence-outer", a.data[len(a.data)-1])
+		a.templates.ExecuteTemplate(w, "sentence-outer", sen)
 	})
 }
 
@@ -47,23 +82,15 @@ func main() {
 	}
 	defer s.Close()
 
-	f, err := os.OpenFile("data.json", os.O_RDONLY|os.O_CREATE, 0o755)
-	if err != nil {
-		log.Fatal("Could not read or create file:", err)
-	}
-	data := make([]speech.Sentence, 0, 50)
-	dec := json.NewDecoder(f)
-	for dec.More() {
-		var sen speech.Sentence
-		dec.Decode(&sen)
-		data = append(data, sen)
-	}
-	f.Close()
-
 	// TODO(Amr Ojjeh): Add an option to connect to the db (requires auth)
 	a := app{
-		templates: template.Must(template.ParseGlob("templates/*.html")),
-		data:      data}
+		fileName:  "data.json",
+		templates: template.Must(template.ParseGlob("templates/*.html"))}
+	err := a.load()
+
+	if err != nil {
+		log.Fatal("Could not load: ", a.fileName, ": ", err)
+	}
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./assets")))).
 		Methods("GET")

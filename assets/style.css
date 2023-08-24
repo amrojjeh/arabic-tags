@@ -49,9 +49,17 @@ button {
     width: 80%;
 }
 
-.sentence-outer {
+.center {
+    display: flex;
+    justify-content: center;
+}
+
+.space-between {
     display: flex;
     justify-content: space-between;
+}
+
+.sentence-outer {
     padding-block: 1rem;
     padding-inline: 3rem;
     font-size: 3rem;
