@@ -21,29 +21,28 @@
     <!-- TODO(Amr Ojjeh): Make words selectable -->
     {{- block "main.tmpl" . -}}
     <div class="main">
-        {{- block "sentences.tmpl" . -}}
         <div class="sentences">
+        {{- block "sentences.tmpl" . -}}
             {{- range .Sentences -}}
                 {{- block "sentence-outer.tmpl" . -}}
-                    <div id="sentence-{{.Id}}" class="sentence-outer space-between">
-                        <button hx-get="/sentences/{{.Id}}/inspector" hx-target="#inspector">Select</button>
-                        <p>{{- . -}}</p>
-                    </div>
-                {{- end -}}
-            {{- else -}}
-                <div class="sentence-outer center">
-                    <button hx-swap="outerHTML" hx-target="closest .sentence-outer" hx-post="/sentences">Add sentence</button>
+                <div id="sentence-{{.Id}}" class="sentence-outer space-between">
+                    <button hx-get="/sentences/{{.Id}}/inspector" hx-target="#inspector">Select</button>
+                    <p>{{- . -}}</p>
                 </div>
+                {{- end -}}
             {{- end -}}
-        </div>
+            <div class="sentence-outer center">
+                <button hx-swap="beforebegin" hx-target="closest .sentence-outer" hx-post="/sentences">Add sentence</button>
+            </div>
         {{- end -}}
+        </div>
         <div id="inspector">
         {{- block "inspector.tmpl" "" -}}
             {{- if . -}}
             <!-- TODO(Amr Ojjeh): Add a trim helper (or at least consider it) -->
             <h1>{{- . -}}</h1>
-            <button type="button" hx-target="previous .sentences" hx-swap="beforeend" hx-post="/sentences">Add sentence below</button>
-            <button type="button">Add sentence above</button>
+            <button type="button" hx-target="previous .sentences" hx-patch="/sentences/{{.Id}}/move-up">Move sentence up</button>
+            <button type="button" hx-target="previous .sentences" hx-patch="/sentences/{{.Id}}/move-down">Move sentence down</button>
             <button type="button">Edit</button>
             <button type="button" hx-delete="/sentences/{{.Id}}" hx-swap="outerHTML" hx-target="closest .main">Delete</button>
             {{- else -}}

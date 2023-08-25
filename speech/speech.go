@@ -1,13 +1,17 @@
 package speech
 
-import "strings"
+import (
+	"errors"
+	"fmt"
+	"strings"
+)
 
 // TODO(Amr Ojjeh): Write documentation
 // TODO(Amr Ojjeh): function to check if JSON is valid or corrupted
 
 type Paragraph struct {
-	Id        int        `json:"id"`
-	Sentences []Sentence `json:"sentences"`
+	AvailableId int        `json:"available_id"`
+	Sentences   []Sentence `json:"sentences"`
 }
 
 func (p Paragraph) String() string {
@@ -18,26 +22,81 @@ func (p Paragraph) String() string {
 	return sum
 }
 
-func (p *Paragraph) AddSentence(s *Sentence) {
-	s.Id = len(p.Sentences)
-	p.Sentences = append(p.Sentences, *s)
+func (p *Paragraph) AddSentence(value string) Sentence {
+	ws := strings.Split(value, " ")
+	words := make([]Word, len(ws))
+	for i, w := range ws {
+		words[i] = Word{
+			Id:                 p.AvailableId,
+			Value:              w,
+			Case:               CaseNA,
+			CaseIndicatorIndex: 0,
+			CaseCause:          CauseNA}
+		p.AvailableId++
+	}
+	s := Sentence{Id: p.AvailableId,
+		Words: words}
+	p.AvailableId++
+	p.Sentences = append(p.Sentences, s)
+	return s
 }
 
-func (p *Paragraph) DeleteSentence(s Sentence) {
+// DeleteSentence deletes a sentence. If a sentence was deleted, then it returns true. Otherwise, it returns false
+func (p *Paragraph) DeleteSentence(id int) bool {
+	si, err := p.GetSentenceIndex(id)
+	if err != nil {
+		return false
+	}
 	cp := make([]Sentence, len(p.Sentences)-1, len(p.Sentences)+10)
 	for i, v := range p.Sentences {
-		if i > s.Id {
+		if i > si {
 			cp[i-1] = v
-			cp[i-1].Id = i - 1
-		} else if i < s.Id {
+		} else if i < si {
 			cp[i] = v
 		}
 	}
 	p.Sentences = cp
+	return true
 }
 
-func (p *Paragraph) DeleteSentenceId(id int64) {
-	p.DeleteSentence(p.Sentences[id])
+func (p *Paragraph) GetSentenceIndex(id int) (int, error) {
+	for i, v := range p.Sentences {
+		if v.Id == id {
+			return i, nil
+		}
+	}
+	return 0, errors.New(fmt.Sprintf("sentence id with %v was not found", id))
+}
+
+func (p *Paragraph) swapSentence(o1, o2 int) {
+	tempS := p.Sentences[o1]
+	p.Sentences[o1] = p.Sentences[o2]
+	p.Sentences[o2] = tempS
+}
+
+func (p *Paragraph) MoveSentenceUp(id int) {
+	if s1, err := p.GetSentenceIndex(id); err == nil {
+		if s2 := s1 - 1; s1 > 0 {
+			p.swapSentence(s1, s2)
+		}
+	}
+}
+
+func (p *Paragraph) MoveSentenceDown(id int) {
+	if s1, err := p.GetSentenceIndex(id); err == nil {
+		if s2 := s1 + 1; s2 < len(p.Sentences) {
+			p.swapSentence(s1, s2)
+		}
+	}
+}
+
+func (p *Paragraph) GetSentenceId(id int) (Sentence, error) {
+	for _, v := range p.Sentences {
+		if v.Id == id {
+			return v, nil
+		}
+	}
+	return Sentence{}, errors.New(fmt.Sprintf("sentence id with %v was not found", id))
 }
 
 type Sentence struct {
@@ -51,25 +110,6 @@ func (s Sentence) String() string {
 		sum += w.Value + " "
 	}
 	return sum
-}
-
-func (s *Sentence) AddWord(w Word) {
-	w.Id = len(s.Words)
-	s.Words = append(s.Words, w)
-}
-
-func NewSentence(v string) Sentence {
-	ws := strings.Split(v, " ")
-	words := make([]Word, len(ws))
-	for i, w := range ws {
-		words[i] = Word{
-			Id:                 i,
-			Value:              w,
-			Case:               CaseNA,
-			CaseIndicatorIndex: 0,
-			CaseCause:          CauseNA}
-	}
-	return Sentence{Words: words}
 }
 
 // TODO(Amr Ojjeh): Save JSON in SafeBW

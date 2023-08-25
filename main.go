@@ -1,6 +1,7 @@
 package main
 
 // TODO(Amr Ojjeh): Add documentation
+// TODO(Amr Ojjeh): Add edit button
 import (
 	"encoding/json"
 	"errors"
@@ -17,9 +18,23 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func varNotPassed(w http.ResponseWriter, r *http.Request, v string) {
-	http.Error(w, fmt.Sprintf("%v was not passed into url", v), http.StatusInternalServerError)
-	log.Fatalf("getSentence - %v was not passed into url: %v", v, r.URL)
+func getVar(w http.ResponseWriter, r *http.Request, v string) string {
+	vars := mux.Vars(r)
+	str, ok := vars[v]
+	if !ok {
+		http.Error(w, fmt.Sprintf("%v was not passed into url", v), http.StatusInternalServerError)
+		log.Fatalf("getSentence - %v was not passed into url: %v", v, r.URL)
+	}
+	return str
+}
+
+func getId(w http.ResponseWriter, r *http.Request) (int, error) {
+	id, err := strconv.ParseInt(getVar(w, r, "id"), 10, 64)
+	if err != nil {
+		http.Error(w, "id has to be a positive integer", http.StatusBadRequest)
+		return 0, err
+	}
+	return int(id), nil
 }
 
 type app struct {
@@ -63,7 +78,6 @@ func (a *app) save() error {
 
 func (a *app) index() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO(Amr Ojjeh): If there aren't any sentences, change the current message to be a button to add a new sentence
 		a.templates.ExecuteTemplate(w, "index.html", a.paragraph)
 	})
 }
@@ -78,8 +92,7 @@ func (a *app) newSentence() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ar, _ := goarabic.SafeBWToAr("hVA mvAl")
 		ar += " " + strconv.Itoa(len(a.paragraph.Sentences))
-		sen := speech.NewSentence(ar)
-		a.paragraph.AddSentence(&sen)
+		sen := a.paragraph.AddSentence(ar)
 		a.save()
 		log.Println("new Sentence:", sen)
 		log.Println("new sentence id:", sen.Id)
@@ -89,53 +102,68 @@ func (a *app) newSentence() http.Handler {
 
 func (a *app) getSentence() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		idStr, ok := vars["id"]
-		if !ok {
-			varNotPassed(w, r, "id")
-		}
-		id, err := strconv.ParseInt(idStr, 10, 64)
+		id, err := getId(w, r)
 		if err != nil {
 			http.Error(w, "id has to be a positive integer", http.StatusBadRequest)
 			return
 		}
-		a.templates.ExecuteTemplate(w, "sentence-outer.tmpl", a.paragraph.Sentences[id])
+		sen, err := a.paragraph.GetSentenceId(id)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("sentence with id %v does not exist", id), http.StatusBadRequest)
+			return
+		}
+		a.templates.ExecuteTemplate(w, "sentence-outer.tmpl", sen)
 	})
 }
 
 func (a *app) loadInspector() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		idStr, ok := vars["id"]
-		if !ok {
-			varNotPassed(w, r, "id")
-		}
-		id, err := strconv.ParseInt(idStr, 10, 64)
+		id, err := getId(w, r)
 		if err != nil {
-			http.Error(w, "id has to be a positive integer", http.StatusBadRequest)
 			return
 		}
 		log.Println("load inspector for sentence id:", id)
-		a.templates.ExecuteTemplate(w, "inspector.tmpl", a.paragraph.Sentences[id])
+		sen, err := a.paragraph.GetSentenceId(id)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("sentence with id %v does not exist", id), http.StatusBadRequest)
+			return
+		}
+		a.templates.ExecuteTemplate(w, "inspector.tmpl", sen)
 	})
 }
 
 func (a *app) deleteSentence() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		idStr, ok := vars["id"]
-		if !ok {
-			varNotPassed(w, r, "id")
-		}
-		id, err := strconv.ParseInt(idStr, 10, 64)
+		id, err := getId(w, r)
 		if err != nil {
-			http.Error(w, "id has to be a positive integer", http.StatusBadRequest)
 			return
 		}
-		a.paragraph.DeleteSentenceId(id)
+		a.paragraph.DeleteSentence(int(id))
 		a.save()
 		log.Println("deleted sentence id:", id)
 		a.templates.ExecuteTemplate(w, "main.tmpl", a.paragraph)
+	})
+}
+
+func (a *app) moveSentenceUp() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, err := getId(w, r)
+		if err != nil {
+			return
+		}
+		a.paragraph.MoveSentenceUp(id)
+		a.templates.ExecuteTemplate(w, "sentences.tmpl", a.paragraph)
+	})
+}
+
+func (a *app) moveSentenceDown() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, err := getId(w, r)
+		if err != nil {
+			return
+		}
+		a.paragraph.MoveSentenceDown(id)
+		a.templates.ExecuteTemplate(w, "sentences.tmpl", a.paragraph)
 	})
 }
 
@@ -169,6 +197,11 @@ func main() {
 		Methods(http.MethodGet)
 	r.Handle("/sentences", a.newSentence()).
 		Methods(http.MethodPost)
+
+	r.Handle("/sentences/{id}/move-up", a.moveSentenceUp()).
+		Methods(http.MethodPatch)
+	r.Handle("/sentences/{id}/move-down", a.moveSentenceDown()).
+		Methods(http.MethodPatch)
 
 	r.Handle("/", a.index()).
 		Methods(http.MethodGet)
