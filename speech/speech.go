@@ -9,6 +9,21 @@ import (
 // TODO(Amr Ojjeh): Write documentation
 // TODO(Amr Ojjeh): function to check if JSON is valid or corrupted
 
+func wordsSlice(id int, value string) (int, []Word) {
+	ws := strings.Split(value, " ")
+	words := make([]Word, len(ws))
+	for i, w := range ws {
+		words[i] = Word{
+			Id:                 id,
+			Value:              w,
+			Case:               CaseNA,
+			CaseIndicatorIndex: 0,
+			CaseCause:          CauseNA}
+		id++
+	}
+	return id, words
+}
+
 type Paragraph struct {
 	AvailableId int        `json:"available_id"`
 	Sentences   []Sentence `json:"sentences"`
@@ -22,18 +37,20 @@ func (p Paragraph) String() string {
 	return sum
 }
 
-func (p *Paragraph) AddSentence(value string) Sentence {
-	ws := strings.Split(value, " ")
-	words := make([]Word, len(ws))
-	for i, w := range ws {
-		words[i] = Word{
-			Id:                 p.AvailableId,
-			Value:              w,
-			Case:               CaseNA,
-			CaseIndicatorIndex: 0,
-			CaseCause:          CauseNA}
-		p.AvailableId++
+func (p *Paragraph) EditSentence(id int, value string) bool {
+	sen, err := p.GetSentenceId(id)
+	if err != nil {
+		return false
 	}
+	newId, words := wordsSlice(p.AvailableId, value)
+	p.AvailableId = newId
+	sen.Words = words
+	return true
+}
+
+func (p *Paragraph) AddSentence(value string) Sentence {
+	id, words := wordsSlice(p.AvailableId, value)
+	p.AvailableId = id
 	s := Sentence{Id: p.AvailableId,
 		Words: words}
 	p.AvailableId++
@@ -90,13 +107,12 @@ func (p *Paragraph) MoveSentenceDown(id int) {
 	}
 }
 
-func (p *Paragraph) GetSentenceId(id int) (Sentence, error) {
-	for _, v := range p.Sentences {
-		if v.Id == id {
-			return v, nil
-		}
+func (p *Paragraph) GetSentenceId(id int) (*Sentence, error) {
+	si, err := p.GetSentenceIndex(id)
+	if err != nil {
+		return &Sentence{}, errors.New(fmt.Sprintf("sentence id with %v was not found", id))
 	}
-	return Sentence{}, errors.New(fmt.Sprintf("sentence id with %v was not found", id))
+	return &p.Sentences[si], nil
 }
 
 type Sentence struct {

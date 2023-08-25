@@ -26,7 +26,7 @@
             {{- range .Sentences -}}
                 {{- block "sentence-outer.tmpl" . -}}
                 <div id="sentence-{{.Id}}" class="sentence-outer space-between">
-                    <button hx-get="/sentences/{{.Id}}/inspector" hx-target="#inspector">Select</button>
+                    <button hx-get="/sentences/{{.Id}}/inspector" hx-swap="none" type="button">Select</button>
                     <p>{{- . -}}</p>
                 </div>
                 {{- end -}}
@@ -36,21 +36,30 @@
             </div>
         {{- end -}}
         </div>
-        <div id="inspector">
         {{- block "inspector.tmpl" "" -}}
+        <div id="inspector" hx-swap-oob="true">
             {{- if . -}}
             <!-- TODO(Amr Ojjeh): Add a trim helper (or at least consider it) -->
             <h1>{{- . -}}</h1>
             <button type="button" hx-target="previous .sentences" hx-patch="/sentences/{{.Id}}/move-up">Move sentence up</button>
             <button type="button" hx-target="previous .sentences" hx-patch="/sentences/{{.Id}}/move-down">Move sentence down</button>
-            <button type="button">Edit</button>
-            <button type="button" hx-delete="/sentences/{{.Id}}" hx-swap="outerHTML" hx-target="closest .main">Delete</button>
+            <button type="button" hx-target="#sentence-{{.Id}}" hx-swap="outerHTML" hx-get="/sentences/{{.Id}}/edit">Edit</button>
+            <button type="button" hx-delete="/sentences/{{.Id}}" hx-swap="delete" hx-target="#sentence-{{.Id}}">Delete</button>
             {{- else -}}
             <h1>(nothing selected)</h1>
             {{- end -}}
-        {{- end -}}
         </div>
+        {{- end -}}
     </div>
     {{- end -}}
 </body>
 </html>
+
+{{- define "sentence-edit.tmpl" -}}
+<form hx-put="/sentences/{{.Id}}" hx-swap="outerHTML">
+    <div id="sentence-{{.Id}}" class="sentence-outer space-between">
+        <button type="submit">Submit</button>
+        <input name="v" type="text" value="{{ . }}"></input>
+    </div>
+</form>
+{{- end -}}

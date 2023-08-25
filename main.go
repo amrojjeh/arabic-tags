@@ -1,7 +1,8 @@
 package main
 
 // TODO(Amr Ojjeh): Add documentation
-// TODO(Amr Ojjeh): Add edit button
+// TODO(Amr Ojjeh): Improve logging
+
 import (
 	"encoding/json"
 	"errors"
@@ -141,7 +142,7 @@ func (a *app) deleteSentence() http.Handler {
 		a.paragraph.DeleteSentence(int(id))
 		a.save()
 		log.Println("deleted sentence id:", id)
-		a.templates.ExecuteTemplate(w, "main.tmpl", a.paragraph)
+		a.templates.ExecuteTemplate(w, "inspector.tmpl", nil)
 	})
 }
 
@@ -151,7 +152,9 @@ func (a *app) moveSentenceUp() http.Handler {
 		if err != nil {
 			return
 		}
+		// TODO(Amr Ojjeh): Return BadRequest if sentence does not exist
 		a.paragraph.MoveSentenceUp(id)
+		a.save()
 		a.templates.ExecuteTemplate(w, "sentences.tmpl", a.paragraph)
 	})
 }
@@ -162,8 +165,51 @@ func (a *app) moveSentenceDown() http.Handler {
 		if err != nil {
 			return
 		}
+		// TODO(Amr Ojjeh): Return BadRequest if sentence does not exist
 		a.paragraph.MoveSentenceDown(id)
+		a.save()
 		a.templates.ExecuteTemplate(w, "sentences.tmpl", a.paragraph)
+	})
+}
+
+func (a *app) sentenceEditView() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, err := getId(w, r)
+		if err != nil {
+			return
+		}
+		sen, err := a.paragraph.GetSentenceId(id)
+		// TODO(Amr Ojjeh): Improve helper functions
+		if err != nil {
+			http.Error(w, fmt.Sprintf("sentence with id %v does not exist", id), http.StatusBadRequest)
+			return
+		}
+		a.templates.ExecuteTemplate(w, "sentence-edit.tmpl", sen)
+	})
+}
+
+func (a *app) sentenceEdit() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, err := getId(w, r)
+		if err != nil {
+			return
+		}
+		sen, err := a.paragraph.GetSentenceId(id)
+		// TODO(Amr Ojjeh): Improve helper functions
+		if err != nil {
+			http.Error(w, fmt.Sprintf("sentence with id %v does not exist", id), http.StatusBadRequest)
+			return
+		}
+		r.ParseForm()
+		if !r.Form.Has("v") {
+			http.Error(w, "v parameter is required", http.StatusBadRequest)
+			return
+		}
+		value := r.Form.Get("v")
+		a.paragraph.EditSentence(id, value)
+		a.save()
+		a.templates.ExecuteTemplate(w, "sentence-outer.tmpl", sen)
+		a.templates.ExecuteTemplate(w, "inspector.tmpl", sen)
 	})
 }
 
@@ -202,6 +248,11 @@ func main() {
 		Methods(http.MethodPatch)
 	r.Handle("/sentences/{id}/move-down", a.moveSentenceDown()).
 		Methods(http.MethodPatch)
+
+	r.Handle("/sentences/{id}/edit", a.sentenceEditView()).
+		Methods(http.MethodGet)
+	r.Handle("/sentences/{id}", a.sentenceEdit()).
+		Methods(http.MethodPut)
 
 	r.Handle("/", a.index()).
 		Methods(http.MethodGet)
