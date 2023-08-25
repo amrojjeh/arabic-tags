@@ -1,8 +1,6 @@
 package main
 
 // TODO(Amr Ojjeh): Add documentation
-// TODO(Amr Ojjeh): Add sentences/{{id}}/inspector
-
 import (
 	"encoding/json"
 	"errors"
@@ -35,7 +33,7 @@ func (a *app) load() error {
 	a.paragraph = speech.Paragraph{}
 	b, err := os.ReadFile(a.fileName)
 	if errors.Is(err, os.ErrNotExist) {
-		log.Println("File", a.fileName, "does not exist. Starting from zero...")
+		log.Println("file", a.fileName, "does not exist. Starting from zero...")
 		return nil
 	}
 	if err != nil {
@@ -45,7 +43,7 @@ func (a *app) load() error {
 	if err != nil {
 		return err
 	}
-	log.Println("Loaded paragraph from:", a.fileName)
+	log.Println("loaded paragraph from:", a.fileName)
 	return nil
 }
 
@@ -59,7 +57,7 @@ func (a *app) save() error {
 		return err
 	}
 
-	log.Println("Paragraph was saved to:", a.fileName)
+	log.Println("paragraph was saved to:", a.fileName)
 	return nil
 }
 
@@ -70,13 +68,21 @@ func (a *app) index() http.Handler {
 	})
 }
 
+func (a *app) sentences() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		a.templates.ExecuteTemplate(w, "sentences.tmpl", a.paragraph)
+	})
+}
+
 func (a *app) newSentence() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ar, _ := goarabic.SafeBWToAr("hVA mvAl")
+		ar += " " + strconv.Itoa(len(a.paragraph.Sentences))
 		sen := speech.NewSentence(ar)
-		a.paragraph.AddSentence(sen)
+		a.paragraph.AddSentence(&sen)
 		a.save()
-		log.Println("New Sentence:", sen)
+		log.Println("new Sentence:", sen)
+		log.Println("new sentence id:", sen.Id)
 		a.templates.ExecuteTemplate(w, "sentence-outer.tmpl", sen)
 	})
 }
@@ -109,7 +115,27 @@ func (a *app) loadInspector() http.Handler {
 			http.Error(w, "id has to be a positive integer", http.StatusBadRequest)
 			return
 		}
-		a.templates.ExecuteTemplate(w, "inspector.html", a.paragraph.Sentences[id])
+		log.Println("load inspector for sentence id:", id)
+		a.templates.ExecuteTemplate(w, "inspector.tmpl", a.paragraph.Sentences[id])
+	})
+}
+
+func (a *app) deleteSentence() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		idStr, ok := vars["id"]
+		if !ok {
+			varNotPassed(w, r, "id")
+		}
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			http.Error(w, "id has to be a positive integer", http.StatusBadRequest)
+			return
+		}
+		a.paragraph.DeleteSentenceId(id)
+		a.save()
+		log.Println("deleted sentence id:", id)
+		a.templates.ExecuteTemplate(w, "main.tmpl", a.paragraph)
 	})
 }
 
@@ -137,19 +163,24 @@ func main() {
 	}
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./assets")))).
-		Methods("GET")
+		Methods(http.MethodGet)
 
+	r.Handle("/sentences", a.sentences()).
+		Methods(http.MethodGet)
 	r.Handle("/sentences", a.newSentence()).
-		Methods("POST")
+		Methods(http.MethodPost)
 
 	r.Handle("/", a.index()).
-		Methods("GET")
+		Methods(http.MethodGet)
 
 	r.Handle("/sentences/{id}", a.getSentence()).
-		Methods("GET")
+		Methods(http.MethodGet)
+
+	r.Handle("/sentences/{id}", a.deleteSentence()).
+		Methods(http.MethodDelete)
 
 	r.Handle("/sentences/{id}/inspector", a.loadInspector()).
-		Methods("GET")
+		Methods(http.MethodGet)
 
 	// TODO(Amr Ojjeh): Add analyze option
 	r.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {

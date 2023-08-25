@@ -19,11 +19,13 @@
         <button>Export</button>
     </header>
     <!-- TODO(Amr Ojjeh): Make words selectable -->
+    {{- block "main.tmpl" . -}}
     <div class="main">
+        {{- block "sentences.tmpl" . -}}
         <div class="sentences">
             {{- range .Sentences -}}
                 {{- block "sentence-outer.tmpl" . -}}
-                    <div class="sentence-outer space-between">
+                    <div id="sentence-{{.Id}}" class="sentence-outer space-between">
                         <button hx-get="/sentences/{{.Id}}/inspector" hx-target="#inspector">Select</button>
                         <p>{{- . -}}</p>
                     </div>
@@ -34,9 +36,22 @@
                 </div>
             {{- end -}}
         </div>
+        {{- end -}}
         <div id="inspector">
+        {{- block "inspector.tmpl" "" -}}
+            {{- if . -}}
+            <!-- TODO(Amr Ojjeh): Add a trim helper (or at least consider it) -->
+            <h1>{{- . -}}</h1>
+            <button type="button" hx-target="previous .sentences" hx-swap="beforeend" hx-post="/sentences">Add sentence below</button>
+            <button type="button">Add sentence above</button>
+            <button type="button">Edit</button>
+            <button type="button" hx-delete="/sentences/{{.Id}}" hx-swap="outerHTML" hx-target="closest .main">Delete</button>
+            {{- else -}}
             <h1>(nothing selected)</h1>
+            {{- end -}}
+        {{- end -}}
         </div>
     </div>
+    {{- end -}}
 </body>
 </html>

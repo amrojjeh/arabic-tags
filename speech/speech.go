@@ -3,6 +3,7 @@ package speech
 import "strings"
 
 // TODO(Amr Ojjeh): Write documentation
+// TODO(Amr Ojjeh): function to check if JSON is valid or corrupted
 
 type Paragraph struct {
 	Id        int        `json:"id"`
@@ -17,9 +18,26 @@ func (p Paragraph) String() string {
 	return sum
 }
 
-func (p *Paragraph) AddSentence(s Sentence) {
+func (p *Paragraph) AddSentence(s *Sentence) {
 	s.Id = len(p.Sentences)
-	p.Sentences = append(p.Sentences, s)
+	p.Sentences = append(p.Sentences, *s)
+}
+
+func (p *Paragraph) DeleteSentence(s Sentence) {
+	cp := make([]Sentence, len(p.Sentences)-1, len(p.Sentences)+10)
+	for i, v := range p.Sentences {
+		if i > s.Id {
+			cp[i-1] = v
+			cp[i-1].Id = i - 1
+		} else if i < s.Id {
+			cp[i] = v
+		}
+	}
+	p.Sentences = cp
+}
+
+func (p *Paragraph) DeleteSentenceId(id int64) {
+	p.DeleteSentence(p.Sentences[id])
 }
 
 type Sentence struct {
