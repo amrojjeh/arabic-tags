@@ -40,6 +40,11 @@ button {
     cursor: pointer;
 }
 
+input {
+    font-size: inherit;
+    direction: rtl;
+}
+
 .main {
     display: flex;
     flex: 1 1 auto;
