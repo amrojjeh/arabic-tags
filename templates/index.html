@@ -21,9 +21,7 @@
     <!-- TODO(Amr Ojjeh): Make words selectable -->
     {{- block "main.tmpl" . -}}
     <div class="main">
-        <div id="inspector" hx-swap-oob="innerHTML">
-            {{- template "template-nil.tmpl" -}}
-        </div>
+        {{- template "inspector-nil.tmpl" -}}
         <div class="sentences">
         {{- block "sentences.tmpl" . -}}
             {{- range .Sentences -}}
@@ -56,23 +54,29 @@
 </form>
 {{- end -}}
 
-{{- define "template-nil.tmpl" -}}
-<h1>(nothing selected)</h1>
+{{- define "inspector-nil.tmpl" -}}
+<div id="inspector" hx-swap-oob="innterHTML">
+    <h1>(nothing selected)</h1>
+</div>
 {{- end -}}
 
-{{- define "template-sentence.tmpl" -}}
+{{- define "inspector-sentence.tmpl" -}}
 <!-- TODO(Amr Ojjeh): Add a trim helper (or at least consider it) -->
-<h1>{{- . -}}</h1>
-<button type="button" hx-target="next .sentences" hx-patch="/sentences/{{.Id}}/move-up">Move sentence up</button>
-<button type="button" hx-target="next .sentences" hx-patch="/sentences/{{.Id}}/move-down">Move sentence down</button>
-<button type="button" hx-target="#sentence-{{.Id}}" hx-swap="outerHTML" hx-get="/sentences/{{.Id}}/edit">Edit</button>
-<button type="button" hx-delete="/sentences/{{.Id}}" hx-swap="delete" hx-target="#sentence-{{.Id}}">Delete</button>
+<div id="inspector" hx-swap-oob="innterHTML">
+    <h1>{{- . -}}</h1>
+    <button type="button" hx-target="next .sentences" hx-patch="/sentences/{{.Id}}/move-up">Move sentence up</button>
+    <button type="button" hx-target="next .sentences" hx-patch="/sentences/{{.Id}}/move-down">Move sentence down</button>
+    <button type="button" hx-target="#sentence-{{.Id}}" hx-swap="outerHTML" hx-get="/sentences/{{.Id}}/edit">Edit</button>
+    <button type="button" hx-delete="/sentences/{{.Id}}" hx-swap="delete" hx-target="#sentence-{{.Id}}">Delete</button>
+</div>
 {{- end -}}
 
-{{- define "template-word.tmpl" -}}
+{{- define "inspector-word.tmpl" -}}
+<div id="inspector" hx-swap-oob="innterHTML">
 <h1>{{- . -}}</h1>
 <label for="wordType">Word type:</label>
 <select name="wordType">
 <!-- TODO(Amr Ojjeh): Put the constants in an array to loop through. Also we're gonna need morph for this one -->
 </select>
+</div>
 {{- end -}}

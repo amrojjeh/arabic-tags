@@ -79,13 +79,19 @@ func (a *app) save() error {
 
 func (a *app) index() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		a.templates.ExecuteTemplate(w, "index.html", a.paragraph)
+		err := a.templates.ExecuteTemplate(w, "index.html", a.paragraph)
+		if err != nil {
+			panic(err)
+		}
 	})
 }
 
 func (a *app) sentences() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		a.templates.ExecuteTemplate(w, "sentences.tmpl", a.paragraph)
+		err := a.templates.ExecuteTemplate(w, "sentences.tmpl", a.paragraph)
+		if err != nil {
+			panic(err)
+		}
 	})
 }
 
@@ -97,7 +103,10 @@ func (a *app) newSentence() http.Handler {
 		a.save()
 		log.Println("new Sentence:", sen)
 		log.Println("new sentence id:", sen.Id)
-		a.templates.ExecuteTemplate(w, "sentence-outer.tmpl", sen)
+		err := a.templates.ExecuteTemplate(w, "sentence-outer.tmpl", sen)
+		if err != nil {
+			panic(err)
+		}
 	})
 }
 
@@ -113,7 +122,10 @@ func (a *app) getSentence() http.Handler {
 			http.Error(w, fmt.Sprintf("sentence with id %v does not exist", id), http.StatusBadRequest)
 			return
 		}
-		a.templates.ExecuteTemplate(w, "sentence-outer.tmpl", sen)
+		err = a.templates.ExecuteTemplate(w, "sentence-outer.tmpl", sen)
+		if err != nil {
+			panic(err)
+		}
 	})
 }
 
@@ -130,7 +142,10 @@ func (a *app) loadInspector(isWord bool) http.Handler {
 				http.Error(w, fmt.Sprintf("sentence with id %v does not exist", id), http.StatusBadRequest)
 				return
 			}
-			a.templates.ExecuteTemplate(w, "inspector.tmpl", sen)
+			err = a.templates.ExecuteTemplate(w, "inspector-sentence.tmpl", sen)
+			if err != nil {
+				panic(err)
+			}
 		} else {
 			log.Println("load inspector for word id:", id)
 			word, err := a.paragraph.GetWordId(id)
@@ -138,7 +153,10 @@ func (a *app) loadInspector(isWord bool) http.Handler {
 				http.Error(w, fmt.Sprintf("word with id %v does not exist", id), http.StatusBadRequest)
 				return
 			}
-			a.templates.ExecuteTemplate(w, "inspector.tmpl", word)
+			err = a.templates.ExecuteTemplate(w, "inspector-word.tmpl", word)
+			if err != nil {
+				panic(err)
+			}
 		}
 	})
 }
@@ -152,7 +170,10 @@ func (a *app) deleteSentence() http.Handler {
 		a.paragraph.DeleteSentence(int(id))
 		a.save()
 		log.Println("deleted sentence id:", id)
-		a.templates.ExecuteTemplate(w, "inspector.tmpl", nil)
+		err = a.templates.ExecuteTemplate(w, "inspector-nil.tmpl", nil)
+		if err != nil {
+			panic(err)
+		}
 	})
 }
 
@@ -165,7 +186,10 @@ func (a *app) moveSentenceUp() http.Handler {
 		// TODO(Amr Ojjeh): Return BadRequest if sentence does not exist
 		a.paragraph.MoveSentenceUp(id)
 		a.save()
-		a.templates.ExecuteTemplate(w, "sentences.tmpl", a.paragraph)
+		err = a.templates.ExecuteTemplate(w, "sentences.tmpl", a.paragraph)
+		if err != nil {
+			panic(err)
+		}
 	})
 }
 
@@ -178,7 +202,10 @@ func (a *app) moveSentenceDown() http.Handler {
 		// TODO(Amr Ojjeh): Return BadRequest if sentence does not exist
 		a.paragraph.MoveSentenceDown(id)
 		a.save()
-		a.templates.ExecuteTemplate(w, "sentences.tmpl", a.paragraph)
+		err = a.templates.ExecuteTemplate(w, "sentences.tmpl", a.paragraph)
+		if err != nil {
+			panic(err)
+		}
 	})
 }
 
@@ -194,7 +221,10 @@ func (a *app) sentenceEditView() http.Handler {
 			http.Error(w, fmt.Sprintf("sentence with id %v does not exist", id), http.StatusBadRequest)
 			return
 		}
-		a.templates.ExecuteTemplate(w, "sentence-edit.tmpl", sen)
+		err = a.templates.ExecuteTemplate(w, "sentence-edit.tmpl", sen)
+		if err != nil {
+			panic(err)
+		}
 	})
 }
 
@@ -218,8 +248,14 @@ func (a *app) sentenceEdit() http.Handler {
 		value := r.Form.Get("v")
 		a.paragraph.EditSentence(id, value)
 		a.save()
-		a.templates.ExecuteTemplate(w, "sentence-outer.tmpl", sen)
-		a.templates.ExecuteTemplate(w, "inspector.tmpl", sen)
+		err = a.templates.ExecuteTemplate(w, "sentence-outer.tmpl", sen)
+		if err != nil {
+			panic(err)
+		}
+		err = a.templates.ExecuteTemplate(w, "inspector-sentence.tmpl", sen)
+		if err != nil {
+			panic(err)
+		}
 	})
 }
 

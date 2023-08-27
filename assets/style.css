@@ -81,7 +81,7 @@ input {
 }
 
 .sentence-outer p span:hover {
-    background-color: blue;
+    background-color: #cf8c498a;
 }
 
 .sentence-outer:nth-child(even) {
