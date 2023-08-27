@@ -117,19 +117,29 @@ func (a *app) getSentence() http.Handler {
 	})
 }
 
-func (a *app) loadInspector() http.Handler {
+func (a *app) loadInspector(isWord bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := getId(w, r)
 		if err != nil {
 			return
 		}
-		log.Println("load inspector for sentence id:", id)
-		sen, err := a.paragraph.GetSentenceId(id)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("sentence with id %v does not exist", id), http.StatusBadRequest)
-			return
+		if !isWord {
+			log.Println("load inspector for sentence id:", id)
+			sen, err := a.paragraph.GetSentenceId(id)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("sentence with id %v does not exist", id), http.StatusBadRequest)
+				return
+			}
+			a.templates.ExecuteTemplate(w, "inspector.tmpl", sen)
+		} else {
+			log.Println("load inspector for word id:", id)
+			word, err := a.paragraph.GetWordId(id)
+			if err != nil {
+				http.Error(w, fmt.Sprintf("word with id %v does not exist", id), http.StatusBadRequest)
+				return
+			}
+			a.templates.ExecuteTemplate(w, "inspector.tmpl", word)
 		}
-		a.templates.ExecuteTemplate(w, "inspector.tmpl", sen)
 	})
 }
 
@@ -263,7 +273,10 @@ func main() {
 	r.Handle("/sentences/{id}", a.deleteSentence()).
 		Methods(http.MethodDelete)
 
-	r.Handle("/sentences/{id}/inspector", a.loadInspector()).
+	r.Handle("/sentences/{id}/inspector", a.loadInspector(false)).
+		Methods(http.MethodGet)
+
+	r.Handle("/words/{id}/inspector", a.loadInspector(true)).
 		Methods(http.MethodGet)
 
 	// TODO(Amr Ojjeh): Add analyze option

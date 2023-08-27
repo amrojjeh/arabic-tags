@@ -21,13 +21,19 @@
     <!-- TODO(Amr Ojjeh): Make words selectable -->
     {{- block "main.tmpl" . -}}
     <div class="main">
+        <div id="inspector" hx-swap-oob="innerHTML">
+            {{- template "template-nil.tmpl" -}}
+        </div>
         <div class="sentences">
         {{- block "sentences.tmpl" . -}}
             {{- range .Sentences -}}
                 {{- block "sentence-outer.tmpl" . -}}
                 <div id="sentence-{{.Id}}" class="sentence-outer space-between">
+                    <!-- TODO(Amr Ojjeh): Add selected class which is returned by HTMX -->
                     <button hx-get="/sentences/{{.Id}}/inspector" hx-swap="none" type="button">Select</button>
-                    <p>{{- . -}}</p>
+                    <p>
+                    {{- range .Words }}<span hx-get="/words/{{.Id}}/inspector" hx-swap="none">{{ . }}</span> {{ end -}}
+                    </p>
                 </div>
                 {{- end -}}
             {{- end -}}
@@ -36,20 +42,6 @@
             </div>
         {{- end -}}
         </div>
-        {{- block "inspector.tmpl" "" -}}
-        <div id="inspector" hx-swap-oob="true">
-            {{- if . -}}
-            <!-- TODO(Amr Ojjeh): Add a trim helper (or at least consider it) -->
-            <h1>{{- . -}}</h1>
-            <button type="button" hx-target="previous .sentences" hx-patch="/sentences/{{.Id}}/move-up">Move sentence up</button>
-            <button type="button" hx-target="previous .sentences" hx-patch="/sentences/{{.Id}}/move-down">Move sentence down</button>
-            <button type="button" hx-target="#sentence-{{.Id}}" hx-swap="outerHTML" hx-get="/sentences/{{.Id}}/edit">Edit</button>
-            <button type="button" hx-delete="/sentences/{{.Id}}" hx-swap="delete" hx-target="#sentence-{{.Id}}">Delete</button>
-            {{- else -}}
-            <h1>(nothing selected)</h1>
-            {{- end -}}
-        </div>
-        {{- end -}}
     </div>
     {{- end -}}
 </body>
@@ -62,4 +54,25 @@
         <input name="v" type="text" value="{{ . }}"></input>
     </div>
 </form>
+{{- end -}}
+
+{{- define "template-nil.tmpl" -}}
+<h1>(nothing selected)</h1>
+{{- end -}}
+
+{{- define "template-sentence.tmpl" -}}
+<!-- TODO(Amr Ojjeh): Add a trim helper (or at least consider it) -->
+<h1>{{- . -}}</h1>
+<button type="button" hx-target="next .sentences" hx-patch="/sentences/{{.Id}}/move-up">Move sentence up</button>
+<button type="button" hx-target="next .sentences" hx-patch="/sentences/{{.Id}}/move-down">Move sentence down</button>
+<button type="button" hx-target="#sentence-{{.Id}}" hx-swap="outerHTML" hx-get="/sentences/{{.Id}}/edit">Edit</button>
+<button type="button" hx-delete="/sentences/{{.Id}}" hx-swap="delete" hx-target="#sentence-{{.Id}}">Delete</button>
+{{- end -}}
+
+{{- define "template-word.tmpl" -}}
+<h1>{{- . -}}</h1>
+<label for="wordType">Word type:</label>
+<select name="wordType">
+<!-- TODO(Amr Ojjeh): Put the constants in an array to loop through. Also we're gonna need morph for this one -->
+</select>
 {{- end -}}

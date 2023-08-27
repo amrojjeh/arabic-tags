@@ -65,6 +65,20 @@ button {
     font-size: 3rem;
 }
 
+.sentence-outer p {
+    direction: rtl;
+    user-select: none;
+}
+
+.sentence-outer p span {
+    cursor: pointer;
+    transition: background-color .1s;
+}
+
+.sentence-outer p span:hover {
+    background-color: blue;
+}
+
 .sentence-outer:nth-child(even) {
     background-color: var(--background-even);
 }

@@ -115,6 +115,17 @@ func (p *Paragraph) GetSentenceId(id int) (*Sentence, error) {
 	return &p.Sentences[si], nil
 }
 
+func (p *Paragraph) GetWordId(id int) (*Word, error) {
+	for _, s := range p.Sentences {
+		for i := 0; i < len(s.Words); i++ {
+			if s.Words[i].Id == id {
+				return &s.Words[i], nil
+			}
+		}
+	}
+	return &Word{}, errors.New(fmt.Sprintf("word id with %v was not found", id))
+}
+
 type Sentence struct {
 	Id    int    `'json:"id"`
 	Words []Word `json:"words"`
@@ -135,6 +146,10 @@ type Word struct {
 	Case               caseClass `json:"case"`
 	CaseIndicatorIndex int       `json:"case_index"`
 	CaseCause          caseCause `json:"case_cause"`
+}
+
+func (w Word) String() string {
+	return w.Value
 }
 
 type caseClass string
