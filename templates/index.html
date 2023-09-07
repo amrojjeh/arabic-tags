@@ -55,14 +55,14 @@
 {{- end -}}
 
 {{- define "inspector-nil.tmpl" -}}
-<div id="inspector" hx-swap-oob="innterHTML">
+<div id="inspector" hx-swap-oob="true">
     <h1>(nothing selected)</h1>
 </div>
 {{- end -}}
 
 {{- define "inspector-sentence.tmpl" -}}
 <!-- TODO(Amr Ojjeh): Add a trim helper (or at least consider it) -->
-<div id="inspector" hx-swap-oob="innterHTML">
+<div id="inspector" hx-swap-oob="true">
     <h1>{{- . -}}</h1>
     <button type="button" hx-target="next .sentences" hx-patch="/sentences/{{.Id}}/move-up">Move sentence up</button>
     <button type="button" hx-target="next .sentences" hx-patch="/sentences/{{.Id}}/move-down">Move sentence down</button>
@@ -72,11 +72,8 @@
 {{- end -}}
 
 {{- define "inspector-word.tmpl" -}}
-<div id="inspector" hx-swap-oob="innterHTML">
-<h1>{{- . -}}</h1>
-<label for="wordType">Word type:</label>
-<select name="wordType">
-<!-- TODO(Amr Ojjeh): Put the constants in an array to loop through. Also we're gonna need morph for this one -->
-</select>
+<div id="inspector" hx-swap-oob="true">
+<h1>{{- .Value -}}</h1>
+{{- .Options -}}
 </div>
 {{- end -}}

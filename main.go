@@ -147,6 +147,9 @@ func (a *app) loadInspector(isWord bool) http.Handler {
 				panic(err)
 			}
 		} else {
+			func generateSelectOptions() string {
+				// TODO(Amr Ojjeh): Write this function
+			}
 			log.Println("load inspector for word id:", id)
 			word, err := a.paragraph.GetWordId(id)
 			if err != nil {

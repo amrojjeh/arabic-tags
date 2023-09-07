@@ -139,7 +139,6 @@ func (s Sentence) String() string {
 	return sum
 }
 
-// TODO(Amr Ojjeh): Save JSON in SafeBW
 type Word struct {
 	Id                 int       `json:"id"`
 	Value              string    `json:"value"`
@@ -162,6 +161,13 @@ const (
 	CaseJussive    caseClass = "CASE_JUSSIVE"
 )
 
+var Cases = []caseClass{
+	CaseNA,
+	CaseNominative,
+	CaseAccusative,
+	CaseGenitive,
+	CaseJussive}
+
 type caseCause string
 
 const (
@@ -170,3 +176,9 @@ const (
 	CauseSubject   caseCause = "CAUSE_SUBJECT"
 	CausePastVerb  caseCause = "CAUSE_PAST_VERB"
 )
+
+var Causes = []caseCause{
+	CauseNA,
+	CausePredicate,
+	CauseSubject,
+	CausePastVerb}
