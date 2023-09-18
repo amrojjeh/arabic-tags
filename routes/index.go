@@ -15,7 +15,7 @@ func getIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		views.Page(views.Prop{
 			Title:   "Test",
-			Content: nil,
+			Content: views.AddArabic(),
 		}).Render(w)
 	}
 }

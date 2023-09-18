@@ -15,9 +15,29 @@ func Page(p Prop) g.Node {
 	return c.HTML5(c.HTML5Props{
 		Title:    p.Title,
 		Language: "en",
-		Head:     []g.Node{},
-		Body: []g.Node{
-			P(g.Text("This is a test")),
+		Head: []g.Node{
+			Link(Type("text/css"), Rel("stylesheet"), Href("static/main.css")),
+			Link(Rel("preconnect"), Href("https://fonts.googleapis.com")),
+			Link(Rel("preconnect"), Href("https://fonts.gstatic.com"),
+				g.Attr("crossorigin")),
+			Link(Rel("stylesheet"),
+				Href("https://fonts.googleapis.com/css2?family=Amiri&display=swap")),
+			Script(Type("module"), Src("static/main.js")),
+		},
+		Body: []g.Node{Class("h-screen flex flex-col p4"),
+			navBar(p),
+			p.Content,
 		},
 	})
+}
+
+func navBar(p Prop) g.Node {
+	return Nav(Class(
+		"text-green-800 px-5 py-2 flex justify-between items-center text-xl "+
+			"border-b-2"),
+		A(Href("#"), Class("underline"), g.Text("Back")),
+		P(Class("font-black"), g.Text("Arabic Text")),
+		Button(Type("button"),
+			Class("bg-yellow-200 px-3 py-2 rounded-lg"),
+			g.Text("Share")))
 }
