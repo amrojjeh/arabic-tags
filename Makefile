@@ -1,10 +1,11 @@
 .PHONY: air tailwind clean
 
 air: tailwind
-	go build -o ./tmp/main .
+	go build -o ./tmp/main ./cmd/web
 
-tailwind: views/*.go input.css
-	./bin/tailwindcss -i input.css -o ./assets/main.css
+tailwind:
+	./bin/tailwindcss -c ./ui/tailwind/tailwind.config.js \
+	-i ./ui/tailwind/input.css -o ./ui/static/main.css
 
 clean:
 	rm -rf tmp

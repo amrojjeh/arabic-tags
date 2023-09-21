@@ -24,7 +24,7 @@ func Page(p Prop) g.Node {
 				Href("https://fonts.googleapis.com/css2?family=Amiri&display=swap")),
 			Script(Type("module"), Src("static/main.js")),
 		},
-		Body: []g.Node{Class("h-screen flex flex-col p4"),
+		Body: []g.Node{Class("h-screen flex flex-col p4 bg-red-50/25"),
 			navBar(p),
 			p.Content,
 		},
@@ -33,11 +33,11 @@ func Page(p Prop) g.Node {
 
 func navBar(p Prop) g.Node {
 	return Nav(Class(
-		"text-green-800 px-5 py-2 flex justify-between items-center text-xl "+
-			"border-b-2"),
+		"text-white bg-red-800 px-5 py-2 flex justify-between items-center text-2xl "+
+			"border-b-2 drop-shadow-md"),
 		A(Href("#"), Class("underline"), g.Text("Back")),
 		P(Class("font-black"), g.Text("Arabic Text")),
 		Button(Type("button"),
-			Class("bg-yellow-200 px-3 py-2 rounded-lg"),
+			Class("bg-sky-600 px-3 py-2 rounded-lg"),
 			g.Text("Share")))
 }
