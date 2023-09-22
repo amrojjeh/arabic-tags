@@ -1,5 +1,4 @@
 // TODO(Amr Ojjeh): Autofocus using an attribute listener
-// TODO(Amr Ojjeh): Disable pasting newlines. Add a space instead
 // TODO(Amr Ojjeh): Validate on the backend as well
 
 // Used for syntax highlighting
