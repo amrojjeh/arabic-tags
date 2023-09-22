@@ -7,5 +7,5 @@ import (
 
 func AddArabic() g.Node {
 	return Main(Class("grow"),
-		g.El("arabic-text"))
+		g.El("arabic-input"))
 }

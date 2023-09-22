@@ -1,2 +1,2 @@
-import {ArabicText} from "./arabic-text.js";
-customElements.define("arabic-text", ArabicText);
+import {ArabicInput} from "./arabic-input.js";
+customElements.define("arabic-input", ArabicInput);
