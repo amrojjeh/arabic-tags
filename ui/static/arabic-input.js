@@ -1,4 +1,3 @@
-// TODO(Amr Ojjeh): Autofocus using an attribute listener
 // TODO(Amr Ojjeh): Validate on the backend as well
 
 // Used for syntax highlighting
@@ -21,12 +20,17 @@ export class ArabicInput extends HTMLElement {
   }
 
   connectedCallback() {
+    this.HTML.textarea.tabindex = "0";
     this.HTML.textarea.addEventListener("keydown", this._filter);
     this.HTML.textarea.addEventListener("input", this._input);
     this.HTML.textarea.addEventListener("paste", this._paste);
+    if (this.getAttribute("autofocus") != null) {
+      this.HTML.textarea.focus();
+    }
   }
 
   disconnectedCallback() {
+    this.HTML.textarea.tabindex = "-1";
     this.HTML.textarea.removeEventListener("keydown", this._filter);
     this.HTML.textarea.removeEventListener("input", this._input);
     this.HTML.textarea.removeEventListener("paste", this._paste);
@@ -103,7 +107,7 @@ export class ArabicInput extends HTMLElement {
     }
   }
 
-  _input = (e) => {
+  _input = (_e) => {
     this.update();
   }
 }
