@@ -87,6 +87,17 @@ export class ArabicInput extends HTMLElement {
     this.update();
   }
 
+  deleteVowels() {
+    let text = "";
+    for (let c of this.HTML.textarea.value) {
+      if (!isTashkeel(c)) {
+        text += c;
+      }
+    }
+    this.HTML.textarea.value = text;
+    this.update();
+  }
+
   _paste = (e) => {
     e.preventDefault();
     let paste = e.clipboardData.getData("text");
@@ -123,12 +134,10 @@ export class ArabicInput extends HTMLElement {
   }
 }
 
-// TODO(Amr Ojjeh): Gray out if there are no errors
-export class DeleteErrors extends HTMLElement {
+class ArabicInputButton extends HTMLElement {
   constructor() {
     super();
     this.innerHTML = this.initHTML();
-
     this.HTML = Object.create(null);
     this.HTML.root = this.querySelector("button");
 
@@ -147,13 +156,34 @@ export class DeleteErrors extends HTMLElement {
 
   initHTML() {
     return html`
-        <button type="button" class="bg-red-600 text-white rounded-lg p-2">Delete All Errors</button>
+        <button type="button" class="bg-red-600 capitalize text-white rounded-lg p-2">DEFAULT BUTTON</button>
       `;
+  }
+}
+
+// TODO(Amr Ojjeh): Gray out if there are no errors
+export class DeleteErrorsButton extends ArabicInputButton {
+  constructor() {
+    super();
+    this.HTML.root.innerText = "Delete all errors";
   }
 
   _click = (_e) => {
     if (confirm("Are you sure you want to delete all errors?")) {
       this.target.deleteErrors();
+    }
+  }
+}
+
+export class DeleteVowelsButton extends ArabicInputButton  {
+  constructor() {
+    super();
+    this.HTML.root.innerText = "Delete vowels";
+  }
+
+  _click = (_e) => {
+    if (confirm("Are you sure you want to delete all vowels?")) {
+      this.target.deleteVowels();
     }
   }
 }

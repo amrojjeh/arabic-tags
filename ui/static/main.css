@@ -681,6 +681,10 @@ video {
   font-weight: 900;
 }
 
+.capitalize {
+  text-transform: capitalize;
+}
+
 .text-red-800 {
   --tw-text-opacity: 1;
   color: rgb(153 27 27 / var(--tw-text-opacity));
