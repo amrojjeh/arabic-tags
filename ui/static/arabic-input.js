@@ -76,6 +76,17 @@ export class ArabicInput extends HTMLElement {
     return false;
   }
 
+  deleteErrors() {
+    let text = "";
+    for (let c of this.HTML.textarea.value) {
+      if (isValid(c)) {
+        text += c;
+      }
+    }
+    this.HTML.textarea.value = text.trim().replaceAll(/ +/g, " ");
+    this.update();
+  }
+
   _paste = (e) => {
     e.preventDefault();
     let paste = e.clipboardData.getData("text");
@@ -109,6 +120,41 @@ export class ArabicInput extends HTMLElement {
 
   _input = (_e) => {
     this.update();
+  }
+}
+
+// TODO(Amr Ojjeh): Gray out if there are no errors
+export class DeleteErrors extends HTMLElement {
+  constructor() {
+    super();
+    this.innerHTML = this.initHTML();
+
+    this.HTML = Object.create(null);
+    this.HTML.root = this.querySelector("button");
+
+    this.target = null;
+  }
+
+  connectedCallback() {
+    this.HTML.root.addEventListener("click", this._click);
+    this.target = document.querySelector("arabic-input");
+  }
+
+  disconnectedCallback() {
+    this.HTML.root.removeEventListener("click", this._click);
+    this.target = null;
+  }
+
+  initHTML() {
+    return html`
+        <button type="button" class="bg-red-600 text-white rounded-lg p-2">Delete All Errors</button>
+      `;
+  }
+
+  _click = (_e) => {
+    if (confirm("Are you sure you want to delete all errors?")) {
+      this.target.deleteErrors();
+    }
   }
 }
 
@@ -174,7 +220,7 @@ function isValid(letter) {
   return isArabicLetter(letter) || isPunctuation(letter);
 }
 
-function parse(text, debug=false) {
+function parse(text, debug=true) {
   if (debug) {
     var log = console.log;
   } else {
@@ -203,10 +249,10 @@ function parse(text, debug=false) {
     }
     // Check for double space
     if (letter === " ") {
+      currentLine.text += "\u00A0";
       const spaces = getSpaces(text, i);
       if (spaces.extra.length > 0) {
         if (currentLine.text) {
-          currentLine.text += "\u00A0";
           lines.push(currentLine);
           log("Pushed", currentLine);
         }
@@ -215,8 +261,8 @@ function parse(text, debug=false) {
         log("Pushed", currentLine);
         i += spaces.extra.length;
         currentLine = {ok: true, text: ""};
-        continue;
       }
+      continue;
     }
     // Check for invalid letters
     const valid = isValid(letter);

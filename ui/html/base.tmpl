@@ -17,8 +17,11 @@
 		<button type="button" class="bg-sky-600 px-3 py-2 rounded-lg">Share</button>
 	</nav>
 	<main class="grow">
-		{{template "main" .}}
+		{{template "main" . }}
 	</main>
+	<footer class="px-5 py-3 border-t-2 text-2xl justify-between flex">
+		{{template "footer" . }}
+	</footer>
 </body>
 </html>
 {{end}}
