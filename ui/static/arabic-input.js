@@ -44,7 +44,7 @@ export class ArabicInput extends HTMLElement {
           <textarea spellcheck="false" class="absolute focus:outline-none 
             top-0 left-0 caret-black text-transparent bg-transparent h-full
             w-full text-2xl resize-none" placeholder="اكتب..."></textarea>
-        <div>
+        </div>
       </div>`;
   }
 
