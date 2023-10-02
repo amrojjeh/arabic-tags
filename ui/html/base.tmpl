@@ -9,8 +9,9 @@
 
 	<link rel="stylesheet" href="static/main.css">
 	<script type="module" src="static/main.js"></script>
+	<script src="static/htmx-1.9.4.min.js" defer></script>
 </head>
-<body class="h-screen flex flex-col p4 bg-red-50/25">
+<body hx-boost="true" class="h-screen flex flex-col bg-red-50/25">
 	<nav class="text-white bg-red-800 px-5 py-2 flex justify-between items-center text-2xl border-b-2 drop-shadow-md">
 		<a href="#" class="underline">Back</a>
 		<p class="font-black">Arabic Text</p>

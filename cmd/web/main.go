@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
@@ -10,6 +11,7 @@ import (
 
 type application struct {
 	logger *slog.Logger
+	page   map[string]*template.Template
 }
 
 func main() {
@@ -21,6 +23,8 @@ func main() {
 	app := application{
 		logger: logger,
 	}
+
+	app.cacheTemplates()
 	server := &http.Server{
 		Handler:      app.routes(),
 		Addr:         *addr,

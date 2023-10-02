@@ -14,6 +14,8 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	router.Handler(http.MethodGet, "/static/*file",
 		http.StripPrefix("/static", fileServer))
-	router.HandlerFunc(http.MethodGet, "/", app.addArabic)
+	router.HandlerFunc(http.MethodGet, "/", app.homeGet)
+	router.HandlerFunc(http.MethodGet, "/excerpt", app.excerptGet)
+	router.HandlerFunc(http.MethodPost, "/excerpt", app.excerptPost)
 	return router
 }

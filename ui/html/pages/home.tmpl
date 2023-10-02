@@ -1,0 +1,12 @@
+{{define "title"}}Home{{end}}
+{{define "main"}}
+<div class="flex flex-col gap-3 items-center justify-center h-full">
+	<h1 class="text-2xl">Create a new excerpt</h1>
+	<form class="flex flex-col gap-3" action="/excerpt" method="POST">
+		<input required name="title" class="block" id="title" placeholder="Enter title"></input>
+		<button class="text-xl bg-sky-600 text-white rounded px-4 py-2" type="submit">Create</button>
+	</form>
+</div>
+{{end}}
+{{define "footer"}}
+{{end}}
