@@ -40,7 +40,7 @@ export class ArabicInput extends HTMLElement {
     return html`
       <div dir="rtl" class="h-full py-10 px-2">
         <div class="relative h-full">
-          <div class="absolute top-0 left-0 h-full w-full text-2xl"></div>
+          <div class="absolute break-words top-0 left-0 h-full w-full text-2xl"></div>
           <textarea spellcheck="false" class="absolute focus:outline-none 
             top-0 left-0 caret-black text-transparent bg-transparent h-full
             w-full text-2xl resize-none" placeholder="اكتب..."></textarea>
