@@ -104,7 +104,7 @@ func (m ExcerptModel) Insert(title string) (uuid.UUID, error) {
 }
 
 func (e ExcerptModel) UpdateContent(id uuid.UUID, content string) error {
-	stmt := `UPDATE excerpt SET content=? WHERE id=UUID_TO_BIN(?)`
+	stmt := `UPDATE excerpt SET content=?, updated=UTC_TIMESTAMP() WHERE id=UUID_TO_BIN(?)`
 
 	idVal, err := id.Value()
 	if err != nil {
