@@ -54,6 +54,7 @@ export class ArabicInput extends HTMLElement {
   }
 
   update() {
+    this.deleteDoubleSpaces();
     this.lines = parse(this.HTML.textarea.value);
     const frag = this.partials.highlighted = document.createDocumentFragment();
     for (const line of this.lines) {
@@ -83,8 +84,12 @@ export class ArabicInput extends HTMLElement {
         text += c;
       }
     }
-    this.HTML.textarea.value = text.trim().replaceAll(/ +/g, " ");
     this.update();
+  }
+
+  deleteDoubleSpaces() {
+    const text = this.HTML.textarea.value;
+    this.HTML.textarea.value = text.replaceAll(/ {2,}/g, " ");
   }
 
   deleteVowels() {
@@ -101,7 +106,7 @@ export class ArabicInput extends HTMLElement {
   _paste = (e) => {
     e.preventDefault();
     let paste = e.clipboardData.getData("text");
-    paste = paste.trim().replaceAll("\n", " ");
+    paste = paste.replaceAll("\n", " ");
     const selectionStart = e.target.selectionStart;
     const value = e.target.value;
     e.target.value = value.substring(0, selectionStart) + paste +
@@ -250,7 +255,7 @@ function isValid(letter) {
   return isArabicLetter(letter) || isPunctuation(letter);
 }
 
-function parse(text, debug=true) {
+function parse(text, debug=false) {
   if (debug) {
     var log = console.log;
   } else {
@@ -276,23 +281,6 @@ function parse(text, debug=true) {
         currentLine = {ok: true, text: ""};
         continue;
       }
-    }
-    // Check for double space
-    if (letter === " ") {
-      currentLine.text += "\u00A0";
-      const spaces = getSpaces(text, i);
-      if (spaces.extra.length > 0) {
-        if (currentLine.text) {
-          lines.push(currentLine);
-          log("Pushed", currentLine);
-        }
-        currentLine = {ok: false, text: "\u00A0".repeat(spaces.extra.length)}
-        lines.push(currentLine);
-        log("Pushed", currentLine);
-        i += spaces.extra.length;
-        currentLine = {ok: true, text: ""};
-      }
-      continue;
     }
     // Check for invalid letters
     const valid = isValid(letter);
