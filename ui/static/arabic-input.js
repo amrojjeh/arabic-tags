@@ -49,6 +49,7 @@ export class ArabicInput extends HTMLElement {
           <div class="absolute break-words top-0 left-0 h-full w-full text-2xl"></div>
           <textarea spellcheck="false"
             name="content"
+            hx-swap="none"
             hx-trigger="keyup changed delay:500ms"
             hx-indicator=".htmx-indicator"
             class="absolute focus:outline-none top-0 left-0 caret-black
@@ -56,6 +57,13 @@ export class ArabicInput extends HTMLElement {
             placeholder="اكتب..."></textarea>
         </div>
       </div>`;
+  }
+
+  forceSave() {
+    htmx.ajax("PUT", this.putURL, {
+      swap: "none",
+      values: {"content": this.HTML.textarea.value},
+    });
   }
 
   render() {
@@ -110,6 +118,7 @@ export class ArabicInput extends HTMLElement {
       }
     }
     this.HTML.textarea.value = text;
+    this.forceSave();
     this.update();
   }
 
@@ -127,6 +136,7 @@ export class ArabicInput extends HTMLElement {
       }
     }
     this.HTML.textarea.value = text;
+    this.forceSave();
     this.update();
   }
 
