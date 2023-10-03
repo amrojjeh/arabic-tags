@@ -10,7 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// TODO(Amr Ojjeh): Return error if there's no id param
 func (app *application) excerptGet(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -100,7 +99,6 @@ func (app *application) excerptCreatePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// TODO(Amr Ojjeh): Insert and then redirect with proper id
 	id, err := app.excerpts.Insert(form.Title)
 	if err != nil {
 		app.serverError(w, err)

@@ -80,11 +80,22 @@ export class ArabicInput extends HTMLElement {
       frag.appendChild(span)
     }
     this.render();
+    const event = new Event("arabic-input-update");
+    this.dispatchEvent(event)
   }
 
   hasErrors() {
     for (let line of this.lines) {
       if (!line.ok) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  hasTashkeel() {
+    for (let line of this.lines) {
+      if (line.tashkeel) {
         return true;
       }
     }
@@ -98,9 +109,11 @@ export class ArabicInput extends HTMLElement {
         text += c;
       }
     }
+    this.HTML.textarea.value = text;
     this.update();
   }
 
+  // Called from update, so no need to update
   deleteDoubleSpaces() {
     const text = this.HTML.textarea.value;
     this.HTML.textarea.value = text.replaceAll(/ {2,}/g, " ");
@@ -154,18 +167,25 @@ export class ArabicInput extends HTMLElement {
 }
 
 class ArabicInputButton extends HTMLElement {
-  constructor() {
+  constructor(bgColor, fgColor) {
     super();
-    this.innerHTML = this.initHTML();
+    this.target = null;
+
+    this.innerHTML = this.initHTML(this.className(bgColor, fgColor));
     this.HTML = Object.create(null);
     this.HTML.root = this.querySelector("button");
 
-    this.target = null;
+  }
+
+  className(bgColor, fgColor) {
+    return `${bgColor} capitalize ${fgColor} rounded-lg p-2`;
   }
 
   connectedCallback() {
     this.HTML.root.addEventListener("click", this._click);
     this.target = document.querySelector("arabic-input");
+    this.target.addEventListener("arabic-input-update", this._update);
+    this._update();
   }
 
   disconnectedCallback() {
@@ -173,17 +193,16 @@ class ArabicInputButton extends HTMLElement {
     this.target = null;
   }
 
-  initHTML() {
+  initHTML(className) {
     return html`
-        <button type="button" class="bg-red-600 capitalize text-white rounded-lg p-2">DEFAULT BUTTON</button>
+        <button type="button" class="${className}">DEFAULT BUTTON</button>
       `;
   }
 }
 
-// TODO(Amr Ojjeh): Gray out if there are no errors
 export class DeleteErrorsButton extends ArabicInputButton {
   constructor() {
-    super();
+    super("bg-red-600", "text-white");
     this.HTML.root.innerText = "Delete all errors";
   }
 
@@ -192,17 +211,37 @@ export class DeleteErrorsButton extends ArabicInputButton {
       this.target.deleteErrors();
     }
   }
+
+  _update = (_e) => {
+    if (this.target.hasErrors()) {
+      this.HTML.root.className = this.className("bg-red-600", "text-white");
+      this.HTML.root.removeAttribute("disabled");
+    } else {
+      this.HTML.root.className = this.className("bg-gray-600", "text-white");
+      this.HTML.root.setAttribute("disabled", "");
+    }
+  }
 }
 
 export class DeleteVowelsButton extends ArabicInputButton  {
   constructor() {
-    super();
+    super("bg-yellow-600", "text-white");
     this.HTML.root.innerText = "Delete vowels";
   }
 
   _click = (_e) => {
     if (confirm("Are you sure you want to delete all vowels?")) {
       this.target.deleteVowels();
+    }
+  }
+
+  _update = (_e) => {
+    if (this.target.hasTashkeel()) {
+      this.HTML.root.className = this.className("bg-yellow-600", "text-white");
+      this.HTML.root.removeAttribute("disabled");
+    } else {
+      this.HTML.root.className = this.className("bg-gray-600", "text-white");
+      this.HTML.root.setAttribute("disabled", "");
     }
   }
 }
@@ -242,12 +281,12 @@ function isArabicLetter(char) {
   return false;
 }
 
-function isPunctuation(letter) {
+function isWhitespace(letter) {
   return letter == " ";
 }
 
 function isValid(letter) {
-  return isArabicLetter(letter) || isPunctuation(letter);
+  return isArabicLetter(letter) || isWhitespace(letter);
 }
 
 function parse(text, debug=false) {
