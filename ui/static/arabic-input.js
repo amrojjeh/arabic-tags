@@ -71,7 +71,11 @@ export class ArabicInput extends HTMLElement {
       const span = document.createElement("span");
       span.innerText = line.text;
       if (!line.ok) {
-        span.className = "bg-red-200 text-red-800";
+        if (line.tashkeel) {
+          span.className = "bg-yellow-200 text-yellow-800";
+        } else {
+          span.className = "bg-red-200 text-red-800";
+        }
       }
       frag.appendChild(span)
     }
@@ -227,25 +231,6 @@ function isTashkeel(char) {
     return code >= 0x064B && code <= 0x065F;
 }
 
-function getSpaces(line, indexStart) {
-  if (line[indexStart] !== " ") {
-    throw new Error("Line should start with a space!");
-  }
-  const pack = {
-    first: line[indexStart],
-    extra: "",
-  };
-  for (let i = indexStart + 1; i < line.length; ++i) {
-    const char = line[i];
-    if (char === " ") {
-      pack.extra += char;
-    } else {
-      return pack;
-    }
-  }
-  return pack;
-}
-
 function isArabicLetter(char) {
   const code = char.codePointAt(0);
   if (code >= 0x0621 && code <= 0x063A) {
@@ -284,7 +269,7 @@ function parse(text, debug=false) {
           lines.push(currentLine);
           log("Pushed", currentLine);
         }
-        currentLine = {ok: false, text: letter + pack.tashkeel};
+        currentLine = {ok: false, text: letter + pack.tashkeel, tashkeel: true};
         lines.push(currentLine);
         log("Pushed", currentLine);
         i += pack.tashkeel.length;
