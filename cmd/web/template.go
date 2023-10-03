@@ -8,9 +8,13 @@ import (
 	"log/slog"
 	"net/http"
 	"path/filepath"
+
+	"github.com/amrojjeh/arabic-tags/internal/models"
 )
 
 type templateData struct {
+	Excerpt models.Excerpt
+	Form    any
 }
 
 func (app *application) cacheTemplates() error {
@@ -40,7 +44,7 @@ func (app *application) cacheTemplates() error {
 }
 
 func (app *application) renderTemplate(w http.ResponseWriter, page string,
-	data templateData) {
+	code int, data templateData) {
 	template, ok := app.page[page]
 	if !ok {
 		app.serverError(w, errors.New(
@@ -56,5 +60,6 @@ func (app *application) renderTemplate(w http.ResponseWriter, page string,
 	}
 
 	// Ignoring error as it's unlikely to occur
+	w.WriteHeader(code)
 	_, err = buffer.WriteTo(w)
 }

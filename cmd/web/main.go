@@ -1,27 +1,48 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/amrojjeh/arabic-tags/internal/models"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type application struct {
-	logger *slog.Logger
-	page   map[string]*template.Template
+	logger   *slog.Logger
+	page     map[string]*template.Template
+	excerpts models.ExcerptModel
 }
 
 func main() {
 	addr := flag.String("addr", ":8080", "HTTP Address")
+	dsn := flag.String("dsn", "web:pass@/arabic_tags?parseTime=true",
+		"Data source name")
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	db, err := sql.Open("mysql", *dsn)
+	if err != nil {
+		logger.Error("cannot open db", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		logger.Error("cannot open connection with db", slog.String("error",
+			err.Error()))
+		os.Exit(1)
+	}
 
 	app := application{
-		logger: logger,
+		logger:   logger,
+		excerpts: models.ExcerptModel{DB: db},
 	}
 
 	app.cacheTemplates()
