@@ -25,7 +25,9 @@ func main() {
 		"Data source name")
 	flag.Parse()
 
-	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: true,
+	}))
 	db, err := sql.Open("mysql", *dsn)
 	if err != nil {
 		logger.Error("cannot open db", slog.String("error", err.Error()))
