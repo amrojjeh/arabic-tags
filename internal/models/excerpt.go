@@ -15,7 +15,10 @@ type Grammar struct {
 func (g *Grammar) Scan(src any) error {
 	switch src.(type) {
 	case []byte:
-		json.Unmarshal(src.([]byte), g)
+		err := json.Unmarshal(src.([]byte), g)
+		if err != nil {
+			return err
+		}
 	default:
 		return errors.New("grammar: cannot scan type")
 	}
@@ -29,7 +32,10 @@ type Technical struct {
 func (t *Technical) Scan(src any) error {
 	switch src.(type) {
 	case []byte:
-		json.Unmarshal(src.([]byte), t)
+		err := json.Unmarshal(src.([]byte), t)
+		if err != nil {
+			return err
+		}
 	default:
 		return errors.New("technical: cannot scan type")
 	}
@@ -53,7 +59,7 @@ type ExcerptModel struct {
 
 func (m ExcerptModel) Get(id uuid.UUID) (Excerpt, error) {
 	stmt := `SELECT title, content, grammar, technical, created, updated
-	FROM excerpt WHERE excerpt.id = UUID_TO_BIN(?)`
+	FROM excerpt WHERE excerpt.id=UUID_TO_BIN(?)`
 
 	var e Excerpt
 	e.ID = id
@@ -95,4 +101,18 @@ func (m ExcerptModel) Insert(title string) (uuid.UUID, error) {
 		return uuid.UUID{}, err
 	}
 	return id, nil
+}
+
+func (e ExcerptModel) UpdateContent(id uuid.UUID, content string) error {
+	stmt := `UPDATE excerpt SET content=? WHERE id=UUID_TO_BIN(?)`
+
+	idVal, err := id.Value()
+	if err != nil {
+		return err
+	}
+	_, err = e.DB.Exec(stmt, content, idVal)
+	if err != nil {
+		return err
+	}
+	return nil
 }

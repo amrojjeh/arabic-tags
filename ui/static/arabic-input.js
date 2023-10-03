@@ -27,6 +27,12 @@ export class ArabicInput extends HTMLElement {
     if (this.getAttribute("autofocus") != null) {
       this.HTML.textarea.focus();
     }
+    if (this.getAttribute("value") != null) {
+      this.HTML.textarea.value = this.getAttribute("value");
+      this.update();
+    }
+    this.putURL = `${window.location.pathname}${window.location.search}`;
+    this.HTML.textarea.setAttribute("hx-put", this.putURL);
   }
 
   disconnectedCallback() {
@@ -41,9 +47,13 @@ export class ArabicInput extends HTMLElement {
       <div dir="rtl" class="h-full py-10 px-2">
         <div class="relative h-full">
           <div class="absolute break-words top-0 left-0 h-full w-full text-2xl"></div>
-          <textarea spellcheck="false" class="absolute focus:outline-none 
-            top-0 left-0 caret-black text-transparent bg-transparent h-full
-            w-full text-2xl resize-none" placeholder="اكتب..."></textarea>
+          <textarea spellcheck="false"
+            name="content"
+            hx-trigger="keyup changed delay:500ms"
+            hx-indicator=".htmx-indicator"
+            class="absolute focus:outline-none top-0 left-0 caret-black
+            text-transparent bg-transparent h-full w-full text-2xl resize-none"
+            placeholder="اكتب..."></textarea>
         </div>
       </div>`;
   }

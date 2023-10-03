@@ -44,6 +44,24 @@ func (app *application) excerptGet(w http.ResponseWriter, r *http.Request) {
 	app.renderTemplate(w, "add.tmpl", http.StatusOK, data)
 }
 
+func (app *application) excerptPut(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	idStr := r.Form.Get("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	content := r.Form.Get("content")
+	app.excerpts.UpdateContent(id, content)
+	app.noBody(w)
+}
+
 type excerptForm struct {
 	Validator
 	Title string

@@ -16,6 +16,8 @@ func (app *application) routes() http.Handler {
 		http.StripPrefix("/static", fileServer))
 	router.HandlerFunc(http.MethodGet, "/", app.excerptCreate)
 	router.HandlerFunc(http.MethodPost, "/", app.excerptCreatePost)
+	// TODO(Amr Ojjeh): Change routing to /excerpt/edit
 	router.HandlerFunc(http.MethodGet, "/excerpt", app.excerptGet)
+	router.HandlerFunc(http.MethodPut, "/excerpt", app.excerptPut)
 	return router
 }

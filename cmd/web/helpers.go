@@ -14,3 +14,7 @@ func (app *application) serverError(w http.ResponseWriter, err error) {
 	http.Error(w, http.StatusText(http.StatusInternalServerError),
 		http.StatusInternalServerError)
 }
+
+func (app *application) noBody(w http.ResponseWriter) {
+	w.Write([]byte(""))
+}
