@@ -12,10 +12,8 @@
 	<script src="static/htmx-1.9.4.min.js" defer></script>
 </head>
 <body hx-boost="true" class="h-screen flex flex-col bg-red-50/25">
-	<nav class="text-white bg-red-800 px-5 py-2 flex justify-between items-center text-2xl border-b-2 drop-shadow-md">
-		<a href="#" class="underline">Back</a>
-		<h1 class="font-black">Arabic Text</h1>
-		<button type="button" class="bg-sky-600 px-3 py-2 rounded-lg">Share</button>
+	<nav class="text-white bg-red-800 px-5 py-2 grid grid-cols-3 grid-rows-1 border-b-2 drop-shadow-md">
+		{{template "nav" .}}
 	</nav>
 	<main class="grow">
 		{{template "main" . }}

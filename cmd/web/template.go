@@ -33,6 +33,18 @@ func (app *application) cacheTemplates() error {
 			return err
 		}
 
+		partials, err := filepath.Glob("./ui/html/partials/*")
+		if err != nil {
+			return err
+		}
+
+		for _, name := range partials {
+			base, err = base.ParseFiles(name)
+			if err != nil {
+				return err
+			}
+		}
+
 		app.page[baseName], err = base.ParseFiles(name)
 		if err != nil {
 			return err
