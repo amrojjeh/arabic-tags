@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -45,6 +46,7 @@ func (t *Technical) Scan(src any) error {
 
 type Excerpt struct {
 	ID        uuid.UUID
+	IDStr     string
 	Title     string
 	Content   string
 	Grammar   Grammar
@@ -76,6 +78,7 @@ func (m ExcerptModel) Get(id uuid.UUID) (Excerpt, error) {
 		return e, err
 	}
 
+	e.IDStr = strings.ReplaceAll(id.String(), "-", "")
 	return e, nil
 }
 

@@ -31,8 +31,10 @@ export class ArabicInput extends HTMLElement {
       this.HTML.textarea.value = this.getAttribute("value");
       this.update();
     }
-    this.putURL = `${window.location.pathname}${window.location.search}`;
-    this.HTML.textarea.setAttribute("hx-put", this.putURL);
+    if (this.getAttribute("id") != null) {
+      this.HTML.textarea.setAttribute("hx-put",
+        `/excerpt?id=${this.getAttribute("id")}`);
+    }
   }
 
   disconnectedCallback() {
@@ -50,6 +52,7 @@ export class ArabicInput extends HTMLElement {
           <textarea spellcheck="false"
             name="content"
             hx-swap="none"
+            hx-put="NOT DEFINED"
             hx-trigger="keyup changed delay:500ms"
             hx-indicator=".htmx-indicator"
             class="absolute focus:outline-none top-0 left-0 caret-black
@@ -60,7 +63,7 @@ export class ArabicInput extends HTMLElement {
   }
 
   forceSave() {
-    htmx.ajax("PUT", this.putURL, {
+    htmx.ajax("PUT", this.HTML.textarea.getAttribute("hx-put"), {
       swap: "none",
       values: {"content": this.HTML.textarea.value},
     });
