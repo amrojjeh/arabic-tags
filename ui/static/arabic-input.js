@@ -16,7 +16,7 @@ export class ArabicInput extends HTMLElement {
     this.partials = Object.create(null);
     this.partials.highlighted = document.createDocumentFragment();
 
-    this.lines = [];
+    this._okays = undefined;
   }
 
   connectedCallback() {
@@ -75,29 +75,54 @@ export class ArabicInput extends HTMLElement {
   }
 
   update() {
-    this.deleteDoubleSpaces();
-    this.lines = parse(this.HTML.textarea.value);
-    const frag = this.partials.highlighted = document.createDocumentFragment();
-    for (const line of this.lines) {
+    function createSpan(okay) {
       const span = document.createElement("span");
-      span.innerText = line.text;
-      if (!line.ok) {
-        if (line.tashkeel) {
-          span.className = "bg-yellow-200 text-yellow-800";
+      if (okay === -1) {
+        console.error("Okay should never be -1");
+        return;
+      }
+      
+      if (okay === 1) {
+        span.className = "bg-yellow-200 text-yellow-800";
+      } else if (okay === 0) {
+        span.className = "bg-red-200 text-red-800";
+      }
+      return span;
+    }
+    this.deleteDoubleSpaces();
+    const text = this.HTML.textarea.value;
+
+    if (text.length > 0) {
+      this._parse(text);
+      const frag = this.partials.highlighted = document.createDocumentFragment();
+      const okays = this.getOkays();
+      let statusQuo = okays[0];
+      let span = createSpan(statusQuo);
+      for (let x = 0; x < text.length; ++x) {
+        if (okays[x] === statusQuo) {
+          span.innerText += text[x];
         } else {
-          span.className = "bg-red-200 text-red-800";
+          frag.appendChild(span);
+          statusQuo = okays[x];
+          span = createSpan(statusQuo);
+          span.innerText = text[x];
         }
       }
       frag.appendChild(span)
     }
+
     this.render();
     const event = new Event("arabic-input-update");
-    this.dispatchEvent(event)
+    this.dispatchEvent(event);
   }
 
   hasErrors() {
-    for (let line of this.lines) {
-      if (!line.ok) {
+    const okays = this.getOkays();
+    for (let x = 0; x < this.HTML.textarea.value.length; ++x) {
+      if (okays[x] === -1) {
+        return false;
+      }
+      if (okays[x] !== 2) {
         return true;
       }
     }
@@ -105,8 +130,9 @@ export class ArabicInput extends HTMLElement {
   }
 
   hasTashkeel() {
-    for (let line of this.lines) {
-      if (line.tashkeel) {
+    const text = this.HTML.textarea.value.length;
+    for (let x = 0; x < text.length; ++x) {
+      if (isTashkeel(text[x])) {
         return true;
       }
     }
@@ -141,6 +167,68 @@ export class ArabicInput extends HTMLElement {
     this.HTML.textarea.value = text;
     this.forceSave();
     this.update();
+  }
+
+  scaleOkays(size=1000) {
+    // this is done to optimize for a packed SMI array
+    this._okays = [];
+    for (let x = 0; x < size; x++) {
+      this._okays.push(-1);
+    }
+    return this._okays;
+  }
+
+  getOkays() {
+    if (this._okays == undefined) {
+      this.scaleOkays();
+    }
+    return this._okays;
+  }
+
+  getOkaysSize(min) {
+    if (min > this.getOkays().length) {
+      return this.getOkays().length * 2;
+    }
+    return this.getOkays().length;
+  }
+
+  _parse(text, debug=false) {
+    if (debug) {
+      var log = console.log;
+    } else {
+      var log = () => {};
+    }
+    // 0 = NOT OKAY
+    // 1 = Tashkeel
+    // 2 = OKAY
+    const start = Date.now();
+    if (this.getOkays().length <= text.length) {
+      this.scaleOkays(this.getOkaysSize(text.length));
+    }
+    let okays = this.getOkays();
+    for (let i = 0; i < text.length; ++i) {
+      // Check for tashkeel
+      const letter = text[i];
+      if (!isTashkeel(letter)) {
+        const pack = getLetterPack(text, i);
+        if (pack.tashkeel.length > 0) {
+          okays[i] = 1;
+          for (let j = 0; j < pack.tashkeel.length; ++j) {
+            okays[i+j+1] = 1;
+          }
+          i += pack.tashkeel.length;
+          continue;
+        }
+      }
+      // Check for invalid letters
+      const valid = isValid(letter);
+      if (!valid) {
+        okays[i] = 0;
+      } else {
+        okays[i] = 2;
+      }
+    }
+    log("Took", Date.now() - start, "milliseconds");
   }
 
   _paste = (e) => {
@@ -279,8 +367,8 @@ function getLetterPack(line, indexStart) {
 }
 
 function isTashkeel(char) {
-    const code = char.codePointAt(0);
-    return code >= 0x064B && code <= 0x065F;
+  const code = char.codePointAt(0);
+  return code >= 0x064B && code <= 0x065F;
 }
 
 function isArabicLetter(char) {
@@ -300,49 +388,4 @@ function isWhitespace(letter) {
 
 function isValid(letter) {
   return isArabicLetter(letter) || isWhitespace(letter);
-}
-
-function parse(text, debug=false) {
-  if (debug) {
-    var log = console.log;
-  } else {
-    var log = () => {};
-  }
-
-  let lines = [];
-  let currentLine = {ok: true, text: ""};
-  for (let i = 0; i < text.length; ++i) {
-    // Check for tashkeel
-    const letter = text[i];
-    if (!isTashkeel(letter)) {
-      const pack = getLetterPack(text, i);
-      if (pack.tashkeel.length > 0) {
-        if (currentLine.text) {
-          lines.push(currentLine);
-          log("Pushed", currentLine);
-        }
-        currentLine = {ok: false, text: letter + pack.tashkeel, tashkeel: true};
-        lines.push(currentLine);
-        log("Pushed", currentLine);
-        i += pack.tashkeel.length;
-        currentLine = {ok: true, text: ""};
-        continue;
-      }
-    }
-    // Check for invalid letters
-    const valid = isValid(letter);
-    if (!valid && currentLine.ok) {
-      lines.push(currentLine);
-      log("Pushed", currentLine);
-      currentLine = {ok: valid, text: ""};
-    } else if (valid && !currentLine.ok) {
-      lines.push(currentLine);
-      log("Pushed", currentLine);
-      currentLine = {ok: valid, text: ""};
-    }
-    currentLine.text = currentLine.text + letter;
-  }
-  lines.push(currentLine);
-  log("Final push", currentLine);
-  return lines;
 }
