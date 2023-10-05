@@ -10,7 +10,13 @@ import (
 	"github.com/google/uuid"
 )
 
-func (app *application) excerptGet() http.Handler {
+func (app *application) notFound() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.NotFound(w, r)
+	})
+}
+
+func (app *application) excerptEditGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		if err != nil {
@@ -45,7 +51,7 @@ func (app *application) excerptGet() http.Handler {
 	})
 }
 
-func (app *application) excerptPut() http.Handler {
+func (app *application) excerptEditPut() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		if err != nil {
@@ -63,6 +69,12 @@ func (app *application) excerptPut() http.Handler {
 		app.excerpts.UpdateContent(id, content)
 		app.noBody(w)
 
+	})
+}
+
+func (app *application) excerptGrammarGet() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		app.renderTemplate(w, "grammar.tmpl", http.StatusOK, templateData{})
 	})
 }
 
