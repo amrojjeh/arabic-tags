@@ -65,7 +65,7 @@ export class ArabicInput extends HTMLElement {
   forceSave() {
     htmx.ajax("PUT", this.HTML.textarea.getAttribute("hx-put"), {
       swap: "none",
-      values: {"content": this.HTML.textarea.value},
+      values: { "content": this.HTML.textarea.value },
     });
   }
 
@@ -81,7 +81,7 @@ export class ArabicInput extends HTMLElement {
         console.error("Okay should never be -1");
         return;
       }
-      
+
       if (okay === 1) {
         span.className = "bg-yellow-200 text-yellow-800";
       } else if (okay === 0) {
@@ -130,7 +130,7 @@ export class ArabicInput extends HTMLElement {
   }
 
   hasTashkeel() {
-    const text = this.HTML.textarea.value.length;
+    const text = this.HTML.textarea.value;
     for (let x = 0; x < text.length; ++x) {
       if (isTashkeel(text[x])) {
         return true;
@@ -169,7 +169,7 @@ export class ArabicInput extends HTMLElement {
     this.update();
   }
 
-  scaleOkays(size=1000) {
+  scaleOkays(size = 1000) {
     // this is done to optimize for a packed SMI array
     this._okays = [];
     for (let x = 0; x < size; x++) {
@@ -192,11 +192,11 @@ export class ArabicInput extends HTMLElement {
     return this.getOkays().length;
   }
 
-  _parse(text, debug=false) {
+  _parse(text, debug = false) {
     if (debug) {
       var log = console.log;
     } else {
-      var log = () => {};
+      var log = () => { };
     }
     // 0 = NOT OKAY
     // 1 = Tashkeel
@@ -214,7 +214,7 @@ export class ArabicInput extends HTMLElement {
         if (pack.tashkeel.length > 0) {
           okays[i] = 1;
           for (let j = 0; j < pack.tashkeel.length; ++j) {
-            okays[i+j+1] = 1;
+            okays[i + j + 1] = 1;
           }
           i += pack.tashkeel.length;
           continue;
@@ -324,7 +324,7 @@ export class DeleteErrorsButton extends ArabicInputButton {
   }
 }
 
-export class DeleteVowelsButton extends ArabicInputButton  {
+export class DeleteVowelsButton extends ArabicInputButton {
   constructor() {
     super("bg-yellow-600", "text-white");
     this.HTML.root.innerText = "Delete vowels";
