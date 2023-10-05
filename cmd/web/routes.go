@@ -13,15 +13,14 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/static/*file", Adapt(http.FileServer(http.Dir("./ui/static/")),
 		stripPrefix("/static"), app.logRequest))
 
-	router.Handler(http.MethodGet, "/", Adapt(app.excerptCreate(),
+	router.Handler(http.MethodGet, "/", Adapt(app.excerptCreateGet(),
 		app.logRequest))
 	router.Handler(http.MethodPost, "/", Adapt(app.excerptCreatePost(),
 		app.logRequest))
 
-	// TODO(Amr Ojjeh): Change routing to /excerpt/edit
-	router.Handler(http.MethodGet, "/excerpt", Adapt(app.excerptGet(),
+	router.Handler(http.MethodGet, "/excerpt/edit", Adapt(app.excerptGet(),
 		app.logRequest))
-	router.Handler(http.MethodPut, "/excerpt", Adapt(app.excerptPut(),
+	router.Handler(http.MethodPut, "/excerpt/edit", Adapt(app.excerptPut(),
 		app.logRequest))
 	return router
 }

@@ -71,7 +71,7 @@ type excerptForm struct {
 	Title string
 }
 
-func (app *application) excerptCreate() http.Handler {
+func (app *application) excerptCreateGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data := templateData{}
 		data.Form = excerptForm{}

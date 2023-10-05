@@ -33,7 +33,7 @@ export class ArabicInput extends HTMLElement {
     }
     if (this.getAttribute("id") != null) {
       this.HTML.textarea.setAttribute("hx-put",
-        `/excerpt?id=${this.getAttribute("id")}`);
+        `/excerpt/edit?id=${this.getAttribute("id")}`);
     }
   }
 
