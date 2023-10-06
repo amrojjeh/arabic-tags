@@ -25,7 +25,7 @@ It's mostly complete, meaning that the central web component is complete, and it
 **Status:** In progress.
 
 This phase is meant to be done by Arabic grammarians. It should let them select individual Arabic words (such as particles and pronouns) and tag them with their traditional
-grammatical names (مبتدأ ,جبر, etc...). 
+grammatical names (مبتدأ ,خبر, etc...). 
 
 I just started working on this today (08/05/2023), hence why it's "in progress."
 
