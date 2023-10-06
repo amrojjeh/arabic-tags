@@ -1,10 +1,11 @@
-{{define "title"}}Grammar{{end}}
+{{define "title"}}{{.Excerpt.Title}}{{end}}
 {{define "nav"}}
 	{{template "owner-nav"}}
 {{end}}
 {{define "main"}}
 <h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
-<grammar-tag></grammar-tag>
+<!-- TODO(Amr Ojjeh): TEMPORARY VALUE -->
+<grammar-tag value="سمعت رسول الله صلى الله عليه وسلم يقول إنما الأعمال بالنيات وإنما لكل امرئ ما نوى فمن كانت هجرته إلى الله ورسوله فهجرته إلى الله ورسوله ومن كانت هجرته لدنيا يصيبها أو امرأة ينكحها فهجرته إلى ما هاجر إليه"></grammar-tag>
 {{end}}
 {{define "footer"}}
 {{end}}
