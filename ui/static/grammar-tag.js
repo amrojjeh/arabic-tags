@@ -66,7 +66,7 @@ export class GrammarTag extends HTMLElement {
     if (nextWord === "") {
       this.data.words.splice(this.data.selectedIndex + 1, 1);
       const newNextWord = this.data.words[this.data.selectedIndex + 1];
-      if (newNextWord && !newNextWord.leftOver) {
+      if (!newNextWord || (newNextWord && !newNextWord.leftOver)) {
         this.data.words[this.data.selectedIndex].shrinked = false;
       }
     } else {
@@ -103,6 +103,7 @@ export class GrammarTag extends HTMLElement {
       word,
       shrinked: false,
       leftOver: false,
+      tags: [],
     };
   }
 
