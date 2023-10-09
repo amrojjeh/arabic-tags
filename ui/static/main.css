@@ -617,6 +617,14 @@ video {
   resize: none;
 }
 
+.list-inside {
+  list-style-position: inside;
+}
+
+.list-disc {
+  list-style-type: disc;
+}
+
 .grid-cols-3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -866,6 +874,14 @@ video {
 
 .\[a-zA-Z\:\\-\] {
   a-z-a--z: \-;
+}
+
+.marker\:text-red-800 *::marker {
+  color: rgb(153 27 27 );
+}
+
+.marker\:text-red-800::marker {
+  color: rgb(153 27 27 );
 }
 
 .focus\:outline-none:focus {
