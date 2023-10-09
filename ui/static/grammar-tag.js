@@ -92,7 +92,7 @@ export class GrammarTag extends HTMLElement {
     this.HTML.tagContainer.innerHTML = "";
     for (let i = 0; i < wordObj.tags.length; ++i) {
       const tag = wordObj.tags[i];
-      const partial = this.tagPartial(tag);
+      const partial = this.tagPartial(i, tag);
       this.HTML.tagContainer.appendChild(partial)
     }
   }
@@ -109,10 +109,13 @@ export class GrammarTag extends HTMLElement {
     return frag;
   }
 
-  tagPartial(tagValue) {
+  tagPartial(i, tagValue) {
     const frag = document.createDocumentFragment();
     const li = document.createElement("li");
     li.innerText = tagValue;
+    li.classList.add("hover:line-through", "hover:cursor-pointer");
+    li.addEventListener("click", this._clickTag);
+    li.setAttribute("data-i", i);
     frag.appendChild(li);
     return frag;
   }
@@ -189,5 +192,12 @@ export class GrammarTag extends HTMLElement {
           break;
       }
     }
+  }
+
+  _clickTag = (e) => {
+    const index = e.target.getAttribute("data-i");
+    const wordObj = this.data.words[this.data.selectedIndex];
+    wordObj.tags.splice(index, 1);
+    this.render();
   }
 }
