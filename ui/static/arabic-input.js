@@ -2,6 +2,13 @@
 
 // Used for syntax highlighting
 const html = String.raw;
+let debug = false;
+
+if (debug) {
+  var log = console.log;
+} else {
+  var log = () => { };
+}
 
 export class ArabicInput extends HTMLElement {
 
@@ -23,6 +30,7 @@ export class ArabicInput extends HTMLElement {
     this.HTML.textarea.tabindex = "0";
     this.HTML.textarea.addEventListener("keydown", this._filter);
     this.HTML.textarea.addEventListener("input", this._input);
+    this.HTML.textarea.addEventListener("scroll", this._scroll);
     this.HTML.textarea.addEventListener("paste", this._paste);
     if (this.getAttribute("autofocus") != null) {
       this.HTML.textarea.focus();
@@ -42,13 +50,14 @@ export class ArabicInput extends HTMLElement {
     this.HTML.textarea.removeEventListener("keydown", this._filter);
     this.HTML.textarea.removeEventListener("input", this._input);
     this.HTML.textarea.removeEventListener("paste", this._paste);
+    this.HTML.textarea.removeEventListener("scroll", this._scroll);
   }
 
   initHTML() {
     return html`
       <div dir="rtl" class="h-full py-10 px-2">
         <div class="relative h-full">
-          <div class="leading-loose absolute break-words top-0 left-0 h-full w-full text-2xl"></div>
+          <div class="text-clip overflow-y-auto leading-loose absolute break-words top-0 left-0 h-full w-full text-3xl"></div>
           <textarea spellcheck="false"
             name="content"
             hx-swap="none"
@@ -56,7 +65,7 @@ export class ArabicInput extends HTMLElement {
             hx-trigger="keyup changed delay:500ms"
             hx-indicator=".htmx-indicator"
             class="leading-loose absolute focus:outline-none top-0 left-0 caret-black
-            text-transparent bg-transparent h-full w-full text-2xl resize-none"
+            text-transparent bg-transparent h-full w-full text-3xl resize-none"
             placeholder="اكتب..."></textarea>
         </div>
       </div>`;
@@ -70,50 +79,55 @@ export class ArabicInput extends HTMLElement {
   }
 
   render() {
+    const start = Date.now();
     this.HTML.highlighted.innerHTML = "";
     this.HTML.highlighted.appendChild(this.partials.highlighted);
+    log("render:", Date.now() - start, "milliseconds");
+  }
+
+  createSpan(okay) {
+    const span = document.createElement("span");
+    if (okay === -1) {
+      console.error("Okay should never be -1");
+      return;
+    }
+
+    if (okay === 1) {
+      span.className = "bg-yellow-200 text-yellow-800";
+    } else if (okay === 0) {
+      span.className = "bg-red-200 text-red-800";
+    }
+    return span;
   }
 
   update() {
-    function createSpan(okay) {
-      const span = document.createElement("span");
-      if (okay === -1) {
-        console.error("Okay should never be -1");
-        return;
-      }
-
-      if (okay === 1) {
-        span.className = "bg-yellow-200 text-yellow-800";
-      } else if (okay === 0) {
-        span.className = "bg-red-200 text-red-800";
-      }
-      return span;
-    }
+    const start = Date.now();
     this.deleteDoubleSpaces();
     const text = this.HTML.textarea.value;
+    log("Deleted spaces:", Date.now() - start, "milliseconds");
 
     if (text.length > 0) {
       this._parse(text);
       const frag = this.partials.highlighted = document.createDocumentFragment();
       const okays = this.getOkays();
       let statusQuo = okays[0];
-      let span = createSpan(statusQuo);
+      let span = this.createSpan(statusQuo);
       for (let x = 0; x < text.length; ++x) {
         if (okays[x] === statusQuo) {
           span.innerText += text[x];
         } else {
           frag.appendChild(span);
           statusQuo = okays[x];
-          span = createSpan(statusQuo);
+          span = this.createSpan(statusQuo);
           span.innerText = text[x];
         }
       }
       frag.appendChild(span)
     }
+    log("Fragment updated:", Date.now() - start, "milliseconds");
 
     this.render();
-    const event = new Event("arabic-input-update");
-    this.dispatchEvent(event);
+    log("Update:", Date.now() - start, "milliseconds");
   }
 
   hasErrors() {
@@ -171,9 +185,13 @@ export class ArabicInput extends HTMLElement {
 
   scaleOkays(size = 1000) {
     // this is done to optimize for a packed SMI array
-    this._okays = [];
+    if (this._okays == undefined) {
+      this._okays = [];
+    }
     for (let x = 0; x < size; x++) {
-      this._okays.push(-1);
+      if (!this._okays.hasOwnProperty(x)) {
+        this._okays.push(-1);
+      }
     }
     return this._okays;
   }
@@ -192,12 +210,7 @@ export class ArabicInput extends HTMLElement {
     return this.getOkays().length;
   }
 
-  _parse(text, debug = false) {
-    if (debug) {
-      var log = console.log;
-    } else {
-      var log = () => { };
-    }
+  _parse(text) {
     // 0 = NOT OKAY
     // 1 = Tashkeel
     // 2 = OKAY
@@ -228,7 +241,7 @@ export class ArabicInput extends HTMLElement {
         okays[i] = 2;
       }
     }
-    log("Took", Date.now() - start, "milliseconds");
+    log("Parsing:", Date.now() - start, "milliseconds");
   }
 
   _paste = (e) => {
@@ -263,7 +276,14 @@ export class ArabicInput extends HTMLElement {
   }
 
   _input = (_e) => {
-    this.update();
+    this.HTML.highlighted.scrollTop = this.HTML.textarea.scrollTop;
+    this.HTML.highlighted.scrollLeft = this.HTML.textarea.scrollLeft;
+    this.update(true);
+  }
+
+  _scroll = (_e) => {
+    this.HTML.highlighted.scrollTop = this.HTML.textarea.scrollTop;
+    this.HTML.highlighted.scrollLeft = this.HTML.textarea.scrollLeft;
   }
 }
 
