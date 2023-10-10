@@ -51,6 +51,37 @@ func (app *application) excerptEditGet() http.Handler {
 	})
 }
 
+func (app *application) excerptEditLock() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO(Amr Ojjeh): Prevent next if there are errors
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		idStr := r.Form.Get("id")
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		err = app.excerpts.SetContentLock(id, true)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		// TODO(Amr Ojjeh): Create Grammar
+		err = app.excerpts.ResetGrammar(id)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		http.Redirect(w, r, fmt.Sprintf("/excerpt/grammar?id=%v", idStr), http.StatusSeeOther)
+	})
+}
+
 func (app *application) excerptEditPut() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
@@ -66,15 +97,41 @@ func (app *application) excerptEditPut() http.Handler {
 			return
 		}
 		content := r.Form.Get("content")
-		app.excerpts.UpdateContent(id, content)
+		err = app.excerpts.UpdateContent(id, content)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
 		app.noBody(w)
-
 	})
 }
 
 func (app *application) excerptGrammarGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		app.renderTemplate(w, "grammar.tmpl", http.StatusOK, templateData{})
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		idStr := r.Form.Get("id")
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		excerpt, err := app.excerpts.Get(id)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		data := templateData{
+			Excerpt: excerpt,
+			Type:    "grammar",
+		}
+		app.renderTemplate(w, "grammar.tmpl", http.StatusOK, data)
 	})
 }
 
@@ -126,6 +183,6 @@ func (app *application) excerptCreatePost() http.Handler {
 		}
 
 		idStr := strings.ReplaceAll(id.String(), "-", "")
-		http.Redirect(w, r, fmt.Sprintf("/excerpt?id=%v", idStr), http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/excerpt/edit?id=%v", idStr), http.StatusSeeOther)
 	})
 }

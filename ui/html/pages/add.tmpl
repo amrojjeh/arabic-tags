@@ -11,6 +11,11 @@
 	<delete-errors></delete-errors>
 	<delete-vowels></delete-vowels>
 </div>
-<button class="bg-sky-600 text-white rounded-lg p-2">Next</button>
+<button hx-confirm="Clicking next will disable content editing. Are you sure you want to continue?"
+hx-put="/excerpt/edit/lock?id={{.Excerpt.IDStr}}"
+hx-target="closest body"
+hx-swap="innerHTML"
+hx-push-url="true"
+class="bg-sky-600 text-white rounded-lg p-2">Next</button>
 
 {{end}}

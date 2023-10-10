@@ -23,6 +23,8 @@ func (app *application) routes() http.Handler {
 		app.logRequest))
 	router.Handler(http.MethodPut, "/excerpt/edit", Adapt(app.excerptEditPut(),
 		app.logRequest))
+	router.Handler(http.MethodPut, "/excerpt/edit/lock", Adapt(app.excerptEditLock(),
+		app.logRequest))
 
 	router.Handler(http.MethodGet, "/excerpt/grammar", Adapt(app.excerptGrammarGet(),
 		app.logRequest))

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS arabic_tags.excerpt (
     content TEXT NOT NULL,
     grammar JSON NOT NULL,
     technical JSON NOT NULL,
+    c_locked BOOLEAN NOT NULL,
     created DATETIME NOT NULL,
     updated DATETIME NOT NULL
 );

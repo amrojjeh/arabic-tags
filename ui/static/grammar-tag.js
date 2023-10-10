@@ -5,7 +5,6 @@ export class GrammarTag extends HTMLElement {
   constructor() {
     super();
     this.data = Object.create(null);
-    this.data.value = "";
     this.data.words = [];
     this.data.selectedIndex = undefined;
   }
@@ -137,16 +136,17 @@ export class GrammarTag extends HTMLElement {
 
   _initData() {
     if (this.getAttribute("value")) {
-      this.data.value = this.getAttribute("value");
+      this.data.words = JSON.parse(this.getAttribute("value")).words;
+    } else {
+      console.error("There's no value!");
     }
-    this.data.words = this.data.value.split(" ").map(this.genWord);
     this.data.selectedIndex = 0;
   }
 
   _initHTML() {
     this.innerHTML = html`
       <div dir="rtl" class="py-10 px-2 h-full">
-        <p class="ps-3 pe-3 text-4xl leading-loose">${this.data.value}</p>
+        <p class="ps-3 pe-3 text-4xl leading-loose"></p>
         <div class="pt-10 flex flex-col gap-5 mx-auto w-1/2">
           <input autofocus placeholder="اكتب..." type="text" class="text-3xl ps-2 py-2 leading-loose drop-shadow"></input>
           <ul id="tag-container" class="text-3xl list-disc marker:text-red-800 list-inside leading-loose">

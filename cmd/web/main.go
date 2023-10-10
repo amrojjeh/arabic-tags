@@ -47,7 +47,11 @@ func main() {
 		excerpts: models.ExcerptModel{DB: db},
 	}
 
-	app.cacheTemplates()
+	err = app.cacheTemplates()
+	if err != nil {
+		logger.Error("cannot cache templates", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
 	server := &http.Server{
 		Handler:      app.routes(),
 		Addr:         *addr,

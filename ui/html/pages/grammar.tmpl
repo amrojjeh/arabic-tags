@@ -4,8 +4,19 @@
 {{end}}
 {{define "main"}}
 <h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
-<!-- TODO(Amr Ojjeh): TEMPORARY VALUE -->
-<grammar-tag value="سمعت رسول الله صلى الله عليه وسلم يقول إنما الأعمال بالنيات وإنما لكل امرئ ما نوى فمن كانت هجرته إلى الله ورسوله فهجرته إلى الله ورسوله ومن كانت هجرته لدنيا يصيبها أو امرأة ينكحها فهجرته إلى ما هاجر إليه"></grammar-tag>
+<grammar-tag value="{{json .Excerpt.Grammar}}"></grammar-tag>
 {{end}}
 {{define "footer"}}
+<button hx-confirm="Clicking back reset grammatical tagging. Are you sure you want to continue?"
+hx-put="/excerpt/edit/unlock?id={{.Excerpt.IDStr}}"
+hx-target="closest body"
+hx-swap="innerHTML"
+hx-push-url="true"
+class="bg-red-600 text-white rounded-lg p-2">Back</button>
+<button hx-confirm="Clicking next will disable grammatical tagging. Are you sure you want to continue?"
+hx-put="/excerpt/grammar/lock?id={{.Excerpt.IDStr}}"
+hx-target="closest body"
+hx-swap="innerHTML"
+hx-push-url="true"
+class="bg-sky-600 text-white rounded-lg p-2">Next</button>
 {{end}}

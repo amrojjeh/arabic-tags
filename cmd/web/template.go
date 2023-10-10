@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -14,11 +15,24 @@ import (
 
 type templateData struct {
 	Excerpt models.Excerpt
+	Type    string
 	Form    any
+}
+
+func JSONFunc(s any) (string, error) {
+	b, err := json.Marshal(s)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b[:]), nil
 }
 
 func (app *application) cacheTemplates() error {
 	app.page = make(map[string]*template.Template)
+	funcs := template.FuncMap{
+		"json": JSONFunc,
+	}
 
 	names, err := filepath.Glob("./ui/html/pages/*")
 	if err != nil {
@@ -28,7 +42,9 @@ func (app *application) cacheTemplates() error {
 	for _, name := range names {
 		baseName := filepath.Base(name)
 
-		base, err := template.ParseFiles("./ui/html/base.tmpl")
+		base := template.New(name).Funcs(funcs)
+
+		base, err := base.ParseFiles("./ui/html/base.tmpl")
 		if err != nil {
 			return err
 		}
