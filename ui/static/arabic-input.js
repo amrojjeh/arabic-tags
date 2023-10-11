@@ -127,6 +127,8 @@ export class ArabicInput extends HTMLElement {
     log("Fragment updated:", Date.now() - start, "milliseconds");
 
     this.render();
+    const event = new Event("arabic-input-update");
+    this.dispatchEvent(event);
     log("Update:", Date.now() - start, "milliseconds");
   }
 
