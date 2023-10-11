@@ -32,9 +32,7 @@ export class ArabicInput extends HTMLElement {
     this.HTML.textarea.addEventListener("input", this._input);
     this.HTML.textarea.addEventListener("scroll", this._scroll);
     this.HTML.textarea.addEventListener("paste", this._paste);
-    if (this.getAttribute("autofocus") != null) {
-      this.HTML.textarea.focus();
-    }
+    this.HTML.textarea.focus();
     if (this.getAttribute("value") != null) {
       this.HTML.textarea.value = this.getAttribute("value");
       this.update();
@@ -42,6 +40,8 @@ export class ArabicInput extends HTMLElement {
     if (this.getAttribute("id") != null) {
       this.HTML.textarea.setAttribute("hx-put",
         `/excerpt/edit?id=${this.getAttribute("id")}`);
+    } else {
+      console.error("There's no id!");
     }
   }
 

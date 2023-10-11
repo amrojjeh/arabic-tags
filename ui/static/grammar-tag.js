@@ -4,9 +4,11 @@ const html = String.raw;
 export class GrammarTag extends HTMLElement {
   constructor() {
     super();
-    this.data = Object.create(null);
-    this.data.words = [];
-    this.data.selectedIndex = undefined;
+    this.data = {
+      words: [],
+      id: undefined,
+      selectedIndex: undefined,
+    }
   }
 
   connectedCallback() {
@@ -54,6 +56,7 @@ export class GrammarTag extends HTMLElement {
     }
     wordObj.word = newWord;
     wordObj.shrinked = true;
+    this.save();
     this.render();
   }
 
@@ -75,6 +78,7 @@ export class GrammarTag extends HTMLElement {
       nextWordObj.word = nextWord;
     }
     wordObj.word = newWord;
+    this.save();
     this.render();
   }
 
@@ -122,6 +126,7 @@ export class GrammarTag extends HTMLElement {
   addTag(index, tag) {
     const wordObj = this.data.words[index];
     wordObj.tags.push(tag);
+    this.save();
     this.render();
   }
 
@@ -139,6 +144,12 @@ export class GrammarTag extends HTMLElement {
       this.data.words = JSON.parse(this.getAttribute("value")).words;
     } else {
       console.error("There's no value!");
+    }
+
+    if (this.getAttribute("id") != null) {
+      this.data.id = this.getAttribute("id");
+    } else {
+      console.error("There's no id!");
     }
     this.data.selectedIndex = 0;
   }
@@ -159,6 +170,21 @@ export class GrammarTag extends HTMLElement {
     this.HTML.p = this.querySelector("div > p");
     this.HTML.input = this.querySelector("input");
     this.HTML.tagContainer = this.querySelector("#tag-container");
+  }
+
+  save() {
+    if (!this.save.timeout || Date.now() - this.save.date > 500) {
+      this.save.timeout = setTimeout(htmx.ajax.bind(this), 500, "PUT",
+        `/excerpt/grammar?id=${this.data.id}`, {
+        swap: "none",
+        values: { "content": { "words": this.data.words } }
+      });
+      this.save.date = Date.now();
+    } else if (Date.now() - this.save.date < 500) {
+      clearTimeout(this.save.timeout);
+      this.save.timeout = undefined;
+      this.save.date = undefined;
+    }
   }
 
   _keyup = (e) => {

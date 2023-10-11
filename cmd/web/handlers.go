@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -132,6 +133,38 @@ func (app *application) excerptGrammarGet() http.Handler {
 			Type:    "grammar",
 		}
 		app.renderTemplate(w, "grammar.tmpl", http.StatusOK, data)
+	})
+}
+
+func (app *application) excerptGrammarPut() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		idStr := r.Form.Get("id")
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		content := r.Form.Get("content")
+		var grammar models.Grammar
+		err = json.Unmarshal([]byte(content), &grammar)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		err = app.excerpts.UpdateGrammar(id, grammar)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		app.noBody(w)
 	})
 }
 

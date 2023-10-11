@@ -158,15 +158,23 @@ func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
 		Words: words,
 	}
 
-	load, err := json.Marshal(grammar)
+	err = m.UpdateGrammar(id, grammar)
 	if err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func (m ExcerptModel) UpdateGrammar(id uuid.UUID, grammar Grammar) error {
 	stmt := `UPDATE excerpt SET grammar=?, updated=UTC_TIMESTAMP()
 	WHERE id=UUID_TO_BIN(?)`
 
 	idVal, _ := id.Value()
+	load, err := json.Marshal(grammar)
+	if err != nil {
+		return err
+	}
 	_, err = m.DB.Exec(stmt, load, idVal)
 	if err != nil {
 		return err

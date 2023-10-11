@@ -4,7 +4,7 @@
 {{end}}
 {{define "main"}}
 <h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
-<grammar-tag value="{{json .Excerpt.Grammar}}"></grammar-tag>
+<grammar-tag id="{{.Excerpt.IDStr}}" value="{{json .Excerpt.Grammar}}"></grammar-tag>
 {{end}}
 {{define "footer"}}
 <button hx-confirm="Clicking back reset grammatical tagging. Are you sure you want to continue?"

@@ -28,5 +28,7 @@ func (app *application) routes() http.Handler {
 
 	router.Handler(http.MethodGet, "/excerpt/grammar", Adapt(app.excerptGrammarGet(),
 		app.logRequest))
+	router.Handler(http.MethodPut, "/excerpt/grammar", Adapt(app.excerptGrammarPut(),
+		app.logRequest))
 	return router
 }
