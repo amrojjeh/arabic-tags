@@ -224,6 +224,7 @@ export class GrammarTag extends HTMLElement {
     const index = e.target.getAttribute("data-i");
     const wordObj = this.data.words[this.data.selectedIndex];
     wordObj.tags.splice(index, 1);
+    this.save();
     this.render();
   }
 }
