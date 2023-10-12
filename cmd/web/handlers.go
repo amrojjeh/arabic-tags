@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"unicode"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/google/uuid"
@@ -73,7 +74,6 @@ func (app *application) excerptEditLock() http.Handler {
 			return
 		}
 
-		// TODO(Amr Ojjeh): Create Grammar
 		err = app.excerpts.ResetGrammar(id)
 		if err != nil {
 			app.serverError(w, err)
@@ -98,6 +98,7 @@ func (app *application) excerptEditPut() http.Handler {
 			return
 		}
 		content := r.Form.Get("content")
+		content = strings.TrimFunc(content, unicode.IsSpace)
 		err = app.excerpts.UpdateContent(id, content)
 		if err != nil {
 			app.serverError(w, err)
