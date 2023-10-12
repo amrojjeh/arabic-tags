@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"unicode"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/google/uuid"
@@ -46,9 +45,8 @@ func (app *application) excerptEditGet() http.Handler {
 			app.serverError(w, err)
 			return
 		}
-		data := templateData{
-			Excerpt: excerpt,
-		}
+		data := newTemplateData(r)
+		data.Excerpt = excerpt
 		app.renderTemplate(w, "add.tmpl", http.StatusOK, data)
 	})
 }
@@ -68,6 +66,27 @@ func (app *application) excerptEditLock() http.Handler {
 			app.clientError(w, http.StatusBadRequest)
 			return
 		}
+
+		excerpt, err := app.excerpts.Get(id)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		content, err := cleanContent(excerpt.Content)
+		if err != nil {
+			http.Redirect(w, r, fmt.Sprintf(
+				"/excerpt/edit?id=%v&error=Could not proceed. Found errors.", id),
+				http.StatusSeeOther)
+			return
+		}
+
+		err = app.excerpts.UpdateContent(id, content)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
 		err = app.excerpts.SetContentLock(id, true)
 		if err != nil {
 			app.serverError(w, err)
@@ -79,7 +98,8 @@ func (app *application) excerptEditLock() http.Handler {
 			app.serverError(w, err)
 			return
 		}
-		http.Redirect(w, r, fmt.Sprintf("/excerpt/grammar?id=%v", idStr), http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/excerpt/grammar?id=%v", idStr),
+			http.StatusSeeOther)
 	})
 }
 
@@ -98,7 +118,6 @@ func (app *application) excerptEditPut() http.Handler {
 			return
 		}
 		content := r.Form.Get("content")
-		content = strings.TrimFunc(content, unicode.IsSpace)
 		err = app.excerpts.UpdateContent(id, content)
 		if err != nil {
 			app.serverError(w, err)

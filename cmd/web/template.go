@@ -17,6 +17,14 @@ type templateData struct {
 	Excerpt models.Excerpt
 	Type    string
 	Form    any
+	Error   string
+}
+
+func newTemplateData(r *http.Request) templateData {
+	r.ParseForm()
+	return templateData{
+		Error: r.Form.Get("error"),
+	}
 }
 
 func JSONFunc(s any) (string, error) {
