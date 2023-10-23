@@ -1,6 +1,5 @@
 const html = String.raw;
 
-// TODO(Amr Ojjeh): Get the list for the tagssssssss
 export class GrammarTag extends HTMLElement {
   constructor() {
     super();
@@ -9,6 +8,8 @@ export class GrammarTag extends HTMLElement {
       id: undefined,
       selectedIndex: undefined,
     }
+
+    this.tags = [];
   }
 
   connectedCallback() {
@@ -152,6 +153,11 @@ export class GrammarTag extends HTMLElement {
       console.error("There's no id!");
     }
     this.data.selectedIndex = 0;
+
+    const t_tags = document.body.querySelector("#template-tags");
+    for (let p of t_tags.content.children) {
+      this.tags.push(p.innerText);
+    }
   }
 
   _initHTML() {
@@ -189,8 +195,12 @@ export class GrammarTag extends HTMLElement {
 
   _keyup = (e) => {
     if (e.key === "Enter") {
-      this.addTag(this.data.selectedIndex, this.HTML.input.value);
-      this.HTML.input.value = "";
+      if (this.tags.indexOf(this.HTML.input.value) === -1) {
+        alert("Tag not supported!");
+      } else {
+        this.addTag(this.data.selectedIndex, this.HTML.input.value);
+        this.HTML.input.value = "";
+      }
     }
   }
   _keydown = (e) => {

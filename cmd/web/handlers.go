@@ -148,10 +148,9 @@ func (app *application) excerptGrammarGet() http.Handler {
 			return
 		}
 
-		data := templateData{
-			Excerpt: excerpt,
-			Type:    "grammar",
-		}
+		data := newTemplateData(r)
+		data.Type = "grammar"
+		data.Excerpt = excerpt
 		app.renderTemplate(w, "grammar.tmpl", http.StatusOK, data)
 	})
 }

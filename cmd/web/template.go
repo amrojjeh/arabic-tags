@@ -11,19 +11,22 @@ import (
 	"path/filepath"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
+	"github.com/amrojjeh/arabic-tags/internal/speech"
 )
 
 type templateData struct {
-	Excerpt models.Excerpt
-	Type    string
-	Form    any
-	Error   string
+	Excerpt         models.Excerpt
+	Type            string
+	Form            any
+	Error           string
+	GrammaticalTags []string
 }
 
 func newTemplateData(r *http.Request) templateData {
 	r.ParseForm()
 	return templateData{
-		Error: r.Form.Get("error"),
+		Error:           r.Form.Get("error"),
+		GrammaticalTags: speech.GrammaticalTags,
 	}
 }
 
