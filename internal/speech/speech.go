@@ -22,7 +22,7 @@ var GrammaticalTags = []string{
 	ActiveParticiple,
 	"اسم فعل الأمر",
 	"اسم فعل الماضي",
-	"اسن فعل المضارع",
+	"اسم فعل المضارع",
 	PassiveParticiple,
 	VerbalNoun,
 	"اسم المصدر",
