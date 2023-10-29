@@ -70,4 +70,5 @@ var GrammaticalTags = []string{
 	IndicativeVerb,
 	SubjunctiveVerb,
 	"فعل مجزوم",
+	"مبني",
 }
