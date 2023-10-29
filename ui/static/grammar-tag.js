@@ -17,18 +17,22 @@ export class GrammarTag extends HTMLElement {
   connectedCallback() {
     this._initData();
     this._initHTML();
-    document.body.addEventListener("keydown", this._keydown);
-    this.HTML.input.addEventListener("keydown", this._keydown);
-    this.HTML.input.addEventListener("keyup", this._keyup);
+    document.body.addEventListener("keydown", this._keydownDoc);
+    this.HTML.input.addEventListener("keydown", this._keydownDoc);
+    this.HTML.input.addEventListener("keydown", this._keydownInput);
     this.HTML.input.addEventListener("input", this._input);
+    this.HTML.input.addEventListener("focus", this._focusInput);
+    this.HTML.input.addEventListener("blur", this._blurInput);
     this.render();
   }
 
   disconnectedCallback() {
-    document.body.removeEventListener("keydown", this._keydown);
-    this.HTML.input.removeEventListener("keydown", this._keydown);
-    this.HTML.input.removeEventListener("keyup", this._keyup);
+    document.body.removeEventListener("keydown", this._keydownDoc);
+    this.HTML.input.removeEventListener("keydown", this._keydownDoc);
+    this.HTML.input.removeEventListener("keydown", this._keydownInput);
     this.HTML.input.removeEventListener("input", this._input);
+    this.HTML.input.removeEventListener("focus", this._focusInput);
+    this.HTML.input.removeEventListener("blur", this._blurInput);
   }
 
   selectPrev() {
@@ -121,7 +125,8 @@ export class GrammarTag extends HTMLElement {
     const frag = document.createDocumentFragment();
     const li = document.createElement("li");
     li.innerText = tagValue;
-    li.classList.add("hover:line-through", "hover:cursor-pointer", "max-w-fit");
+    li.classList.add("hover:line-through", "hover:cursor-pointer", "max-w-fit",
+      "decoration-red-500");
     li.addEventListener("click", this._clickTag);
     li.setAttribute("data-i", i);
     frag.appendChild(li);
@@ -130,11 +135,12 @@ export class GrammarTag extends HTMLElement {
 
   autocompletePartial(text, boldStart, boldEnd) {
     const p = document.createElement("p");
-    p.classList.add("group", "hover:bg-sky-500", "hover:text-white",
+    p.classList.add("group", "hover:bg-sky-400", "hover:text-white",
       "cursor-pointer", "bg-white", "text-3xl", "ps-2", "leading-loose", "border");
+    p.setAttribute("data-autocomplete", "");
     p.append(text.substring(0, boldStart));
     const strong = document.createElement("strong");
-    strong.classList.add("text-red-800", "group-hover:text-white");
+    strong.classList.add("text-sky-400", "group-hover:text-white");
     strong.innerText = text.substring(boldStart, boldEnd);
     p.append(strong);
     p.append(text.substring(boldEnd));
@@ -147,7 +153,11 @@ export class GrammarTag extends HTMLElement {
     item.classList.replace("bg-white", "bg-sky-500");
     item.classList.add("text-white");
     const strong = item.querySelector("strong");
-    strong.classList.replace("text-red-800", "text-white");
+    strong.classList.replace("text-sky-400", "text-white");
+    item.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
   }
 
   unselectAutocomplete(index) {
@@ -155,7 +165,7 @@ export class GrammarTag extends HTMLElement {
     item.classList.replace("bg-sky-500", "bg-white");
     item.classList.remove("text-white");
     const strong = item.querySelector("strong");
-    strong.classList.replace("text-white", "text-red-800");
+    strong.classList.replace("text-white", "text-sky-400");
   }
 
   addTag(index, tag) {
@@ -205,16 +215,16 @@ export class GrammarTag extends HTMLElement {
   _initHTML() {
     this.innerHTML = html`
       <div dir="rtl" class="py-10 px-2 h-full">
-        <p class="ps-3 pe-3 text-4xl leading-loose"></p>
+        <p class="ps-3 pe-3 text-5xl leading-loose"></p>
         <div class="pt-10 flex flex-col gap-5 mx-auto w-1/2">
           <div class="flex flex-col">
-            <input autofocus placeholder="اكتب..." type="text" class="w-full text-3xl ps-2 py-2 leading-loose drop-shadow"></input>
+            <input autofocus placeholder="اكتب..." type="text" class="w-full text-3xl ps-2 py-2 leading-loose drop-shadow rounded-lg"></input>
             <div class="relative w-full">
               <div id="autocomplete" class="absolute left-0 right-0 top-0 select-none max-h-72 overflow-y-auto">
               </div>
             </div>
           </div>
-          <ul id="tag-container" class="text-3xl list-disc marker:text-red-800 list-inside leading-loose">
+          <ul id="tag-container" class="text-3xl list-disc marker:text-green-600 list-inside leading-loose">
           </ul>
         </div>
       </div>`;
@@ -257,7 +267,9 @@ export class GrammarTag extends HTMLElement {
           i === this.data.autocomplete_selected);
         this.HTML.autocomplete.append(p);
       }
-      this.selectAutocomplete(this.data.autocomplete_selected);
+      if (this.data.autocomplete.length > 0) {
+        this.selectAutocomplete(this.data.autocomplete_selected);
+      }
     }
   }
 
@@ -281,43 +293,77 @@ export class GrammarTag extends HTMLElement {
     this.selectAutocomplete(this.data.autocomplete_selected);
   }
 
-  _keyup = (e) => {
-    if (e.key === "Enter") {
-      if (this.data.autocomplete.length > 0) {
-        if (this.addTag(this.data.selectedIndex, this.data.autocomplete[0])) {
-          this.HTML.input.value = "";
-        }
-      }
-    } else if (e.key === "ArrowDown") {
-      this.autoCompleteSelectBelow();
-    } else if (e.key === "ArrowUp") {
-      this.autoCompleteSelectAbove();
-    }
+  hideAutocomplete() {
+    this.HTML.autocomplete.classList.add("hidden");
+  }
+
+  showAutocomplete() {
+    this.HTML.autocomplete.classList.remove("hidden");
   }
 
   _input = (_e) => {
     this.renderAutocomplete();
   }
 
-  _keydown = (e) => {
-    const keys = ["Home", "End"];
+  _focusInput = (_e) => {
+    this.showAutocomplete();
+  }
+
+  _blurInput = (_e) => {
+    this.hideAutocomplete();
+  }
+
+  _keydownInput = (e) => {
+    const keys = ["ArrowDown", "ArrowUp", "Enter", "Escape"];
     if (keys.indexOf(e.key) !== -1) {
       e.preventDefault();
       e.stopPropagation();
       switch (e.key) {
-        case "Home":
-          if (e.shiftKey) {
-            this.expandSelection();
-            break;
+        case "ArrowDown":
+          if (this.data.autocomplete.length > 0) {
+            this.autoCompleteSelectBelow();
           }
+          break;
+        case "ArrowUp":
+          if (this.data.autocomplete.length > 0) {
+            this.autoCompleteSelectAbove();
+          }
+          break;
+        case "Enter":
+          if (this.data.autocomplete.length > 0) {
+            this.addTag(this.data.selectedIndex,
+              this.data.autocomplete[this.data.autocomplete_selected]);
+            this.HTML.input.value = "";
+            this.renderAutocomplete();
+          }
+          break;
+        case "Escape":
+          this.HTML.input.blur();
+          break;
+        default:
+          console.error("Should not happen");
+          break;
+      }
+    }
+  }
+
+  _keydownDoc = (e) => {
+    const keys = ["-", "=", "_", "+"];
+    if (keys.indexOf(e.key) !== -1) {
+      e.preventDefault();
+      e.stopPropagation();
+      switch (e.key) {
+        case "-":
           this.selectNext();
           break;
-        case "End":
-          if (e.shiftKey) {
-            this.shrinkSelection();
-            break;
-          }
+        case "=":
           this.selectPrev();
+          break;
+        case "_":
+          this.expandSelection();
+          break;
+        case "+":
+          this.shrinkSelection();
           break;
         default:
           console.error("Should not happen");
@@ -336,7 +382,7 @@ export class GrammarTag extends HTMLElement {
 
   _clickAutocomplete = (e) => {
     this.HTML.input.value = "";
-    this.addTag(this.data.selectedIndex, e.target.innerText);
+    this.addTag(this.data.selectedIndex, e.currentTarget.innerText);
     this.renderAutocomplete();
   }
 }
