@@ -1,37 +1,20 @@
 package speech
 
-const (
-	ActiveParticiple     = "اسم فاعل"
-	PassiveParticiple    = "اسم المفعول"
-	VerbalNoun           = "المصدر"
-	DemonstrativePronoun = "اسم اشارة"
-	SuffixedPronoun      = "ضمبر متصل"
-	NominativeNoun       = "اسم مرفوع"
-	AccusativeNoun       = "اسم منصوب"
-	GenetiveNoun         = "اسم مجرور"
-
-	NegativeParticle        = "حرف نفي"
-	CoordinatingConjunction = "حرف عطف"
-
-	IndicativeVerb  = "فعل مرفوع"
-	SubjunctiveVerb = "فعل منصوب"
-)
-
 // TODO(Amr Ojjeh): Convert to English constants
 var GrammaticalTags = []string{
-	ActiveParticiple,
+	"اسم فاعل",
 	"اسم فعل الأمر",
 	"اسم فعل الماضي",
 	"اسم فعل المضارع",
-	PassiveParticiple,
-	VerbalNoun,
+	"اسم المفعول",
+	"المصدر",
 	"اسم المصدر",
 	"الصفة المشبهة",
 	"مثال المبالغة",
-	DemonstrativePronoun,
+	"اسم اشارة",
 	"موصول محختص",
 	"موصول مسترك",
-	SuffixedPronoun,
+	"ضمبر متصل",
 	"ضمير منفصل",
 	"مستتر جوازا",
 	"مستتر وجوبا",
@@ -44,10 +27,10 @@ var GrammaticalTags = []string{
 	"نكرة منصوبة",
 	"نكرة مرفوعة",
 	"اسم استفهام",
-	NominativeNoun,
-	AccusativeNoun,
-	GenetiveNoun,
-	NegativeParticle,
+	"اسم مرفوع",
+	"اسم منصوب",
+	"اسم مجرور",
+	"حرف نفي",
 	"حرف جر أصلي",
 	"حرف جر زائد",
 	"حرف جر شبه زائد",
@@ -60,15 +43,52 @@ var GrammaticalTags = []string{
 	"حرف استفهام",
 	"حرف التفسير",
 	"موصول حرفي",
-	CoordinatingConjunction,
+	"حرف عطف",
 	"حرف محذوف",
 	"فعل تام",
 	"أخوات كان",
 	"أخوات كاد",
 	"أفعال القلوب",
 	"أفعال التحويل",
-	IndicativeVerb,
-	SubjunctiveVerb,
+	"فعل مرفوع",
+	"فعل منصوب",
 	"فعل مجزوم",
 	"مبني",
+
+	// Second column
+	"نائب الفاعل",
+	"اسم أخوات كاد",
+	"اسم أخوات كان",
+	"خبر أخوات إن",
+	"اسم حرف نفي",
+	"فاعل",
+	"اعرابه",
+	"خبر مبتدأ",
+
+	"خبر أخوات كان",
+	"خبر حرف نفي",
+	"مفعول معه",
+	"مفعول لأجله",
+	"مفعول فيه",
+	"مفعول به ثان",
+	"مفعول به ثالث",
+	"مفعول لأجله",
+	"مفعول مطلق",
+	"مفعول به",
+	"مفعول لأجله",
+	"مفعول مطلق",
+	"منادى",
+	"مفعول معه",
+	"مفعول به",
+	"اسم أخوات إن",
+
+	"مجرور بالاضافة",
+	"مجرور بحرف",
+
+	"منصوب بحرف",
+	"مجزوم بحرف",
+	"مجزوم بالطلب",
+
+	"صلة الموصول",
+	"صلة",
 }
