@@ -3,14 +3,6 @@ const html = String.raw;
 export class GrammarTag extends HTMLElement {
   constructor() {
     super();
-    this.data = {
-      words: [],
-      id: undefined,
-      selectedIndex: undefined,
-      autocomplete: [],
-      autocomplete_selected: -1,
-    }
-
     this.tags = [];
   }
 
@@ -113,9 +105,13 @@ export class GrammarTag extends HTMLElement {
     const frag = document.createDocumentFragment();
     const word = this.data.words[index].word;
     const span = document.createElement("span");
+    span.classList.add("decoration-blue-400", "underline-offset-[.8em]");
     span.innerText = word;
     if (index === this.data.selectedIndex) {
       span.classList.add("bg-red-800", "text-white");
+    }
+    if (this.data.words[index].tags.length) {
+      span.classList.add("underline");
     }
     frag.appendChild(span);
     return frag;
@@ -193,6 +189,13 @@ export class GrammarTag extends HTMLElement {
   }
 
   _initData() {
+    this.data = {
+      words: [],
+      id: undefined,
+      selectedIndex: undefined,
+      autocomplete: [],
+      autocomplete_selected: -1,
+    }
     if (this.getAttribute("value")) {
       this.data.words = JSON.parse(this.getAttribute("value")).words;
     } else {
@@ -214,18 +217,23 @@ export class GrammarTag extends HTMLElement {
 
   _initHTML() {
     this.innerHTML = html`
-      <div dir="rtl" class="py-10 px-2 h-full">
-        <p class="ps-3 pe-3 text-5xl leading-loose"></p>
-        <div class="pt-10 flex flex-col gap-5 mx-auto w-1/2">
-          <div class="flex flex-col">
-            <input autofocus placeholder="اكتب..." type="text" class="w-full text-3xl ps-2 py-2 leading-loose drop-shadow rounded-lg"></input>
-            <div class="relative w-full">
-              <div id="autocomplete" class="absolute left-0 right-0 top-0 select-none max-h-72 overflow-y-auto">
+      <div dir="rtl" class="py-10 px-2 h-full grid grid-rows-1 grid-cols-[400px_auto]">
+        <div class="border-e-2">
+          <h2 dir="ltr" class="text-3xl text-center font-sans">Grammatical Tags</h2>
+          <ul id="tag-container" class="text-3xl list-disc marker:text-green-600 list-inside leading-loose">
+          </ul>
+        </div>
+        <div class="ms-8">
+          <p class="ps-3 pe-3 text-5xl leading-loose"></p>
+          <div class="pt-10 flex flex-col gap-5 w-1/2">
+            <div class="flex flex-col">
+              <input autofocus placeholder="اكتب..." type="text" class="w-full text-3xl ps-2 py-2 leading-loose drop-shadow rounded-lg"></input>
+              <div class="relative w-full">
+                <div id="autocomplete" class="absolute left-0 right-0 top-0 select-none max-h-72 overflow-y-auto">
+                </div>
               </div>
             </div>
           </div>
-          <ul id="tag-container" class="text-3xl list-disc marker:text-green-600 list-inside leading-loose">
-          </ul>
         </div>
       </div>`;
 
