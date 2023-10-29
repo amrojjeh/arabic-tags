@@ -105,7 +105,7 @@ export class GrammarTag extends HTMLElement {
     const frag = document.createDocumentFragment();
     const word = this.data.words[index].word;
     const span = document.createElement("span");
-    span.classList.add("decoration-blue-400", "underline-offset-[.8em]");
+    span.classList.add("decoration-blue-400", "underline-offset-[.7em]");
     span.innerText = word;
     if (index === this.data.selectedIndex) {
       span.classList.add("bg-red-800", "text-white");

@@ -7,3 +7,13 @@
     font-family: "Amiri", sans-serif;
   }
 }
+
+@layer utilities {
+  .underline-skip-none {
+    text-decoration-skip-ink: none;
+  }
+
+  .underline-skip {
+    text-decoration-skip-ink: auto;
+  }
+}
