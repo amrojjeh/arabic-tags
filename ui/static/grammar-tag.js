@@ -221,10 +221,22 @@ export class GrammarTag extends HTMLElement {
         <div class="border-e-2">
           <h2 class="text-3xl text-center font-sans">Navigation</h2>
           <div dir="ltr" class="font-sans grid grid-rows-2 grid-cols-2 gap-2 p-2">
-            <button type="button" id="btn_next" class="bg-sky-600 text-white rounded-lg p-2 material-symbols-outlined">arrow_back</button>
-            <button type="button" id="btn_prev" class="bg-sky-600 text-white rounded-lg p-2 material-symbols-outlined">arrow_forward</button>
-            <button type="button" id="btn_expand" class="bg-sky-600 text-white rounded-lg p-2 material-symbols-outlined">text_select_move_back_word</button>
-            <button type="button" id="btn_reduce" class="bg-sky-600 text-white rounded-lg p-2 material-symbols-outlined">text_select_move_forward_word</button>
+            <button type="button" id="btn_next" class="bg-sky-600 text-white rounded-lg p-2 group">
+              <p class="material-symbols-outlined">arrow_back</p>
+              <p class="text-sm text-center">Shortcut: <kbd class="bg-slate-100 shadow-key text-black font-black border-1 ps-1 pe-1">-</kbd></p>
+            </button>
+            <button type="button" id="btn_prev" class="bg-sky-600 text-white rounded-lg p-2">
+              <p class="material-symbols-outlined">arrow_forward</p>
+              <p class="text-sm text-center">Shortcut: <kbd class="bg-slate-100 shadow-key text-black font-black border-1 ps-1 pe-1">=</kbd></p>
+            </button>
+            <button type="button" id="btn_expand" class="bg-sky-600 text-white rounded-lg p-2">
+              <p class="material-symbols-outlined">text_select_move_back_word</p>
+              <p class="text-sm text-center">Shortcut: <kbd class="bg-slate-100 shadow-key text-black font-black border-1 ps-1 pe-1">_</kbd></p>
+            </button>
+            <button type="button" id="btn_reduce" class="bg-sky-600 text-white rounded-lg p-2">
+              <p class="material-symbols-outlined">text_select_move_forward_word</p>
+              <p class="text-sm text-center">Shortcut: <kbd class="bg-slate-100 shadow-key text-black font-black border-1 ps-1 pe-1">+</kbd></p>
+            </button>
           </div>
           <h2 dir="ltr" class="text-3xl text-center font-sans">Grammatical Tags</h2>
           <ul id="tag-container" class="text-3xl list-disc marker:text-green-600 list-inside leading-loose">

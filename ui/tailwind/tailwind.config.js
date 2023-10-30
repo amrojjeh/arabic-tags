@@ -6,7 +6,11 @@ module.exports = {
     "./ui/static/*.js",
   ],
   theme: {
-    extend: {},
+    extend: {
+      boxShadow: {
+        "key": "0 2px 0 0 rgba(0,0,0,.7)"
+      }
+    },
   },
   plugins: [],
 }
