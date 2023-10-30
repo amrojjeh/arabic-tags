@@ -144,14 +144,14 @@ export class GrammarTag extends HTMLElement {
     return p;
   }
 
-  selectAutocomplete(index) {
+  selectAutocomplete(index, smooth) {
     const item = this.HTML.autocomplete.children[index];
     item.classList.replace("bg-white", "bg-sky-500");
     item.classList.add("text-white");
     const strong = item.querySelector("strong");
     strong.classList.replace("text-sky-400", "text-white");
     item.scrollIntoView({
-      behavior: "smooth",
+      behavior: smooth ? "smooth" : "instant",
       block: "center",
     });
   }
@@ -276,29 +276,35 @@ export class GrammarTag extends HTMLElement {
         this.HTML.autocomplete.append(p);
       }
       if (this.data.autocomplete.length > 0) {
-        this.selectAutocomplete(this.data.autocomplete_selected);
+        this.selectAutocomplete(this.data.autocomplete_selected, false);
       }
     }
   }
 
-  autoCompleteSelectBelow() {
+  autoCompleteSelectBelow(repeated) {
     if (this.data.autocomplete_selected !== -1) {
       this.unselectAutocomplete(this.data.autocomplete_selected);
     }
-    this.data.autocomplete_selected =
-      (this.data.autocomplete_selected + 1) % this.data.autocomplete.length;
-    this.selectAutocomplete(this.data.autocomplete_selected);
+    this.data.autocomplete_selected++;
+    if (this.data.autocomplete_selected >= this.data.autocomplete.length) {
+      this.data.autocomplete_selected = 0;
+      this.selectAutocomplete(this.data.autocomplete_selected, false);
+      return;
+    }
+    this.selectAutocomplete(this.data.autocomplete_selected, !repeated);
   }
 
-  autoCompleteSelectAbove() {
+  autoCompleteSelectAbove(repeated) {
     if (this.data.autocomplete_selected !== -1) {
       this.unselectAutocomplete(this.data.autocomplete_selected);
     }
     this.data.autocomplete_selected--;
     if (this.data.autocomplete_selected < 0) {
       this.data.autocomplete_selected = this.data.autocomplete.length - 1;
+      this.selectAutocomplete(this.data.autocomplete_selected, false);
+      return;
     }
-    this.selectAutocomplete(this.data.autocomplete_selected);
+    this.selectAutocomplete(this.data.autocomplete_selected, !repeated);
   }
 
   hideAutocomplete() {
@@ -329,12 +335,12 @@ export class GrammarTag extends HTMLElement {
       switch (e.key) {
         case "ArrowDown":
           if (this.data.autocomplete.length > 0) {
-            this.autoCompleteSelectBelow();
+            this.autoCompleteSelectBelow(e.repeat);
           }
           break;
         case "ArrowUp":
           if (this.data.autocomplete.length > 0) {
-            this.autoCompleteSelectAbove();
+            this.autoCompleteSelectAbove(e.repeat);
           }
           break;
         case "Enter":
