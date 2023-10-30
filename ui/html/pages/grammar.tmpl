@@ -12,12 +12,11 @@
 </template>
 {{end}}
 {{define "footer"}}
-<button hx-confirm="Clicking back reset grammatical tagging. Are you sure you want to continue?"
-hx-put="/excerpt/edit/unlock?id={{.Excerpt.IDStr}}"
+<button hx-get="/excerpt/edit?id={{.Excerpt.IDStr}}"
 hx-target="closest body"
 hx-swap="innerHTML"
 hx-push-url="true"
-class="bg-red-600 text-white rounded-lg p-2">Back</button>
+class="bg-sky-600 text-white rounded-lg p-2">Back</button>
 <button hx-confirm="Clicking next will disable grammatical tagging. Are you sure you want to continue?"
 hx-put="/excerpt/grammar/lock?id={{.Excerpt.IDStr}}"
 hx-target="closest body"

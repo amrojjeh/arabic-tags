@@ -144,6 +144,11 @@ func (app *application) excerptGrammarGet() http.Handler {
 
 		excerpt, err := app.excerpts.Get(id)
 		if err != nil {
+			if errors.Is(err, models.ErrNoRecord) {
+				// TODO(Amr Ojjeh): Write a not found page
+				w.Write([]byte("Excerpt not found..."))
+				return
+			}
 			app.serverError(w, err)
 			return
 		}

@@ -13,14 +13,14 @@
 	<script type="module" src="/static/main.js"></script>
 	<script src="/static/htmx-1.9.4.min.js" defer></script>
 </head>
-<body hx-boost="true" class="h-screen flex flex-col bg-red-50/25">
-	<nav class="text-white bg-red-800 px-5 py-2 grid grid-cols-3 grid-rows-1 border-b-2">
+<body hx-boost="true" class="h-screen gap-0 flex flex-col bg-red-50/25">
+	<nav class="text-white bg-red-800 px-5 py-2 grid grid-cols-3 grid-rows-1">
 		{{template "nav" .}}
 	</nav>
 	{{with .Error }}
 	<div class="bg-red-200 text-center text-2xl text-red-800">{{.}}</div>
 	{{end}}
-	<main class="grow">
+	<main class="grow p-0">
 		{{template "main" .}}
 	</main>
 	<footer class="px-5 py-3 border-t-2 text-2xl justify-between flex">

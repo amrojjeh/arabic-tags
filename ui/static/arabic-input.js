@@ -28,10 +28,15 @@ export class ArabicInput extends HTMLElement {
 
   connectedCallback() {
     this.HTML.textarea.tabindex = "0";
-    this.HTML.textarea.addEventListener("keydown", this._filter);
-    this.HTML.textarea.addEventListener("input", this._input);
+    if (typeof this.getAttribute("readonly") !== "string") {
+      this.HTML.textarea.addEventListener("keydown", this._filter);
+      this.HTML.textarea.addEventListener("input", this._input);
+      this.HTML.textarea.addEventListener("paste", this._paste);
+    } else {
+      this.HTML.textarea.setAttribute("readonly", "");
+      this.HTML.highlighted.classList.add("bg-gray-100/50");
+    }
     this.HTML.textarea.addEventListener("scroll", this._scroll);
-    this.HTML.textarea.addEventListener("paste", this._paste);
     this.HTML.textarea.focus();
     if (this.getAttribute("value") != null) {
       this.HTML.textarea.value = this.getAttribute("value");
@@ -55,16 +60,16 @@ export class ArabicInput extends HTMLElement {
 
   initHTML() {
     return html`
-      <div dir="rtl" class="h-full py-10 px-2">
+      <div dir="rtl" class="h-full">
         <div class="relative h-full">
-          <div class="text-clip overflow-y-auto leading-loose absolute break-words top-0 left-0 h-full w-full text-3xl"></div>
+          <div class="ps-5 text-clip overflow-y-auto leading-loose absolute break-words top-0 left-0 h-full w-full text-3xl"></div>
           <textarea spellcheck="false"
             name="content"
             hx-swap="none"
             hx-put="NOT DEFINED"
             hx-trigger="keyup changed delay:500ms"
             hx-indicator=".htmx-indicator"
-            class="leading-loose absolute focus:outline-none top-0 left-0 caret-black
+            class="ps-5 leading-loose absolute focus:outline-none top-0 left-0 caret-black
             text-transparent bg-transparent h-full w-full text-3xl resize-none"
             placeholder="اكتب..."></textarea>
         </div>

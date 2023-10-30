@@ -105,10 +105,16 @@ export class GrammarTag extends HTMLElement {
     const frag = document.createDocumentFragment();
     const word = this.data.words[index].word;
     const span = document.createElement("span");
-    span.classList.add("decoration-blue-400", "underline-offset-[.7em]");
+    span.classList.add("decoration-blue-400", "underline-offset-[.7em]", "pe-0.5");
     span.innerText = word;
     if (index === this.data.selectedIndex) {
       span.classList.add("bg-red-800", "text-white");
+    } else {
+      span.classList.add("hover:text-red-800", "cursor-pointer");
+      span.addEventListener("click", () => {
+        this.data.selectedIndex = index;
+        this.render();
+      })
     }
     if (this.data.words[index].tags.length) {
       span.classList.add("underline");
@@ -121,7 +127,7 @@ export class GrammarTag extends HTMLElement {
     const frag = document.createDocumentFragment();
     const li = document.createElement("li");
     li.innerText = tagValue;
-    li.classList.add("hover:line-through", "hover:cursor-pointer", "max-w-fit",
+    li.classList.add("hover:line-through", "cursor-pointer", "max-w-fit",
       "decoration-red-500");
     li.addEventListener("click", this._clickTag);
     li.setAttribute("data-i", i);
