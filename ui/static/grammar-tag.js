@@ -13,8 +13,10 @@ export class GrammarTag extends HTMLElement {
     this.HTML.input.addEventListener("keydown", this._keydownDoc);
     this.HTML.input.addEventListener("keydown", this._keydownInput);
     this.HTML.input.addEventListener("input", this._input);
-    this.HTML.input.addEventListener("focus", this._focusInput);
-    this.HTML.input.addEventListener("blur", this._blurInput);
+    this.HTML.btn_next.addEventListener("click", this.selectNext.bind(this));
+    this.HTML.btn_prev.addEventListener("click", this.selectPrev.bind(this));
+    this.HTML.btn_expand.addEventListener("click", this.expandSelection.bind(this));
+    this.HTML.btn_reduce.addEventListener("click", this.shrinkSelection.bind(this));
     this.render();
   }
 
@@ -23,8 +25,6 @@ export class GrammarTag extends HTMLElement {
     this.HTML.input.removeEventListener("keydown", this._keydownDoc);
     this.HTML.input.removeEventListener("keydown", this._keydownInput);
     this.HTML.input.removeEventListener("input", this._input);
-    this.HTML.input.removeEventListener("focus", this._focusInput);
-    this.HTML.input.removeEventListener("blur", this._blurInput);
   }
 
   selectPrev() {
@@ -219,6 +219,13 @@ export class GrammarTag extends HTMLElement {
     this.innerHTML = html`
       <div dir="rtl" class="py-10 px-2 h-full grid grid-rows-1 grid-cols-[400px_auto]">
         <div class="border-e-2">
+          <h2 class="text-3xl text-center font-sans">Navigation</h2>
+          <div dir="ltr" class="font-sans grid grid-rows-2 grid-cols-2 gap-2 p-2">
+            <button type="button" id="btn_next" class="bg-sky-600 text-white rounded-lg p-2 material-symbols-outlined">arrow_back</button>
+            <button type="button" id="btn_prev" class="bg-sky-600 text-white rounded-lg p-2 material-symbols-outlined">arrow_forward</button>
+            <button type="button" id="btn_expand" class="bg-sky-600 text-white rounded-lg p-2 material-symbols-outlined">text_select_move_back_word</button>
+            <button type="button" id="btn_reduce" class="bg-sky-600 text-white rounded-lg p-2 material-symbols-outlined">text_select_move_forward_word</button>
+          </div>
           <h2 dir="ltr" class="text-3xl text-center font-sans">Grammatical Tags</h2>
           <ul id="tag-container" class="text-3xl list-disc marker:text-green-600 list-inside leading-loose">
           </ul>
@@ -243,6 +250,10 @@ export class GrammarTag extends HTMLElement {
       input: this.querySelector("input"),
       tagContainer: this.querySelector("#tag-container"),
       autocomplete: this.querySelector("#autocomplete"),
+      btn_next: this.querySelector("#btn_next"),
+      btn_prev: this.querySelector("#btn_prev"),
+      btn_expand: this.querySelector("#btn_expand"),
+      btn_reduce: this.querySelector("#btn_reduce"),
     }
   }
 
@@ -307,28 +318,12 @@ export class GrammarTag extends HTMLElement {
     this.selectAutocomplete(this.data.autocomplete_selected, !repeated);
   }
 
-  hideAutocomplete() {
-    this.HTML.autocomplete.classList.add("hidden");
-  }
-
-  showAutocomplete() {
-    this.HTML.autocomplete.classList.remove("hidden");
-  }
-
   _input = (_e) => {
     this.renderAutocomplete();
   }
 
-  _focusInput = (_e) => {
-    this.showAutocomplete();
-  }
-
-  _blurInput = (_e) => {
-    this.hideAutocomplete();
-  }
-
   _keydownInput = (e) => {
-    const keys = ["ArrowDown", "ArrowUp", "Enter", "Escape"];
+    const keys = ["ArrowDown", "ArrowUp", "Enter"];
     if (keys.indexOf(e.key) !== -1) {
       e.preventDefault();
       e.stopPropagation();
@@ -350,9 +345,6 @@ export class GrammarTag extends HTMLElement {
             this.HTML.input.value = "";
             this.renderAutocomplete();
           }
-          break;
-        case "Escape":
-          this.HTML.input.blur();
           break;
         default:
           console.error("Should not happen");
@@ -387,6 +379,7 @@ export class GrammarTag extends HTMLElement {
   }
 
   _clickTag = (e) => {
+    console.log("tag clicked");
     const index = e.target.getAttribute("data-i");
     const wordObj = this.data.words[this.data.selectedIndex];
     wordObj.tags.splice(index, 1);
