@@ -12,7 +12,7 @@
 	the later pages)</div>
 	{{end}}
 	<h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
-	<arabic-input class="grow" id="{{.Excerpt.IDStr}}" readonly value="{{.Excerpt.Content}}"></arabic-input>
+	<arabic-input class="grow" id="{{.Excerpt.IDStr}}" {{if .Excerpt.CLocked}}readonly{{end}} value="{{.Excerpt.Content}}"></arabic-input>
 </div>
 {{- end -}}
 {{define "footer"}}
