@@ -1,13 +1,11 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
-	"regexp"
 	"strings"
-	"unicode"
+
+	"github.com/google/uuid"
 )
 
 func (app *application) clientError(w http.ResponseWriter, code int) {
@@ -24,33 +22,10 @@ func (app *application) noBody(w http.ResponseWriter) {
 	w.Write([]byte(""))
 }
 
-func cleanContent(content string) (string, error) {
-	for _, c := range content {
-		if !(isArabicLetter(c) || isWhitespace(c)) {
-			return "", errors.New(fmt.Sprintf("%v is an invalid letter", c))
-		}
-	}
-
-	// Remove double spaces
-	r, _ := regexp.Compile(" +")
-	content = r.ReplaceAllString(content, " ")
-
-	// Trim sentence
-	content = strings.TrimFunc(content, unicode.IsSpace)
-	return content, nil
+func (app *application) excerptNotFound(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/?error=Excerpt not found", http.StatusSeeOther)
 }
 
-// isArabicLetter does not include tashkeel
-func isArabicLetter(letter rune) bool {
-	if letter >= 0x0621 && letter <= 0x063A {
-		return true
-	}
-	if letter >= 0x0641 && letter <= 0x064A {
-		return true
-	}
-	return false
-}
-
-func isWhitespace(letter rune) bool {
-	return letter == ' '
+func idToString(id uuid.UUID) string {
+	return strings.ReplaceAll(id.String(), "-", "")
 }

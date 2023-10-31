@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
+
+	"github.com/google/uuid"
 )
 
 type Adapter func(http.Handler) http.Handler
@@ -21,6 +24,35 @@ func stripPrefix(prefix string) Adapter {
 	return func(h http.Handler) http.Handler {
 		return http.StripPrefix(prefix, h)
 	}
+}
+
+func (app *application) idRequired(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		idStr := r.Form.Get("id")
+		if idStr == "" {
+			http.Redirect(w, r, "/?error=Excerpt id was not provided",
+				http.StatusSeeOther)
+			return
+		}
+
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			http.Redirect(w, r, "/?error=id is invalid",
+				http.StatusSeeOther)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "id", id)
+		r = r.WithContext(ctx)
+
+		h.ServeHTTP(w, r)
+	})
 }
 
 func Adapt(h http.Handler, adapters ...Adapter) http.Handler {

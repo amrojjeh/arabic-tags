@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
+	"unicode"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/google/uuid"
@@ -19,27 +21,11 @@ func (app *application) notFound() http.Handler {
 
 func (app *application) excerptEditGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
-
-		idStr := r.Form.Get("id")
-		if idStr == "" {
-			http.Redirect(w, r, "/", http.StatusMovedPermanently)
-			return
-		}
-		id, err := uuid.Parse(idStr)
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
+		id := r.Context().Value("id").(uuid.UUID)
 		excerpt, err := app.excerpts.Get(id)
 		if err != nil {
 			if errors.Is(err, models.ErrNoRecord) {
-				// TODO(Amr Ojjeh): Write an excerpt not found page
-				w.Write([]byte("Excerpt not found..."))
+				app.excerptNotFound(w, r)
 				return
 			}
 			app.serverError(w, err)
@@ -51,22 +37,52 @@ func (app *application) excerptEditGet() http.Handler {
 	})
 }
 
+func (app *application) excerptEditUnlock() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Context().Value("id").(uuid.UUID)
+		err := app.excerpts.SetContentLock(id, false)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+	})
+}
+
+func cleanContent(content string) (string, error) {
+	for _, c := range content {
+		if !(isArabicLetter(c) || isWhitespace(c)) {
+			return "", errors.New(fmt.Sprintf("%v is an invalid letter", c))
+		}
+	}
+
+	// Remove double spaces
+	r, _ := regexp.Compile(" +")
+	content = r.ReplaceAllString(content, " ")
+
+	// Trim sentence
+	content = strings.TrimFunc(content, unicode.IsSpace)
+	return content, nil
+}
+
+// isArabicLetter does not include tashkeel
+func isArabicLetter(letter rune) bool {
+	if letter >= 0x0621 && letter <= 0x063A {
+		return true
+	}
+	if letter >= 0x0641 && letter <= 0x064A {
+		return true
+	}
+	return false
+}
+
+func isWhitespace(letter rune) bool {
+	return letter == ' '
+}
+
 func (app *application) excerptEditLock() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO(Amr Ojjeh): Prevent next if there are errors
-		err := r.ParseForm()
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
-
-		idStr := r.Form.Get("id")
-		id, err := uuid.Parse(idStr)
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
-
+		id := r.Context().Value("id").(uuid.UUID)
 		excerpt, err := app.excerpts.Get(id)
 		if err != nil {
 			app.serverError(w, err)
@@ -98,6 +114,7 @@ func (app *application) excerptEditLock() http.Handler {
 			app.serverError(w, err)
 			return
 		}
+		idStr := idToString(id)
 		http.Redirect(w, r, fmt.Sprintf("/excerpt/grammar?id=%v", idStr),
 			http.StatusSeeOther)
 	})
@@ -129,24 +146,11 @@ func (app *application) excerptEditPut() http.Handler {
 
 func (app *application) excerptGrammarGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
-
-		idStr := r.Form.Get("id")
-		id, err := uuid.Parse(idStr)
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
-
+		id := r.Context().Value("id").(uuid.UUID)
 		excerpt, err := app.excerpts.Get(id)
 		if err != nil {
 			if errors.Is(err, models.ErrNoRecord) {
-				// TODO(Amr Ojjeh): Write a not found page
-				w.Write([]byte("Excerpt not found..."))
+				app.excerptNotFound(w, r)
 				return
 			}
 			app.serverError(w, err)
@@ -169,13 +173,6 @@ func (app *application) excerptGrammarPut() http.Handler {
 			return
 		}
 
-		idStr := r.Form.Get("id")
-		id, err := uuid.Parse(idStr)
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
-
 		content := r.Form.Get("content")
 		var grammar models.Grammar
 		err = json.Unmarshal([]byte(content), &grammar)
@@ -184,6 +181,7 @@ func (app *application) excerptGrammarPut() http.Handler {
 			return
 		}
 
+		id := r.Context().Value("id").(uuid.UUID)
 		err = app.excerpts.UpdateGrammar(id, grammar)
 		if err != nil {
 			app.serverError(w, err)
@@ -200,7 +198,7 @@ type excerptForm struct {
 
 func (app *application) excerptCreateGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		data := templateData{}
+		data := newTemplateData(r)
 		data.Form = excerptForm{}
 		app.renderTemplate(w, "home.tmpl", http.StatusOK, data)
 	})
@@ -222,9 +220,8 @@ func (app *application) excerptCreatePost() http.Handler {
 			"Title cannot exceed 100 characters")
 
 		if !form.Valid() {
-			data := templateData{
-				Form: form,
-			}
+			data := newTemplateData(r)
+			data.Form = form
 
 			if r.Header.Get("HX-Boosted") == "true" {
 				app.renderTemplate(w, "home.tmpl", http.StatusOK, data)
@@ -240,7 +237,8 @@ func (app *application) excerptCreatePost() http.Handler {
 			return
 		}
 
-		idStr := strings.ReplaceAll(id.String(), "-", "")
-		http.Redirect(w, r, fmt.Sprintf("/excerpt/edit?id=%v", idStr), http.StatusSeeOther)
+		idStr := idToString(id)
+		http.Redirect(w, r, fmt.Sprintf("/excerpt/edit?id=%v", idStr),
+			http.StatusSeeOther)
 	})
 }
