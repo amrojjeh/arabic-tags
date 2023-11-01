@@ -54,12 +54,15 @@ func (t *Technical) Scan(src any) error {
 
 type Excerpt struct {
 	ID        uuid.UUID
-	IDStr     string
 	Title     string
 	Content   string
 	Grammar   Grammar
 	Technical Technical
 	CLocked   bool
+	GLocked   bool
+	CShare    uuid.UUID
+	GShare    uuid.UUID
+	TShare    uuid.UUID
 	Created   time.Time
 	Updated   time.Time
 }
@@ -69,7 +72,8 @@ type ExcerptModel struct {
 }
 
 func (m ExcerptModel) Get(id uuid.UUID) (Excerpt, error) {
-	stmt := `SELECT title, content, grammar, technical, c_locked, created, updated
+	stmt := `SELECT title, content, grammar, technical, c_locked, g_locked,
+	c_share, g_share, t_share, created, updated
 	FROM excerpt WHERE excerpt.id=UUID_TO_BIN(?)`
 
 	var e Excerpt
@@ -77,8 +81,9 @@ func (m ExcerptModel) Get(id uuid.UUID) (Excerpt, error) {
 
 	// UUID.Value always returns nil
 	idVal, _ := id.Value()
-	err := m.DB.QueryRow(stmt, idVal).Scan(&e.Title, &e.Content,
-		&e.Grammar, &e.Technical, &e.CLocked, &e.Created, &e.Updated)
+	err := m.DB.QueryRow(stmt, idVal).Scan(&e.Title, &e.Content, &e.Grammar,
+		&e.Technical, &e.CLocked, &e.GLocked, &e.CShare, &e.GShare, &e.TShare,
+		&e.Created, &e.Updated)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return e, ErrNoRecord
@@ -86,14 +91,14 @@ func (m ExcerptModel) Get(id uuid.UUID) (Excerpt, error) {
 		return e, err
 	}
 
-	e.IDStr = strings.ReplaceAll(id.String(), "-", "")
 	return e, nil
 }
 
 func (m ExcerptModel) Insert(title string) (uuid.UUID, error) {
 	stmt := `INSERT INTO excerpt (id, title, content, grammar, technical,
-	c_locked, created, updated) VALUES (UUID_TO_BIN(?), ?, "", "{}", "{}", FALSE,
-	UTC_TIMESTAMP(), UTC_TIMESTAMP())`
+	c_locked, g_locked, c_share, g_share, t_share, created, updated)
+	VALUES (UUID_TO_BIN(?), ?, "", "{}", "{}", FALSE, FALSE, UUID_TO_BIN(?),
+	UUID_TO_BIN(?), UUID_TO_BIN(?), UTC_TIMESTAMP(), UTC_TIMESTAMP())`
 
 	// Technically it's not good practice to use UUIDv4 as a PK,
 	// however, since we don't have an auth and we're using urls
@@ -104,7 +109,11 @@ func (m ExcerptModel) Insert(title string) (uuid.UUID, error) {
 	// small scale.
 	id := uuid.New()
 	idVal, _ := id.Value()
-	_, err := m.DB.Exec(stmt, idVal, title)
+
+	cShareVal, _ := uuid.New().Value()
+	gShareVal, _ := uuid.New().Value()
+	tShareVal, _ := uuid.New().Value()
+	_, err := m.DB.Exec(stmt, idVal, title, cShareVal, gShareVal, tShareVal)
 	if err != nil {
 		return uuid.UUID{}, err
 	}

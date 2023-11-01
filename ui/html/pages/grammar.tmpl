@@ -4,7 +4,7 @@
 {{end}}
 {{define "main"}}
 <h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
-<grammar-tag id="{{.Excerpt.IDStr}}" value="{{json .Excerpt.Grammar}}"></grammar-tag>
+<grammar-tag id="{{id .Excerpt.ID}}" value="{{json .Excerpt.Grammar}}"></grammar-tag>
 <template id="template-tags">
 	{{range .GrammaticalTags}}
 		<p>{{.}}</p>
@@ -12,13 +12,13 @@
 </template>
 {{end}}
 {{define "footer"}}
-<button hx-get="/excerpt/edit?id={{.Excerpt.IDStr}}"
+<button hx-get="/excerpt/edit?id={{id .Excerpt.ID}}"
 hx-target="closest body"
 hx-swap="innerHTML"
 hx-push-url="true"
 class="bg-sky-600 text-white rounded-lg p-2">Back</button>
 <button hx-confirm="Clicking next will disable grammatical tagging. Are you sure you want to continue?"
-hx-put="/excerpt/grammar/lock?id={{.Excerpt.IDStr}}"
+hx-put="/excerpt/grammar/lock?id={{id .Excerpt.ID}}"
 hx-target="closest body"
 hx-swap="innerHTML"
 hx-push-url="true"

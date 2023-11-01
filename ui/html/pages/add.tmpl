@@ -8,11 +8,14 @@
 	<div class="text-center bg-yellow-300 text-black">
 	<span class="material-symbols-outlined align-bottom">warning</span>
 	This page is locked, so it cannot be modified. Click 
-	<a class="underline" href="#">here</a> to unlock it (note that this resets
+	<a class="underline cursor-pointer"
+	hx-put="/excerpt/edit/unlock?id={{id .Excerpt.ID}}"
+	hx-swap="innerHTML"
+	hx-target="closest body">here</a> to unlock it (note that this resets
 	the later pages)</div>
 	{{end}}
 	<h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
-	<arabic-input class="grow" id="{{.Excerpt.IDStr}}" {{if .Excerpt.CLocked}}readonly{{end}} value="{{.Excerpt.Content}}"></arabic-input>
+	<arabic-input class="grow" id="{{id .Excerpt.ID}}" {{if .Excerpt.CLocked}}readonly{{end}} value="{{.Excerpt.Content}}"></arabic-input>
 </div>
 {{- end -}}
 {{define "footer"}}
@@ -21,14 +24,14 @@
 	<delete-vowels></delete-vowels>
 </div>
 {{if .Excerpt.CLocked}}
-<button hx-get="/excerpt/grammar?id={{.Excerpt.IDStr}}"
+<button hx-get="/excerpt/grammar?id={{id .Excerpt.ID}}"
 hx-target="closest body"
 hx-swap="innerHTML"
 hx-push-url="true"
 class="bg-sky-600 text-white rounded-lg p-2">Next</button>
 {{else}}
 <button hx-confirm="Clicking next will disable content editing. Are you sure you want to continue?"
-hx-put="/excerpt/edit/lock?id={{.Excerpt.IDStr}}"
+hx-put="/excerpt/edit/lock?id={{id .Excerpt.ID}}"
 hx-target="closest body"
 hx-swap="innerHTML"
 hx-push-url="true"
