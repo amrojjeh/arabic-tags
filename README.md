@@ -22,12 +22,10 @@ this tool allows you to also write up your own text very easily within the websi
 It's mostly complete, meaning that the central web component is complete, and it just needs to be integrated into the standard workflow.
 
 ## Grammatical tagging phase
-**Status:** In progress.
+**Status:** Mostly complete.
 
 This phase is meant to be done by Arabic grammarians. It should let them select individual Arabic words (such as particles and pronouns) and tag them with their traditional
 grammatical names (مبتدأ ,خبر, etc...). 
-
-I just started working on this today (08/05/2023), hence why it's "in progress."
 
 ## Technical tagging phase
 **Status:** Not yet started.
