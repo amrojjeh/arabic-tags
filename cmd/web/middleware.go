@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 
+	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/google/uuid"
 )
 
@@ -51,6 +54,40 @@ func (app *application) idRequired(h http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), "id", id)
 		r = r.WithContext(ctx)
 
+		h.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) excerptRequired(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Context().Value("id").(uuid.UUID)
+		excerpt, err := app.excerpts.Get(id)
+		if err != nil {
+			if errors.Is(err, models.ErrNoRecord) {
+				app.excerptNotFound(w, r)
+				return
+			}
+			app.serverError(w, err)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "excerpt", excerpt)
+		r = r.WithContext(ctx)
+
+		h.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) contentLockRequired(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		excerpt := r.Context().Value("excerpt").(models.Excerpt)
+		if !excerpt.CLocked {
+			id := r.Context().Value("id").(uuid.UUID)
+			http.Redirect(w, r,
+				fmt.Sprintf("/excerpt/edit?id=%v", idToString(id)),
+				http.StatusSeeOther)
+			return
+		}
 		h.ServeHTTP(w, r)
 	})
 }

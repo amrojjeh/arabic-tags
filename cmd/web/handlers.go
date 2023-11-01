@@ -21,16 +21,7 @@ func (app *application) notFound() http.Handler {
 
 func (app *application) excerptEditGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value("id").(uuid.UUID)
-		excerpt, err := app.excerpts.Get(id)
-		if err != nil {
-			if errors.Is(err, models.ErrNoRecord) {
-				app.excerptNotFound(w, r)
-				return
-			}
-			app.serverError(w, err)
-			return
-		}
+		excerpt := r.Context().Value("excerpt").(models.Excerpt)
 		data := newTemplateData(r)
 		data.Excerpt = excerpt
 		app.renderTemplate(w, "add.tmpl", http.StatusOK, data)
@@ -46,6 +37,7 @@ func (app *application) excerptEditUnlock() http.Handler {
 			return
 		}
 
+		http.Redirect(w, r, fmt.Sprintf("/excerpt/edit?id=%v", idToString(id)), http.StatusSeeOther)
 	})
 }
 
@@ -83,12 +75,7 @@ func isWhitespace(letter rune) bool {
 func (app *application) excerptEditLock() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.Context().Value("id").(uuid.UUID)
-		excerpt, err := app.excerpts.Get(id)
-		if err != nil {
-			app.serverError(w, err)
-			return
-		}
-
+		excerpt := r.Context().Value("excerpt").(models.Excerpt)
 		content, err := cleanContent(excerpt.Content)
 		if err != nil {
 			http.Redirect(w, r, fmt.Sprintf(
@@ -146,17 +133,7 @@ func (app *application) excerptEditPut() http.Handler {
 
 func (app *application) excerptGrammarGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value("id").(uuid.UUID)
-		excerpt, err := app.excerpts.Get(id)
-		if err != nil {
-			if errors.Is(err, models.ErrNoRecord) {
-				app.excerptNotFound(w, r)
-				return
-			}
-			app.serverError(w, err)
-			return
-		}
-
+		excerpt := r.Context().Value("excerpt").(models.Excerpt)
 		data := newTemplateData(r)
 		data.Type = "grammar"
 		data.Excerpt = excerpt

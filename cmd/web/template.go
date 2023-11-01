@@ -9,9 +9,11 @@ import (
 	"log/slog"
 	"net/http"
 	"path/filepath"
+	"strings"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/amrojjeh/arabic-tags/internal/speech"
+	"github.com/google/uuid"
 )
 
 type templateData struct {
@@ -39,10 +41,15 @@ func JSONFunc(s any) (string, error) {
 	return string(b[:]), nil
 }
 
+func IdFunc(s uuid.UUID) string {
+	return strings.ReplaceAll(s.String(), "-", "")
+}
+
 func (app *application) cacheTemplates() error {
 	app.page = make(map[string]*template.Template)
 	funcs := template.FuncMap{
 		"json": JSONFunc,
+		"id":   IdFunc,
 	}
 
 	names, err := filepath.Glob("./ui/html/pages/*")
