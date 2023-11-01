@@ -22,14 +22,19 @@ type templateData struct {
 	Form            any
 	Error           string
 	GrammaticalTags []string
+	Host            string
 }
 
-func newTemplateData(r *http.Request) templateData {
-	r.ParseForm()
+func newTemplateData(r *http.Request) (templateData, error) {
+	err := r.ParseForm()
+	if err != nil {
+		return templateData{}, err
+	}
 	return templateData{
 		Error:           r.Form.Get("error"),
 		GrammaticalTags: speech.GrammaticalTags,
-	}
+		Host:            r.Host,
+	}, nil
 }
 
 func JSONFunc(s any) (string, error) {

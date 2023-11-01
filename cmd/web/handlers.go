@@ -22,7 +22,11 @@ func (app *application) notFound() http.Handler {
 func (app *application) excerptEditGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		excerpt := r.Context().Value("excerpt").(models.Excerpt)
-		data := newTemplateData(r)
+		data, err := newTemplateData(r)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
 		data.Excerpt = excerpt
 		app.renderTemplate(w, "add.tmpl", http.StatusOK, data)
 	})
@@ -134,7 +138,11 @@ func (app *application) excerptEditPut() http.Handler {
 func (app *application) excerptGrammarGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		excerpt := r.Context().Value("excerpt").(models.Excerpt)
-		data := newTemplateData(r)
+		data, err := newTemplateData(r)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
 		data.Type = "grammar"
 		data.Excerpt = excerpt
 		app.renderTemplate(w, "grammar.tmpl", http.StatusOK, data)
@@ -175,7 +183,11 @@ type excerptForm struct {
 
 func (app *application) excerptCreateGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		data := newTemplateData(r)
+		data, err := newTemplateData(r)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
 		data.Form = excerptForm{}
 		app.renderTemplate(w, "home.tmpl", http.StatusOK, data)
 	})
@@ -197,7 +209,11 @@ func (app *application) excerptCreatePost() http.Handler {
 			"Title cannot exceed 100 characters")
 
 		if !form.Valid() {
-			data := newTemplateData(r)
+			data, err := newTemplateData(r)
+			if err != nil {
+				app.clientError(w, http.StatusBadRequest)
+				return
+			}
 			data.Form = form
 
 			if r.Header.Get("HX-Boosted") == "true" {

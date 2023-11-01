@@ -5,5 +5,12 @@
 {{define "owner-nav"}}
 <h2 class="htmx-indicator select-none col-start-1 text-xl text-center">saving...</h2>
 <h1 class="font-black col-start-2 text-2xl text-center"><a href="/">Arabic Text</a></h1>
-<button class="bg-sky-600 text-xl w-1/2 mx-auto" type="button">Share</button>
+<div class="flex gap-0">
+  <div class="flex items-center bg-sky-600 text-md ps-1 pe-1 h-full">
+    <p>Share URL</p>
+  </div>
+  <input class="text-xs text-black cursor-pointer" type="text" value="{{.}}"
+   onclick="this.select();navigator.clipboard.writeText('{{.}}')"
+   readonly></input>
+</div>
 {{end}}
