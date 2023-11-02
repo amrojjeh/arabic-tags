@@ -1,3 +1,4 @@
+import { setOffline } from "./base.js";
 const html = String.raw;
 
 export class GrammarTag extends HTMLElement {
@@ -9,6 +10,7 @@ export class GrammarTag extends HTMLElement {
   connectedCallback() {
     this._initData();
     this._initHTML();
+    window.save = this.save.bind(this);
     document.body.addEventListener("keydown", this._keydownDoc);
     this.HTML.input.addEventListener("keydown", this._keydownDoc);
     this.HTML.input.addEventListener("keydown", this._keydownInput);
@@ -21,6 +23,7 @@ export class GrammarTag extends HTMLElement {
   }
 
   disconnectedCallback() {
+    window.save = () => true;
     document.body.removeEventListener("keydown", this._keydownDoc);
     this.HTML.input.removeEventListener("keydown", this._keydownDoc);
     this.HTML.input.removeEventListener("keydown", this._keydownInput);
@@ -176,8 +179,8 @@ export class GrammarTag extends HTMLElement {
       return;
     }
     const wordObj = this.data.words[index];
+    console.log("Duplicate found");
     if (wordObj.tags.indexOf(tag) !== -1) {
-      console.log("Duplicate found");
       return;
     }
     wordObj.tags.push(tag);
@@ -281,12 +284,17 @@ export class GrammarTag extends HTMLElement {
   }
 
   save() {
-    if (!this.save.timeout || Date.now() - this.save.date > 500) {
-      this.save.timeout = setTimeout(htmx.ajax.bind(this), 500, "PUT",
-        `/excerpt/grammar?id=${this.data.id}`, {
+    function forceSave() {
+      htmx.ajax("PUT", `/excerpt/grammar?id=${this.data.id}`, {
         swap: "none",
-        values: { "content": { "words": this.data.words }, "share": this.data.shared }
-      });
+        values: {
+          content: { words: this.data.words },
+          share: this.data.shared,
+        }
+      }).then(() => setOffline(false), () => setOffline(true));
+    }
+    if (!this.save.timeout || Date.now() - this.save.date > 500) {
+      this.save.timeout = setTimeout(forceSave.bind(this));
       this.save.date = Date.now();
     } else if (Date.now() - this.save.date < 500) {
       clearTimeout(this.save.timeout);
@@ -294,6 +302,7 @@ export class GrammarTag extends HTMLElement {
       this.save.date = undefined;
       this.save();
     }
+    return false;
   }
 
   renderAutocomplete() {
