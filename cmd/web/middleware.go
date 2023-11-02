@@ -58,10 +58,44 @@ func (app *application) idRequired(h http.Handler) http.Handler {
 	})
 }
 
-func (app *application) excerptRequired(h http.Handler) http.Handler {
+func (app *application) contentExcerptRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.Context().Value("id").(uuid.UUID)
-		excerpt, err := app.excerpts.Get(id)
+		shared := r.Form.Get("share") == "true"
+		var excerpt models.Excerpt
+		var err error
+		if shared {
+			excerpt, err = app.excerpts.GetSharedContent(id)
+		} else {
+			excerpt, err = app.excerpts.Get(id)
+		}
+		if err != nil {
+			if errors.Is(err, models.ErrNoRecord) {
+				app.excerptNotFound(w, r)
+				return
+			}
+			app.serverError(w, err)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "excerpt", excerpt)
+		r = r.WithContext(ctx)
+
+		h.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) grammarExcerptRequired(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Context().Value("id").(uuid.UUID)
+		shared := r.Form.Get("share") == "true"
+		var excerpt models.Excerpt
+		var err error
+		if shared {
+			excerpt, err = app.excerpts.GetSharedGrammar(id)
+		} else {
+			excerpt, err = app.excerpts.Get(id)
+		}
 		if err != nil {
 			if errors.Is(err, models.ErrNoRecord) {
 				app.excerptNotFound(w, r)

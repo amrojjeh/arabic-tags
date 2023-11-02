@@ -1,6 +1,5 @@
 package speech
 
-// TODO(Amr Ojjeh): Convert to English constants
 var GrammaticalTags = []string{
 	"اسم فاعل",
 	"اسم فعل الأمر",

@@ -42,12 +42,18 @@ export class ArabicInput extends HTMLElement {
       this.HTML.textarea.value = this.getAttribute("value");
       this.update();
     }
+    if (this.getAttribute("shared") != null) {
+      this.shared = true;
+    } else {
+      this.shared = false;
+    }
     if (this.getAttribute("id") != null) {
       this.HTML.textarea.setAttribute("hx-put",
-        `/excerpt/edit?id=${this.getAttribute("id")}`);
+        `/excerpt/edit?id=${this.getAttribute("id")}&share=${this.shared}`);
     } else {
       console.error("There's no id!");
     }
+
   }
 
   disconnectedCallback() {
@@ -79,7 +85,10 @@ export class ArabicInput extends HTMLElement {
   forceSave() {
     htmx.ajax("PUT", this.HTML.textarea.getAttribute("hx-put"), {
       swap: "none",
-      values: { "content": this.HTML.textarea.value },
+      values: {
+        "content": this.HTML.textarea.value,
+        "share": this.shared,
+      },
     });
   }
 

@@ -23,6 +23,7 @@ type templateData struct {
 	Error           string
 	GrammaticalTags []string
 	Host            string
+	ExcerptShared   bool
 }
 
 func newTemplateData(r *http.Request) (templateData, error) {
@@ -34,6 +35,7 @@ func newTemplateData(r *http.Request) (templateData, error) {
 		Error:           r.Form.Get("error"),
 		GrammaticalTags: speech.GrammaticalTags,
 		Host:            r.Host,
+		ExcerptShared:   r.Form.Get("share") == "true",
 	}, nil
 }
 

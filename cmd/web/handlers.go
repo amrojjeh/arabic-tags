@@ -113,20 +113,15 @@ func (app *application) excerptEditLock() http.Handler {
 
 func (app *application) excerptEditPut() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
-
-		idStr := r.Form.Get("id")
-		id, err := uuid.Parse(idStr)
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
+		id := r.Context().Value("id").(uuid.UUID)
 		content := r.Form.Get("content")
-		err = app.excerpts.UpdateContent(id, content)
+		shared := r.Form.Get("share") == "true"
+		var err error
+		if shared {
+			err = app.excerpts.UpdateSharedContent(id, content)
+		} else {
+			err = app.excerpts.UpdateContent(id, content)
+		}
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -152,22 +147,21 @@ func (app *application) excerptGrammarGet() http.Handler {
 // TODO(Amr Ojjeh): Verify tags
 func (app *application) excerptGrammarPut() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
-
 		content := r.Form.Get("content")
+		shared := r.Form.Get("share") == "true"
 		var grammar models.Grammar
-		err = json.Unmarshal([]byte(content), &grammar)
+		err := json.Unmarshal([]byte(content), &grammar)
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest)
 			return
 		}
 
 		id := r.Context().Value("id").(uuid.UUID)
-		err = app.excerpts.UpdateGrammar(id, grammar)
+		if shared {
+			err = app.excerpts.UpdateSharedGrammar(id, grammar)
+		} else {
+			err = app.excerpts.UpdateGrammar(id, grammar)
+		}
 		if err != nil {
 			app.serverError(w, err)
 			return

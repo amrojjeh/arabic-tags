@@ -1,10 +1,23 @@
 {{define "title"}}{{.Excerpt.Title}}{{end}}
 {{define "nav"}}
-	{{template "owner-nav"}}
+	{{if not .ExcerptShared}}
+		{{with printf "%s/excerpt/grammar?id=%s&share=true" .Host (id .Excerpt.GShare)}}
+			{{template "owner-nav" .}}
+		{{end}}
+	{{else}}
+		{{template "share-nav" .}}
+	{{end}}
 {{end}}
 {{define "main"}}
 <h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
-<grammar-tag id="{{id .Excerpt.ID}}" value="{{json .Excerpt.Grammar}}"></grammar-tag>
+{{/* TODO(Amr Ojjeh): I just realized that this could be simplified.
+Instead of having a "share" ID and a regular ID, we can have the ID for
+updating content/grammar, and another for locking it or unlocking it.
+Low priority rewrite, however, since it only simplifies code by a bit.*/}}
+<grammar-tag
+id="{{if not .ExcerptShared}}{{id .Excerpt.ID}}{{else}}{{id .Excerpt.GShare}}{{end}}"
+value="{{json .Excerpt.Grammar}}"
+{{if .ExcerptShared}}shared{{end}}></grammar-tag>
 <template id="template-tags">
 	{{range .GrammaticalTags}}
 		<p>{{.}}</p>
@@ -12,15 +25,17 @@
 </template>
 {{end}}
 {{define "footer"}}
-<button hx-get="/excerpt/edit?id={{id .Excerpt.ID}}"
-hx-target="closest body"
-hx-swap="innerHTML"
-hx-push-url="true"
-class="bg-sky-600 text-white rounded-lg p-2">Back</button>
-<button hx-confirm="Clicking next will disable grammatical tagging. Are you sure you want to continue?"
-hx-put="/excerpt/grammar/lock?id={{id .Excerpt.ID}}"
-hx-target="closest body"
-hx-swap="innerHTML"
-hx-push-url="true"
-class="bg-sky-600 text-white rounded-lg p-2">Next</button>
+{{if not .ExcerptShared}}
+	<button hx-get="/excerpt/edit?id={{id .Excerpt.ID}}"
+	hx-target="closest body"
+	hx-swap="innerHTML"
+	hx-push-url="true"
+	class="bg-sky-600 text-white rounded-lg p-2">Back</button>
+	<button hx-confirm="Clicking next will disable grammatical tagging. Are you sure you want to continue?"
+	hx-put="/excerpt/grammar/lock?id={{id .Excerpt.ID}}"
+	hx-target="closest body"
+	hx-swap="innerHTML"
+	hx-push-url="true"
+	class="bg-sky-600 text-white rounded-lg p-2">Next</button>
+{{end}}
 {{end}}

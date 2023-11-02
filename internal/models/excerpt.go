@@ -94,6 +94,48 @@ func (m ExcerptModel) Get(id uuid.UUID) (Excerpt, error) {
 	return e, nil
 }
 
+func (m ExcerptModel) GetSharedContent(cShare uuid.UUID) (Excerpt, error) {
+	stmt := `SELECT id, title, content, grammar, technical, c_locked, g_locked,
+	g_share, t_share, created, updated
+	FROM excerpt WHERE excerpt.c_share=UUID_TO_BIN(?)`
+
+	var e Excerpt
+	e.CShare = cShare
+
+	cShareVal, _ := cShare.Value()
+	err := m.DB.QueryRow(stmt, cShareVal).Scan(&e.ID, &e.Title, &e.Content,
+		&e.Grammar, &e.Technical, &e.CLocked, &e.GLocked, &e.GShare, &e.TShare,
+		&e.Created, &e.Updated)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return e, ErrNoRecord
+		}
+		return e, err
+	}
+	return e, nil
+}
+
+func (m ExcerptModel) GetSharedGrammar(gShare uuid.UUID) (Excerpt, error) {
+	stmt := `SELECT id, title, content, grammar, technical, c_locked, g_locked,
+	c_share, t_share, created, updated
+	FROM excerpt WHERE excerpt.g_share=UUID_TO_BIN(?)`
+
+	var e Excerpt
+	e.GShare = gShare
+
+	gShareVal, _ := gShare.Value()
+	err := m.DB.QueryRow(stmt, gShareVal).Scan(&e.ID, &e.Title, &e.Content,
+		&e.Grammar, &e.Technical, &e.CLocked, &e.GLocked, &e.CShare, &e.TShare,
+		&e.Created, &e.Updated)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return e, ErrNoRecord
+		}
+		return e, err
+	}
+	return e, nil
+}
+
 func (m ExcerptModel) Insert(title string) (uuid.UUID, error) {
 	stmt := `INSERT INTO excerpt (id, title, content, grammar, technical,
 	c_locked, g_locked, c_share, g_share, t_share, created, updated)
@@ -125,6 +167,18 @@ func (m ExcerptModel) UpdateContent(id uuid.UUID, content string) error {
 	WHERE id=UUID_TO_BIN(?) AND c_locked=FALSE`
 
 	idVal, _ := id.Value()
+	_, err := m.DB.Exec(stmt, content, idVal)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m ExcerptModel) UpdateSharedContent(cShare uuid.UUID, content string) error {
+	stmt := `UPDATE excerpt SET content=?, updated=UTC_TIMESTAMP()
+	WHERE c_share=UUID_TO_BIN(?) AND c_locked=FALSE`
+
+	idVal, _ := cShare.Value()
 	_, err := m.DB.Exec(stmt, content, idVal)
 	if err != nil {
 		return err
@@ -177,9 +231,26 @@ func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
 
 func (m ExcerptModel) UpdateGrammar(id uuid.UUID, grammar Grammar) error {
 	stmt := `UPDATE excerpt SET grammar=?, updated=UTC_TIMESTAMP()
-	WHERE id=UUID_TO_BIN(?)`
+	WHERE id=UUID_TO_BIN(?) AND g_locked=FALSE`
 
 	idVal, _ := id.Value()
+	load, err := json.Marshal(grammar)
+	if err != nil {
+		return err
+	}
+	_, err = m.DB.Exec(stmt, load, idVal)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m ExcerptModel) UpdateSharedGrammar(gShare uuid.UUID, grammar Grammar) error {
+	stmt := `UPDATE excerpt SET grammar=?, updated=UTC_TIMESTAMP()
+	WHERE g_share=UUID_TO_BIN(?) AND g_locked=FALSE`
+
+	idVal, _ := gShare.Value()
 	load, err := json.Marshal(grammar)
 	if err != nil {
 		return err

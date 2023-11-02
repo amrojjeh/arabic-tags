@@ -24,31 +24,31 @@ func (app *application) routes() http.Handler {
 		app.logRequest,
 	}
 
-	excerptRequired := []Adapter{
-		app.excerptRequired,
+	contentExcerptRequired := []Adapter{
+		app.contentExcerptRequired,
 		app.idRequired,
 		app.logRequest,
 	}
 
-	contentLockRequired := []Adapter{
+	grammarExcerptRequired := []Adapter{
 		app.contentLockRequired,
-		app.excerptRequired,
+		app.grammarExcerptRequired,
 		app.idRequired,
 		app.logRequest,
 	}
 
 	router.Handler(http.MethodGet, "/excerpt/edit", Adapt(app.excerptEditGet(),
-		excerptRequired...))
+		contentExcerptRequired...))
 	router.Handler(http.MethodPut, "/excerpt/edit", Adapt(app.excerptEditPut(),
 		idRequired...))
 	router.Handler(http.MethodPut, "/excerpt/edit/lock", Adapt(app.excerptEditLock(),
-		excerptRequired...))
+		contentExcerptRequired...))
 	router.Handler(http.MethodPut, "/excerpt/edit/unlock", Adapt(app.excerptEditUnlock(),
 		idRequired...))
 
 	router.Handler(http.MethodGet, "/excerpt/grammar", Adapt(app.excerptGrammarGet(),
-		contentLockRequired...))
+		grammarExcerptRequired...))
 	router.Handler(http.MethodPut, "/excerpt/grammar", Adapt(app.excerptGrammarPut(),
-		contentLockRequired...))
+		grammarExcerptRequired...))
 	return router
 }

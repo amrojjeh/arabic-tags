@@ -213,6 +213,11 @@ export class GrammarTag extends HTMLElement {
     } else {
       console.error("There's no id!");
     }
+    if (this.getAttribute("shared") != null) {
+      this.data.shared = true;
+    } else {
+      this.data.shared = false;
+    }
     this.data.selectedIndex = 0;
 
     const t_tags = document.body.querySelector("#template-tags");
@@ -280,7 +285,7 @@ export class GrammarTag extends HTMLElement {
       this.save.timeout = setTimeout(htmx.ajax.bind(this), 500, "PUT",
         `/excerpt/grammar?id=${this.data.id}`, {
         swap: "none",
-        values: { "content": { "words": this.data.words } }
+        values: { "content": { "words": this.data.words }, "share": this.data.shared }
       });
       this.save.date = Date.now();
     } else if (Date.now() - this.save.date < 500) {
