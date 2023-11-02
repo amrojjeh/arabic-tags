@@ -1,3 +1,4 @@
+import { setOffline } from "./base.js";
 // TODO(Amr Ojjeh): Validate on the backend as well
 
 // Used for syntax highlighting
@@ -27,6 +28,7 @@ export class ArabicInput extends HTMLElement {
   }
 
   connectedCallback() {
+    window.save = this.forceSave.bind(this);
     this.HTML.textarea.tabindex = "0";
     if (typeof this.getAttribute("readonly") !== "string") {
       this.HTML.textarea.addEventListener("keydown", this._filter);
@@ -57,6 +59,7 @@ export class ArabicInput extends HTMLElement {
   }
 
   disconnectedCallback() {
+    window.save = () => true;
     this.HTML.textarea.tabindex = "-1";
     this.HTML.textarea.removeEventListener("keydown", this._filter);
     this.HTML.textarea.removeEventListener("input", this._input);
@@ -89,7 +92,8 @@ export class ArabicInput extends HTMLElement {
         "content": this.HTML.textarea.value,
         "share": this.shared,
       },
-    });
+    }).then(() => setOffline(false), () => setOffline(true));
+    return false;
   }
 
   render() {

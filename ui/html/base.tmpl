@@ -6,8 +6,7 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri&display=swap">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" media="print" onload="this.media='all'" crossorigin/>
 	<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
 	<link rel="stylesheet" href="/static/main.css">
 	<script type="module" src="/static/main.js"></script>
@@ -21,6 +20,11 @@
 	<div class="bg-red-200 text-center text-2xl text-red-800">{{.}}</div>
 	{{end}}
 	<main class="grow p-0">
+		<div id="offline-warning" class="hidden text-center bg-yellow-300 text-black">
+			<img src="/static/warning.svg" class="inline align-bottom">
+			You're offline. Any changes you make will not be saved until
+			you're back online.
+		</div>
 		{{template "main" .}}
 	</main>
 	<footer class="px-5 py-3 border-t-2 text-2xl justify-between flex">
