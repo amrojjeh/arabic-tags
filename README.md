@@ -35,10 +35,8 @@ So, the technical tagging is meant to tag each word in a way that the computer c
 needs to know which vowels are part of the case endings and which ones can be ignored. The technical tagging phase is meant to provide that information.
 
 ## Sharing
-**Status:** In progress.
+**Status:** Mostly complete.
 
 Since it'll likely be rare for a grammarian to revisit this program, we won't be adding any authentication. Instead, anyone is free to create an excerpt, and as long as they don't
 share their URL, they will be the only ones allowed to edit their excerpt. If they want to share their excerpt while restricting certain editing privileges, then they can
 generate a new URL through the program and set the appropriate constraints. Then, they simply share their "share URL" and Bob's your uncle.
-
-I've already implemented unique and owner URLs, but I've not implemented the share URLS yet. I plan to do so once the workflow is entirely complete and tested.
