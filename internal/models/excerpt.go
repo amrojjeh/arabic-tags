@@ -4,17 +4,19 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
+	"github.com/amrojjeh/arabic-tags/internal/speech"
 	"github.com/google/uuid"
 )
 
 type Grammar struct {
-	Words []Word `json:"words"`
+	Words []GWord `json:"words"`
 }
 
-type Word struct {
+type GWord struct {
 	Word     string   `json:"word"`
 	Shrinked bool     `json:"shrinked"`
 	LeftOver bool     `json:"leftOver"`
@@ -36,6 +38,33 @@ func (g *Grammar) Scan(src any) error {
 }
 
 type Technical struct {
+	Words []TWord
+}
+
+type TWord struct {
+	Letters []Letter `json:"letters"`
+	Tags    []string `json:"tags"`
+}
+
+func (w TWord) String() string {
+	word := ""
+	for _, l := range w.Letters {
+		word += l.String()
+	}
+	return word
+}
+
+type Letter struct {
+	Letter   string `json:"letter"`
+	Tashkeel string `json:"tashkeel"`
+	Shadda   bool   `json:"shadda"`
+}
+
+func (l Letter) String() string {
+	if l.Shadda {
+		return fmt.Sprintf("%v%v%v", l.Letter, l.Tashkeel, speech.Shadda)
+	}
+	return fmt.Sprintf("%v%v", l.Letter, l.Tashkeel)
 }
 
 func (t *Technical) Scan(src any) error {
@@ -136,6 +165,27 @@ func (m ExcerptModel) GetSharedGrammar(gShare uuid.UUID) (Excerpt, error) {
 	return e, nil
 }
 
+func (m ExcerptModel) GetSharedTechnical(tShare uuid.UUID) (Excerpt, error) {
+	stmt := `SELECT id, title, content, grammar, technical, c_locked, g_locked,
+	c_share, g_share, created, updated
+	FROM excerpt WHERE excerpt.t_share=UUID_TO_BIN(?)`
+
+	var e Excerpt
+	e.TShare = tShare
+
+	tShareVal, _ := tShare.Value()
+	err := m.DB.QueryRow(stmt, tShareVal).Scan(&e.ID, &e.Title, &e.Content,
+		&e.Grammar, &e.Technical, &e.CLocked, &e.GLocked, &e.CShare, &e.GShare,
+		&e.Created, &e.Updated)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return e, ErrNoRecord
+		}
+		return e, err
+	}
+	return e, nil
+}
+
 func (m ExcerptModel) Insert(title string) (uuid.UUID, error) {
 	stmt := `INSERT INTO excerpt (id, title, content, grammar, technical,
 	c_locked, g_locked, c_share, g_share, t_share, created, updated)
@@ -198,8 +248,20 @@ func (m ExcerptModel) SetContentLock(id uuid.UUID, lock bool) error {
 	return nil
 }
 
+func (m ExcerptModel) SetGrammarLock(id uuid.UUID, lock bool) error {
+	stmt := `UPDATE excerpt SET g_locked=?, updated=UTC_TIMESTAMP()
+	WHERE id=UUID_TO_BIN(?)`
+
+	idVal, _ := id.Value()
+	_, err := m.DB.Exec(stmt, lock, idVal)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
-	// TODO(Amr Ojjeh): Add g_locked
 	excerpt, err := m.Get(id)
 	if err != nil {
 		return err
@@ -208,9 +270,9 @@ func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
 	content := excerpt.Content
 
 	strWords := strings.Split(content, " ")
-	words := make([]Word, len(strWords))
+	words := make([]GWord, len(strWords))
 	for i, s := range strWords {
-		words[i] = Word{
+		words[i] = GWord{
 			Word:     s,
 			Shrinked: false,
 			LeftOver: false,
@@ -260,5 +322,53 @@ func (m ExcerptModel) UpdateSharedGrammar(gShare uuid.UUID, grammar Grammar) err
 		return err
 	}
 
+	return nil
+}
+
+func (m ExcerptModel) UpdateTechnical(id uuid.UUID, technical Technical) error {
+	stmt := `UPDATE excerpt SET technical=?, updated=UTC_TIMESTAMP()
+	WHERE excerpt.id=UUID_TO_BIN(?)`
+
+	load, err := json.Marshal(technical)
+	if err != nil {
+		return err
+	}
+
+	idVal, _ := id.Value()
+	_, err = m.DB.Exec(stmt, load, idVal)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
+	excerpt, err := m.Get(id)
+	if err != nil {
+		return err
+	}
+
+	technical := Technical{
+		Words: make([]TWord, len(excerpt.Grammar.Words)),
+	}
+	for i, gw := range excerpt.Grammar.Words {
+		technical.Words[i] = TWord{
+			Letters: make([]Letter, len(gw.Word)),
+			Tags:    []string{},
+		}
+		for x, l := range gw.Word {
+			technical.Words[i].Letters[x] = Letter{
+				Letter:   string(l),
+				Tashkeel: "",
+				Shadda:   false,
+			}
+		}
+	}
+
+	err = m.UpdateTechnical(id, technical)
+	if err != nil {
+		return err
+	}
 	return nil
 }

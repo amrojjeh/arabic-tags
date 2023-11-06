@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/google/uuid"
@@ -58,41 +59,23 @@ func (app *application) idRequired(h http.Handler) http.Handler {
 	})
 }
 
-func (app *application) contentExcerptRequired(h http.Handler) http.Handler {
+func (app *application) excerptRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.Context().Value("id").(uuid.UUID)
 		shared := r.Form.Get("share") == "true"
 		var excerpt models.Excerpt
 		var err error
 		if shared {
-			excerpt, err = app.excerpts.GetSharedContent(id)
-		} else {
-			excerpt, err = app.excerpts.Get(id)
-		}
-		if err != nil {
-			if errors.Is(err, models.ErrNoRecord) {
-				app.excerptNotFound(w, r)
+			if strings.Contains(r.URL.Path, "edit") {
+				excerpt, err = app.excerpts.GetSharedContent(id)
+			} else if strings.Contains(r.URL.Path, "grammar") {
+				excerpt, err = app.excerpts.GetSharedGrammar(id)
+			} else if strings.Contains(r.URL.Path, "technical") {
+				excerpt, err = app.excerpts.GetSharedTechnical(id)
+			} else {
+				app.clientError(w, http.StatusNotFound)
 				return
 			}
-			app.serverError(w, err)
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), "excerpt", excerpt)
-		r = r.WithContext(ctx)
-
-		h.ServeHTTP(w, r)
-	})
-}
-
-func (app *application) grammarExcerptRequired(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value("id").(uuid.UUID)
-		shared := r.Form.Get("share") == "true"
-		var excerpt models.Excerpt
-		var err error
-		if shared {
-			excerpt, err = app.excerpts.GetSharedGrammar(id)
 		} else {
 			excerpt, err = app.excerpts.Get(id)
 		}
@@ -119,6 +102,20 @@ func (app *application) contentLockRequired(h http.Handler) http.Handler {
 			id := r.Context().Value("id").(uuid.UUID)
 			http.Redirect(w, r,
 				fmt.Sprintf("/excerpt/edit?id=%v", idToString(id)),
+				http.StatusSeeOther)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) grammarLockRequired(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		excerpt := r.Context().Value("excerpt").(models.Excerpt)
+		if !excerpt.GLocked {
+			id := r.Context().Value("id").(uuid.UUID)
+			http.Redirect(w, r,
+				fmt.Sprintf("/excerpt/grammar?id=%v", idToString(id)),
 				http.StatusSeeOther)
 			return
 		}

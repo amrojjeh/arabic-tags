@@ -1,5 +1,6 @@
 package speech
 
+var Shadda = 'ّ'
 var GrammaticalTags = []string{
 	"اسم فاعل",
 	"اسم فعل الأمر",

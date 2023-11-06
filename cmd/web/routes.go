@@ -25,14 +25,22 @@ func (app *application) routes() http.Handler {
 	}
 
 	contentExcerptRequired := []Adapter{
-		app.contentExcerptRequired,
+		app.excerptRequired,
 		app.idRequired,
 		app.logRequest,
 	}
 
 	grammarExcerptRequired := []Adapter{
 		app.contentLockRequired,
-		app.grammarExcerptRequired,
+		app.excerptRequired,
+		app.idRequired,
+		app.logRequest,
+	}
+
+	technicalExcerptRequired := []Adapter{
+		app.grammarLockRequired,
+		app.contentLockRequired,
+		app.excerptRequired,
 		app.idRequired,
 		app.logRequest,
 	}
@@ -50,5 +58,10 @@ func (app *application) routes() http.Handler {
 		grammarExcerptRequired...))
 	router.Handler(http.MethodPut, "/excerpt/grammar", Adapt(app.excerptGrammarPut(),
 		grammarExcerptRequired...))
+	router.Handler(http.MethodPut, "/excerpt/grammar/lock", Adapt(app.excerptGrammarLock(),
+		grammarExcerptRequired...))
+
+	router.Handler(http.MethodGet, "/excerpt/technical", Adapt(app.excerptTechnicalGet(),
+		technicalExcerptRequired...))
 	return router
 }

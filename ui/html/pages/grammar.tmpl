@@ -10,10 +10,6 @@
 {{end}}
 {{define "main"}}
 <h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
-{{/* TODO(Amr Ojjeh): I just realized that this could be simplified.
-Instead of having a "share" ID and a regular ID, we can have the ID for
-updating content/grammar, and another for locking it or unlocking it.
-Low priority rewrite, however, since it only simplifies code by a bit.*/}}
 <grammar-tag
 id="{{if not .ExcerptShared}}{{id .Excerpt.ID}}{{else}}{{id .Excerpt.GShare}}{{end}}"
 value="{{json .Excerpt.Grammar}}"

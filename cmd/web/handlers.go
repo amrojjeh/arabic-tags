@@ -21,13 +21,11 @@ func (app *application) notFound() http.Handler {
 
 func (app *application) excerptEditGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		excerpt := r.Context().Value("excerpt").(models.Excerpt)
 		data, err := newTemplateData(r)
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest)
 			return
 		}
-		data.Excerpt = excerpt
 		app.renderTemplate(w, "add.tmpl", http.StatusOK, data)
 	})
 }
@@ -132,14 +130,12 @@ func (app *application) excerptEditPut() http.Handler {
 
 func (app *application) excerptGrammarGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		excerpt := r.Context().Value("excerpt").(models.Excerpt)
 		data, err := newTemplateData(r)
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest)
 			return
 		}
 		data.Type = "grammar"
-		data.Excerpt = excerpt
 		app.renderTemplate(w, "grammar.tmpl", http.StatusOK, data)
 	})
 }
@@ -167,6 +163,38 @@ func (app *application) excerptGrammarPut() http.Handler {
 			return
 		}
 		app.noBody(w)
+	})
+}
+
+func (app *application) excerptGrammarLock() http.Handler {
+	// TODO(Amr Ojjeh): Verify tags
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Context().Value("id").(uuid.UUID)
+		err := app.excerpts.SetGrammarLock(id, true)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		err = app.excerpts.ResetTechnical(id)
+		if err != nil {
+			app.serverError(w, err)
+		}
+
+		idStr := idToString(id)
+		http.Redirect(w, r, fmt.Sprintf("/excerpt/technical?id=%v", idStr),
+			http.StatusSeeOther)
+	})
+}
+
+func (app *application) excerptTechnicalGet() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data, err := newTemplateData(r)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		app.renderTemplate(w, "technical.tmpl", http.StatusOK, data)
 	})
 }
 

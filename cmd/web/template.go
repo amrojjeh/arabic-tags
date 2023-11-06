@@ -31,12 +31,18 @@ func newTemplateData(r *http.Request) (templateData, error) {
 	if err != nil {
 		return templateData{}, err
 	}
-	return templateData{
+	data := templateData{
 		Error:           r.Form.Get("error"),
 		GrammaticalTags: speech.GrammaticalTags,
 		Host:            r.Host,
 		ExcerptShared:   r.Form.Get("share") == "true",
-	}, nil
+	}
+
+	if r.Context().Value("excerpt") != nil {
+		data.Excerpt = r.Context().Value("excerpt").(models.Excerpt)
+	}
+
+	return data, nil
 }
 
 func JSONFunc(s any) (string, error) {
