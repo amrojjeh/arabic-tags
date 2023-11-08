@@ -187,6 +187,19 @@ func (app *application) excerptGrammarLock() http.Handler {
 	})
 }
 
+func (app *application) excerptGrammarUnlock() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Context().Value("id").(uuid.UUID)
+		err := app.excerpts.SetGrammarLock(id, false)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		idStr := idToString(id)
+		http.Redirect(w, r, fmt.Sprintf("/excerpt/grammar?id=%v", idStr),
+			http.StatusSeeOther)
+	})
+}
 func (app *application) excerptTechnicalGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, err := newTemplateData(r)

@@ -60,6 +60,8 @@ func (app *application) routes() http.Handler {
 		grammarExcerptRequired...))
 	router.Handler(http.MethodPut, "/excerpt/grammar/lock", Adapt(app.excerptGrammarLock(),
 		grammarExcerptRequired...))
+	router.Handler(http.MethodPut, "/excerpt/grammar/unlock", Adapt(app.excerptGrammarUnlock(),
+		grammarExcerptRequired...))
 
 	router.Handler(http.MethodGet, "/excerpt/technical", Adapt(app.excerptTechnicalGet(),
 		technicalExcerptRequired...))

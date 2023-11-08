@@ -9,10 +9,33 @@
 	{{end}}
 {{end}}
 {{define "main"}}
-<h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
-	{{range .Excerpt.Technical.Words}}
-		<span>{{.String}}</span>
-	{{end}}
+<div class="flex flex-col h-[99%]">
+	<h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
+	<div dir="rtl" class="grid grid-rows-1 grid-cols-[400px_auto] gap-4 grow">
+		<div class="border-e-2">
+			{{with index .Excerpt.Technical.Words 0}}
+			<p class="text-5xl text-center leading-loose">
+				{{range $index, $element := .Letters -}}
+					<span
+					class="cursor-pointer hover:text-red-700"
+					hx-put="/excerpt/technical/tashkeel?id={{id $.Excerpt.ID}}&word=0&letter={{$index}}">{{.String}}</span>
+				{{- end}}
+			</p>
+			<p class="text-center">(click on a letter to change tashkeel)<p>
+			<p class="text-center">(shift + click to toggle shadda)</p>
+			{{end}}
+		</div>
+		<div>
+			<p class="text-4xl leading-loose">
+			{{range $index, $word := .Excerpt.Technical.Words -}}
+				<span
+				class="cursor-pointer hover:text-red-700 {{if eq $index 0}}text-sky-600{{end}}">{{$word.String}}</span>
+				{{- if not $word.Shrinked -}}<span> </span>{{end}}
+			{{- end}}
+			<p>
+		</div>
+	</div>
+</div>
 {{end}}
 {{define "footer"}}
 {{if not .ExcerptShared}}

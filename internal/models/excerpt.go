@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/amrojjeh/arabic-tags/internal/speech"
 	"github.com/google/uuid"
@@ -42,8 +43,10 @@ type Technical struct {
 }
 
 type TWord struct {
-	Letters []Letter `json:"letters"`
-	Tags    []string `json:"tags"`
+	Letters  []Letter `json:"letters"`
+	Tags     []string `json:"tags"`
+	Ignore   bool     `json:"ignore"`
+	Shrinked bool     `json:"finale"`
 }
 
 func (w TWord) String() string {
@@ -354,15 +357,16 @@ func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 	}
 	for i, gw := range excerpt.Grammar.Words {
 		technical.Words[i] = TWord{
-			Letters: make([]Letter, len(gw.Word)),
-			Tags:    []string{},
+			Letters:  make([]Letter, 0, utf8.RuneCountInString(gw.Word)),
+			Tags:     []string{},
+			Shrinked: gw.Shrinked,
 		}
-		for x, l := range gw.Word {
-			technical.Words[i].Letters[x] = Letter{
+		for _, l := range gw.Word {
+			technical.Words[i].Letters = append(technical.Words[i].Letters, Letter{
 				Letter:   string(l),
 				Tashkeel: "",
 				Shadda:   false,
-			}
+			})
 		}
 	}
 
