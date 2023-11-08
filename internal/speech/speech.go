@@ -1,6 +1,19 @@
 package speech
 
-var Shadda = 'ّ'
+const (
+	Shadda = string(rune(0x0651))
+
+	Sukoon   = string(rune(0x0652))
+	Damma    = string(rune(0x064F))
+	Fatha    = string(rune(0x064E))
+	Kasra    = string(rune(0x0650))
+	Dammatan = string(rune(0x064C))
+	Fathatan = string(rune(0x064B))
+	Kasratan = string(rune(0x064D))
+
+	Placeholder = string(rune(0x25CC))
+)
+
 var GrammaticalTags = []string{
 	"اسم فاعل",
 	"اسم فعل الأمر",

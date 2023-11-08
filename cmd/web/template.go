@@ -16,6 +16,18 @@ import (
 	"github.com/google/uuid"
 )
 
+type symbol struct {
+	Damma    string
+	Dammatan string
+	Fatha    string
+	Fathatan string
+	Kasra    string
+	Kasratan string
+	Sukoon   string
+
+	Shadda string
+}
+
 type templateData struct {
 	Excerpt         models.Excerpt
 	Type            string
@@ -24,6 +36,7 @@ type templateData struct {
 	GrammaticalTags []string
 	Host            string
 	ExcerptShared   bool
+	Sym             symbol
 }
 
 func newTemplateData(r *http.Request) (templateData, error) {
@@ -36,6 +49,16 @@ func newTemplateData(r *http.Request) (templateData, error) {
 		GrammaticalTags: speech.GrammaticalTags,
 		Host:            r.Host,
 		ExcerptShared:   r.Form.Get("share") == "true",
+		Sym: symbol{
+			Damma:    speech.Placeholder + speech.Damma,
+			Dammatan: speech.Placeholder + speech.Dammatan,
+			Fatha:    speech.Placeholder + speech.Fatha,
+			Fathatan: speech.Placeholder + speech.Fathatan,
+			Kasra:    speech.Placeholder + speech.Kasra,
+			Kasratan: speech.Placeholder + speech.Kasratan,
+			Sukoon:   speech.Placeholder + speech.Sukoon,
+			Shadda:   speech.Placeholder + speech.Shadda,
+		},
 	}
 
 	if r.Context().Value("excerpt") != nil {

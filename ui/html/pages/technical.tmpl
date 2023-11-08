@@ -14,15 +14,22 @@
 	<div dir="rtl" class="grid grid-rows-1 grid-cols-[400px_auto] gap-4 grow">
 		<div class="border-e-2">
 			{{with index .Excerpt.Technical.Words 0}}
-			<p class="text-5xl text-center leading-loose">
-				{{range $index, $element := .Letters -}}
-					<span
-					class="cursor-pointer hover:text-red-700"
-					hx-put="/excerpt/technical/tashkeel?id={{id $.Excerpt.ID}}&word=0&letter={{$index}}">{{.String}}</span>
+			<p class="text-5xl text-center leading-loose">{{.String}}</p>
+			{{end}}
+			{{with index .Excerpt.Technical.Words 0}}
+				{{range $index, $letter := .Letters -}}
+				<fieldset class="text-3xl p-2">
+					<legend class="text-4xl">{{$letter}}</legend>
+					<label class="block"><input value="damma" type="radio" name="vowel">{{$.Sym.Damma}}</label>
+					<label class="block"><input value="dammatan" type="radio" name="vowel">{{$.Sym.Dammatan}}</label>
+					<label class="block"><input value="kasra" type="radio" name="vowel">{{$.Sym.Kasra}}</label>
+					<label class="block"><input value="kasratan" type="radio" name="vowel">{{$.Sym.Kasratan}}</label>
+					<label class="block"><input value="fatha" type="radio" name="vowel">{{$.Sym.Fatha}}</label>
+					<label class="block"><input value="fathatan" type="radio" name="vowel">{{$.Sym.Fathatan}}</label>
+					<label class="block"><input value="sukoon" type="radio" name="vowel">{{$.Sym.Sukoon}}</label>
+				<label><input type="checkbox" name="shadda">{{$.Sym.Shadda}}</label>
+				</fieldset>
 				{{- end}}
-			</p>
-			<p class="text-center">(click on a letter to change tashkeel)<p>
-			<p class="text-center">(shift + click to toggle shadda)</p>
 			{{end}}
 		</div>
 		<div>
