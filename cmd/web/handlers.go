@@ -85,7 +85,12 @@ func (app *application) excerptEditLock() http.Handler {
 				http.StatusSeeOther)
 			return
 		}
-
+		if content == "" {
+			http.Redirect(w, r, fmt.Sprintf(
+				"/excerpt/edit?id=%v&error=Could not proceed. There's no text.", id),
+				http.StatusSeeOther)
+			return
+		}
 		err = app.excerpts.UpdateContent(id, content)
 		if err != nil {
 			app.serverError(w, err)
