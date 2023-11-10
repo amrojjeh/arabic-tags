@@ -595,6 +595,10 @@ video {
   display: none;
 }
 
+.h-\[97\%\] {
+  height: 97%;
+}
+
 .h-\[99\%\] {
   height: 99%;
 }
@@ -712,6 +716,10 @@ video {
 
 .overflow-y-auto {
   overflow-y: auto;
+}
+
+.overflow-y-hidden {
+  overflow-y: hidden;
 }
 
 .text-clip {

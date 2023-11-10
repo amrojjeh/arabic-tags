@@ -58,16 +58,16 @@ func (w TWord) String() string {
 }
 
 type Letter struct {
-	Letter   string `json:"letter"`
-	Tashkeel string `json:"tashkeel"`
-	Shadda   bool   `json:"shadda"`
+	Letter string `json:"letter"`
+	Vowel  string `json:"tashkeel"`
+	Shadda bool   `json:"shadda"`
 }
 
 func (l Letter) String() string {
 	if l.Shadda {
-		return fmt.Sprintf("%v%v%v", l.Letter, l.Tashkeel, speech.Shadda)
+		return fmt.Sprintf("%v%v%v", l.Letter, l.Vowel, speech.Shadda)
 	}
-	return fmt.Sprintf("%v%v", l.Letter, l.Tashkeel)
+	return fmt.Sprintf("%v%v", l.Letter, l.Vowel)
 }
 
 func (t *Technical) Scan(src any) error {
@@ -363,9 +363,9 @@ func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 		}
 		for _, l := range gw.Word {
 			technical.Words[i].Letters = append(technical.Words[i].Letters, Letter{
-				Letter:   string(l),
-				Tashkeel: "",
-				Shadda:   false,
+				Letter: string(l),
+				Vowel:  speech.Sukoon,
+				Shadda: false,
 			})
 		}
 	}

@@ -17,6 +17,14 @@ import (
 )
 
 type symbol struct {
+	PDamma    string
+	PDammatan string
+	PFatha    string
+	PFathatan string
+	PKasra    string
+	PKasratan string
+	PSukoon   string
+
 	Damma    string
 	Dammatan string
 	Fatha    string
@@ -25,7 +33,8 @@ type symbol struct {
 	Kasratan string
 	Sukoon   string
 
-	Shadda string
+	PShadda string
+	Shadda  string
 }
 
 type templateData struct {
@@ -36,6 +45,7 @@ type templateData struct {
 	GrammaticalTags []string
 	Host            string
 	ExcerptShared   bool
+	TSelectedWord   int
 	Sym             symbol
 }
 
@@ -49,15 +59,24 @@ func newTemplateData(r *http.Request) (templateData, error) {
 		GrammaticalTags: speech.GrammaticalTags,
 		Host:            r.Host,
 		ExcerptShared:   r.Form.Get("share") == "true",
+		TSelectedWord:   0,
 		Sym: symbol{
-			Damma:    speech.Placeholder + speech.Damma,
-			Dammatan: speech.Placeholder + speech.Dammatan,
-			Fatha:    speech.Placeholder + speech.Fatha,
-			Fathatan: speech.Placeholder + speech.Fathatan,
-			Kasra:    speech.Placeholder + speech.Kasra,
-			Kasratan: speech.Placeholder + speech.Kasratan,
-			Sukoon:   speech.Placeholder + speech.Sukoon,
-			Shadda:   speech.Placeholder + speech.Shadda,
+			PDamma:    speech.Placeholder + speech.Damma,
+			PDammatan: speech.Placeholder + speech.Dammatan,
+			PFatha:    speech.Placeholder + speech.Fatha,
+			PFathatan: speech.Placeholder + speech.Fathatan,
+			PKasra:    speech.Placeholder + speech.Kasra,
+			PKasratan: speech.Placeholder + speech.Kasratan,
+			PSukoon:   speech.Placeholder + speech.Sukoon,
+			PShadda:   speech.Placeholder + speech.Shadda,
+			Damma:     speech.Damma,
+			Dammatan:  speech.Dammatan,
+			Fatha:     speech.Fatha,
+			Fathatan:  speech.Fathatan,
+			Kasra:     speech.Kasra,
+			Kasratan:  speech.Kasratan,
+			Sukoon:    speech.Sukoon,
+			Shadda:    speech.Shadda,
 		},
 	}
 
@@ -97,10 +116,13 @@ func (app *application) cacheTemplates() error {
 		baseName := filepath.Base(name)
 
 		base := template.New(name).Funcs(funcs)
+		var err error
 
-		base, err := base.ParseFiles("./ui/html/base.tmpl")
-		if err != nil {
-			return err
+		if !strings.HasPrefix(baseName, "htmx-") {
+			base, err = base.ParseFiles("./ui/html/base.tmpl")
+			if err != nil {
+				return err
+			}
 		}
 
 		partials, err := filepath.Glob("./ui/html/partials/*")
@@ -135,7 +157,12 @@ func (app *application) renderTemplate(w http.ResponseWriter, page string,
 	}
 
 	buffer := bytes.Buffer{}
-	err := template.ExecuteTemplate(&buffer, "base", data)
+	var err error
+	if strings.HasPrefix(page, "htmx-") {
+		err = template.ExecuteTemplate(&buffer, "htmx", data)
+	} else {
+		err = template.ExecuteTemplate(&buffer, "base", data)
+	}
 	if err != nil {
 		app.serverError(w, err)
 		return

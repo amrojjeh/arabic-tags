@@ -1,0 +1,11 @@
+{{define "technical-text"}}
+<div id="text">
+	<p class="text-4xl leading-loose">
+	{{range $index, $word := $.Excerpt.Technical.Words -}}
+		<span
+		class="cursor-pointer hover:text-red-700 {{if eq $index 0}}text-sky-600{{end}}">{{$word.String}}</span>
+		{{- if not $word.Shrinked -}}<span> </span>{{end}}
+	{{- end}}
+	<p>
+</div>
+{{end}}

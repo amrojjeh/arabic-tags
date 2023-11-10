@@ -1,0 +1,25 @@
+{{define "technical-inspector"}}
+{{ $word := index .Excerpt.Technical.Words .TSelectedWord}}
+<div class="border-e-2 h-full overflow-y-auto" id="inspector" htmx-swap-oob="true">
+	<p class="text-5xl text-center leading-loose">{{$word.String}}</p>
+	{{range $index, $letter := $word.Letters -}}
+	<fieldset class="text-3xl p-2 leading-loose">
+		<legend class="text-4xl">{{$letter.Letter}}</legend>
+		<select name="{{$index}}" class="block"
+		hx-put="/excerpt/technical/tashkeel?id={{id $.Excerpt.ID}}&word={{$.TSelectedWord}}&letter={{$index}}"
+		hx-target="#text"
+		hx-select-oob="#inspector:outerHTML"
+		hx-swap="outerHTML" required>
+			<option value="{{$.Sym.Damma}}" {{if eq $letter.Vowel $.Sym.Damma}}selected{{end}}>{{$.Sym.PDamma}}</option>
+			<option value="{{$.Sym.Dammatan}}" {{if eq $letter.Vowel $.Sym.Dammatan}}selected{{end}}>{{$.Sym.PDammatan}}</option>
+			<option value="{{$.Sym.Fatha}}" {{if eq $letter.Vowel $.Sym.Fatha}}selected{{end}}>{{$.Sym.PFatha}}</option>
+			<option value="{{$.Sym.Fathatan}}" {{if eq $letter.Vowel $.Sym.Fathatan}}selected{{end}}>{{$.Sym.PFathatan}}</option>
+			<option value="{{$.Sym.Kasra}}" {{if eq $letter.Vowel $.Sym.Kasra}}selected{{end}}>{{$.Sym.PKasra}}</option>
+			<option value="{{$.Sym.Kasratan}}" {{if eq $letter.Vowel $.Sym.Kasratan}}selected{{end}}>{{$.Sym.PKasratan}}</option>
+			<option value="{{$.Sym.Sukoon}}" {{if eq $letter.Vowel $.Sym.Sukoon}}selected{{end}}>{{$.Sym.PSukoon}}</option>
+		</select>
+	<label><input type="checkbox" name="{{$index}}">{{$.Sym.PShadda}}</label>
+	</fieldset>
+	{{- end}}
+</div>
+{{end}}

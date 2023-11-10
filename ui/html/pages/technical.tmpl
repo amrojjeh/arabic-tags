@@ -11,36 +11,9 @@
 {{define "main"}}
 <div class="flex flex-col h-[99%]">
 	<h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
-	<div dir="rtl" class="grid grid-rows-1 grid-cols-[400px_auto] gap-4 grow">
-		<div class="border-e-2">
-			{{with index .Excerpt.Technical.Words 0}}
-			<p class="text-5xl text-center leading-loose">{{.String}}</p>
-			{{end}}
-			{{with index .Excerpt.Technical.Words 0}}
-				{{range $index, $letter := .Letters -}}
-				<fieldset class="text-3xl p-2">
-					<legend class="text-4xl">{{$letter}}</legend>
-					<label class="block"><input value="damma" type="radio" name="vowel">{{$.Sym.Damma}}</label>
-					<label class="block"><input value="dammatan" type="radio" name="vowel">{{$.Sym.Dammatan}}</label>
-					<label class="block"><input value="kasra" type="radio" name="vowel">{{$.Sym.Kasra}}</label>
-					<label class="block"><input value="kasratan" type="radio" name="vowel">{{$.Sym.Kasratan}}</label>
-					<label class="block"><input value="fatha" type="radio" name="vowel">{{$.Sym.Fatha}}</label>
-					<label class="block"><input value="fathatan" type="radio" name="vowel">{{$.Sym.Fathatan}}</label>
-					<label class="block"><input value="sukoon" type="radio" name="vowel">{{$.Sym.Sukoon}}</label>
-				<label><input type="checkbox" name="shadda">{{$.Sym.Shadda}}</label>
-				</fieldset>
-				{{- end}}
-			{{end}}
-		</div>
-		<div>
-			<p class="text-4xl leading-loose">
-			{{range $index, $word := .Excerpt.Technical.Words -}}
-				<span
-				class="cursor-pointer hover:text-red-700 {{if eq $index 0}}text-sky-600{{end}}">{{$word.String}}</span>
-				{{- if not $word.Shrinked -}}<span> </span>{{end}}
-			{{- end}}
-			<p>
-		</div>
+	<div dir="rtl" class="grid grid-rows-1 grid-cols-[400px_auto] gap-4 h-[97%]">
+		{{template "technical-inspector" .}}
+		{{template "technical-text" .}}
 	</div>
 </div>
 {{end}}

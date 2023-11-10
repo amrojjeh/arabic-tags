@@ -36,3 +36,12 @@ func NotBlank(value string) bool {
 func MaxChars(value string, max int) bool {
 	return utf8.RuneCountInString(value) <= max
 }
+
+func Radio(value string, options []string) bool {
+	for _, o := range options {
+		if value == o {
+			return true
+		}
+	}
+	return false
+}

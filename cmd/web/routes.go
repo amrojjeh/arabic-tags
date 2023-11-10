@@ -65,5 +65,7 @@ func (app *application) routes() http.Handler {
 
 	router.Handler(http.MethodGet, "/excerpt/technical", Adapt(app.excerptTechnicalGet(),
 		technicalExcerptRequired...))
+	router.Handler(http.MethodPut, "/excerpt/technical/tashkeel", Adapt(app.excerptGrammarVowelPut(),
+		technicalExcerptRequired...))
 	return router
 }

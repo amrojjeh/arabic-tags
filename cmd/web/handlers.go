@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"unicode"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
+	"github.com/amrojjeh/arabic-tags/internal/speech"
 	"github.com/google/uuid"
 )
 
@@ -205,6 +207,7 @@ func (app *application) excerptGrammarUnlock() http.Handler {
 			http.StatusSeeOther)
 	})
 }
+
 func (app *application) excerptTechnicalGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, err := newTemplateData(r)
@@ -213,6 +216,50 @@ func (app *application) excerptTechnicalGet() http.Handler {
 			return
 		}
 		app.renderTemplate(w, "technical.tmpl", http.StatusOK, data)
+	})
+}
+
+func (app *application) excerptGrammarVowelPut() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		excerpt := r.Context().Value("excerpt").(models.Excerpt)
+		wordIndex, err := strconv.Atoi(r.Form.Get("word"))
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		letterIndex, err := strconv.Atoi(r.Form.Get("letter"))
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		vowel := r.Form.Get(strconv.Itoa(letterIndex))
+
+		if !Radio(vowel, []string{
+			speech.Damma,
+			speech.Dammatan,
+			speech.Kasra,
+			speech.Kasratan,
+			speech.Fatha,
+			speech.Fathatan,
+			speech.Sukoon,
+		}) {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		excerpt.Technical.Words[wordIndex].Letters[letterIndex].Vowel = vowel
+		err = app.excerpts.UpdateTechnical(excerpt.ID, excerpt.Technical)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		data, err := newTemplateData(r)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		app.renderTemplate(w, "htmx-technical.tmpl", http.StatusOK, data)
 	})
 }
 
