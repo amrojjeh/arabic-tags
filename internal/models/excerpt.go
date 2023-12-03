@@ -277,6 +277,14 @@ func (m ExcerptModel) SetGrammarLock(id uuid.UUID, lock bool) error {
 }
 
 func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
+	var generateWord = func(word string, punctuation bool, preceding bool) GWord {
+		return GWord{
+			Word:        word,
+			Tags:        []string{},
+			Punctuation: punctuation,
+			Preceding:   preceding,
+		}
+	}
 	excerpt, err := m.Get(id)
 	if err != nil {
 		return err
@@ -289,14 +297,7 @@ func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
 	for _, s := range strWords {
 		r, size := utf8.DecodeRuneInString(s)
 		if speech.IsPunctuation(r) {
-			words = append(words, GWord{
-				Word:        string(r),
-				Shrinked:    false,
-				LeftOver:    false,
-				Tags:        []string{},
-				Punctuation: true,
-				Preceding:   true,
-			})
+			words = append(words, generateWord(string(r), true, true))
 			s = s[size:]
 		}
 		r, size = utf8.DecodeLastRuneInString(s)
@@ -305,23 +306,18 @@ func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
 			s = s[:len(s)-size]
 			preceding = true
 		}
-		words = append(words, GWord{
-			Word:        s,
-			Shrinked:    false,
-			LeftOver:    false,
-			Tags:        []string{},
-			Punctuation: false,
-			Preceding:   preceding,
-		})
+		// At most, a word can have three punctuations attached: "example!"
+		r2, size := utf8.DecodeLastRuneInString(s)
+		p2 := speech.IsPunctuation(r2)
+		if p2 {
+			s = s[:len(s)-size]
+		}
+		words = append(words, generateWord(s, false, preceding))
+		if p2 {
+			words = append(words, generateWord(string(r2), true, true))
+		}
 		if preceding {
-			words = append(words, GWord{
-				Word:        string(r),
-				Shrinked:    false,
-				LeftOver:    false,
-				Tags:        []string{},
-				Punctuation: true,
-				Preceding:   false,
-			})
+			words = append(words, generateWord(string(r), true, false))
 		}
 	}
 	grammar := Grammar{
