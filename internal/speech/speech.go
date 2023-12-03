@@ -1,5 +1,13 @@
 package speech
 
+import (
+	"errors"
+	"fmt"
+	"regexp"
+	"strings"
+	"unicode"
+)
+
 const (
 	Shadda = string(rune(0x0651))
 
@@ -104,4 +112,51 @@ var GrammaticalTags = []string{
 
 	"صلة الموصول",
 	"صلة",
+}
+
+func IsWhitespace(letter rune) bool {
+	return letter == ' '
+}
+
+func IsWordPunctuation(word string) bool {
+	for _, l := range word {
+		if IsPunctuation(l) {
+			return true
+		}
+	}
+	return false
+}
+
+// TODO(Amr Ojjeh): Send punctuation through HTML
+var Punctuation = regexp.MustCompile("[\\.:«»]")
+
+func IsPunctuation(letter rune) bool {
+	return Punctuation.MatchString(string(letter))
+}
+
+// isArabicLetter does not include tashkeel
+func IsArabicLetter(letter rune) bool {
+	if letter >= 0x0621 && letter <= 0x063A {
+		return true
+	}
+	if letter >= 0x0641 && letter <= 0x064A {
+		return true
+	}
+	return false
+}
+
+func CleanContent(content string) (string, error) {
+	for _, c := range content {
+		if !(IsArabicLetter(c) || IsWhitespace(c) || IsPunctuation(c)) {
+			return "", errors.New(fmt.Sprintf("%v is an invalid letter", c))
+		}
+	}
+
+	// Remove double spaces
+	r, _ := regexp.Compile(" +")
+	content = r.ReplaceAllString(content, " ")
+
+	// Trim sentence
+	content = strings.TrimFunc(content, unicode.IsSpace)
+	return content, nil
 }

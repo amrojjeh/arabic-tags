@@ -22,6 +22,11 @@ type GWord struct {
 	Shrinked bool     `json:"shrinked"`
 	LeftOver bool     `json:"leftOver"`
 	Tags     []string `json:"tags"`
+
+	// true if the word is preceding a punctuation or if a punctuation is
+	// preceding a word (for rendering)
+	Preceding   bool `json:"preceding"`
+	Punctuation bool `json:"punctuation"`
 }
 
 func (g *Grammar) Scan(src any) error {
@@ -43,10 +48,11 @@ type Technical struct {
 }
 
 type TWord struct {
-	Letters  []Letter `json:"letters"`
-	Tags     []string `json:"tags"`
-	Ignore   bool     `json:"ignore"`
-	Shrinked bool     `json:"finale"`
+	Letters     []Letter `json:"letters"`
+	Tags        []string `json:"tags"`
+	Ignore      bool     `json:"ignore"`
+	Shrinked    bool     `json:"finale"`
+	Punctuation bool     `json:"punctuation"`
 }
 
 func (w TWord) String() string {
@@ -273,14 +279,55 @@ func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
 	content := excerpt.Content
 
 	strWords := strings.Split(content, " ")
-	words := make([]GWord, len(strWords))
-	for i, s := range strWords {
-		words[i] = GWord{
-			Word:     s,
-			Shrinked: false,
-			LeftOver: false,
-			Tags:     []string{},
+	words := make([]GWord, 0, len(strWords))
+NEXT_WORD:
+	for _, s := range strWords {
+		r, size := utf8.DecodeRuneInString(s)
+		if speech.IsPunctuation(r) {
+			words = append(words, GWord{
+				Word:        string(r),
+				Shrinked:    false,
+				LeftOver:    false,
+				Tags:        []string{},
+				Punctuation: true,
+				Preceding:   true,
+			})
+			s = s[size:]
 		}
+		word := ""
+		for _, r := range s {
+			if speech.IsPunctuation(r) {
+				if word != "" {
+					words = append(words, GWord{
+						Word:        word,
+						Shrinked:    false,
+						LeftOver:    false,
+						Tags:        []string{},
+						Punctuation: false,
+						Preceding:   true,
+					})
+				}
+				words = append(words, GWord{
+					Word:        string(r),
+					Shrinked:    false,
+					LeftOver:    false,
+					Tags:        []string{},
+					Punctuation: true,
+					Preceding:   false,
+				})
+				continue NEXT_WORD
+			} else {
+				word += string(r)
+			}
+		}
+		words = append(words, GWord{
+			Word:        s,
+			Shrinked:    false,
+			LeftOver:    false,
+			Tags:        []string{},
+			Punctuation: false,
+			Preceding:   false,
+		})
 	}
 	grammar := Grammar{
 		Words: words,

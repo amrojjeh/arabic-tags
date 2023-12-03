@@ -268,6 +268,8 @@ export class ArabicInput extends HTMLElement {
     e.preventDefault();
     let paste = e.clipboardData.getData("text");
     paste = paste.replaceAll("\n", " ");
+    paste = paste.trimLeft();
+    paste = paste.trimRight();
     const selectionStart = e.target.selectionStart;
     const value = e.target.value;
     e.target.value = value.substring(0, selectionStart) + paste +
@@ -426,6 +428,11 @@ function isWhitespace(letter) {
   return letter == " ";
 }
 
+function isPunctuation(letter) {
+  const punctuation = [".", ":", "«", "»"];
+  return punctuation.some(x => x == letter);
+}
+
 function isValid(letter) {
-  return isArabicLetter(letter) || isWhitespace(letter);
+  return isArabicLetter(letter) || isWhitespace(letter) || isPunctuation(letter);
 }

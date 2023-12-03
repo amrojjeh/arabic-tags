@@ -2,13 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strconv"
-	"strings"
-	"unicode"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/amrojjeh/arabic-tags/internal/speech"
@@ -45,42 +41,11 @@ func (app *application) excerptEditUnlock() http.Handler {
 	})
 }
 
-func cleanContent(content string) (string, error) {
-	for _, c := range content {
-		if !(isArabicLetter(c) || isWhitespace(c)) {
-			return "", errors.New(fmt.Sprintf("%v is an invalid letter", c))
-		}
-	}
-
-	// Remove double spaces
-	r, _ := regexp.Compile(" +")
-	content = r.ReplaceAllString(content, " ")
-
-	// Trim sentence
-	content = strings.TrimFunc(content, unicode.IsSpace)
-	return content, nil
-}
-
-// isArabicLetter does not include tashkeel
-func isArabicLetter(letter rune) bool {
-	if letter >= 0x0621 && letter <= 0x063A {
-		return true
-	}
-	if letter >= 0x0641 && letter <= 0x064A {
-		return true
-	}
-	return false
-}
-
-func isWhitespace(letter rune) bool {
-	return letter == ' '
-}
-
 func (app *application) excerptEditLock() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.Context().Value("id").(uuid.UUID)
 		excerpt := r.Context().Value("excerpt").(models.Excerpt)
-		content, err := cleanContent(excerpt.Content)
+		content, err := speech.CleanContent(excerpt.Content)
 		if err != nil {
 			http.Redirect(w, r, fmt.Sprintf(
 				"/excerpt/edit?id=%v&error=Could not proceed. Found errors.", id),

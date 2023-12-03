@@ -33,12 +33,24 @@ export class GrammarTag extends HTMLElement {
   selectPrev() {
     this.data.selectedIndex =
       Math.max(this.data.selectedIndex - 1, 0);
+    if (this.data.words[this.data.selectedIndex].punctuation) {
+      if (this.data.selectedIndex === 0) {
+        return this.selectNext();
+      }
+      return this.selectPrev();
+    }
     this.render();
   }
 
   selectNext() {
     this.data.selectedIndex =
       Math.min(this.data.selectedIndex + 1, this.data.words.length - 1);
+    if (this.data.words[this.data.selectedIndex].punctuation) {
+      if (this.data.selectedIndex === this.data.words.length - 1) {
+        return this.selectPrev();
+      }
+      return this.selectNext();
+    }
     this.render();
   }
 
@@ -90,7 +102,7 @@ export class GrammarTag extends HTMLElement {
     this.HTML.p.innerHTML = "";
     for (let i = 0; i < this.data.words.length; ++i) {
       this.HTML.p.appendChild(this.wordPartial(i));
-      if (!this.data.words[i].shrinked) {
+      if (!this.data.words[i].shrinked && !this.data.words[i].preceding) {
         this.HTML.p.append(" ");
       }
     }
@@ -110,14 +122,16 @@ export class GrammarTag extends HTMLElement {
     const span = document.createElement("span");
     span.classList.add("decoration-blue-400", "underline-offset-[.7em]", "pe-0.5");
     span.innerText = word;
-    if (index === this.data.selectedIndex) {
-      span.classList.add("bg-red-800", "text-white");
-    } else {
-      span.classList.add("hover:text-red-800", "cursor-pointer");
-      span.addEventListener("click", () => {
-        this.data.selectedIndex = index;
-        this.render();
-      })
+    if (!this.data.words[index].punctuation) {
+      if (index === this.data.selectedIndex) {
+        span.classList.add("bg-red-800", "text-white");
+      } else {
+        span.classList.add("hover:text-red-800", "cursor-pointer");
+        span.addEventListener("click", () => {
+          this.data.selectedIndex = index;
+          this.render();
+        })
+      }
     }
     if (this.data.words[index].tags.length) {
       span.classList.add("underline");
@@ -194,6 +208,8 @@ export class GrammarTag extends HTMLElement {
       shrinked: false,
       leftOver: false,
       tags: [],
+      punctuation: false,
+      preceding: false,
     };
   }
 
