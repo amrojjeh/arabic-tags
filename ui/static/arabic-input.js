@@ -42,7 +42,6 @@ export class ArabicInput extends HTMLElement {
     this.HTML.textarea.focus();
     if (this.getAttribute("value") != null) {
       this.HTML.textarea.value = this.getAttribute("value");
-      this.update();
     }
     if (this.getAttribute("shared") != null) {
       this.shared = true;
@@ -55,7 +54,12 @@ export class ArabicInput extends HTMLElement {
     } else {
       console.error("There's no id!");
     }
-
+    if (this.getAttribute("punctuation") != null) {
+      this.punctuation = new RegExp(this.getAttribute("punctuation"));
+    } else {
+      this.punctuation = "";
+    }
+    this.update();
   }
 
   disconnectedCallback() {
@@ -176,7 +180,7 @@ export class ArabicInput extends HTMLElement {
   deleteErrors() {
     let text = "";
     for (let c of this.HTML.textarea.value) {
-      if (isValid(c)) {
+      if (this.isValid(c)) {
         text += c;
       }
     }
@@ -230,6 +234,10 @@ export class ArabicInput extends HTMLElement {
     return this.getOkays().length;
   }
 
+  isValid(letter) {
+    return isArabicLetter(letter) || isWhitespace(letter) || this.punctuation.test(letter);
+  }
+
   _parse(text) {
     // 0 = NOT OKAY
     // 1 = Tashkeel
@@ -254,7 +262,7 @@ export class ArabicInput extends HTMLElement {
         }
       }
       // Check for invalid letters
-      const valid = isValid(letter);
+      const valid = this.isValid(letter);
       if (!valid) {
         okays[i] = 0;
       } else {
@@ -426,13 +434,4 @@ function isArabicLetter(char) {
 
 function isWhitespace(letter) {
   return letter == " ";
-}
-
-function isPunctuation(letter) {
-  const punctuation = [".", ":", "«", "»"];
-  return punctuation.some(x => x == letter);
-}
-
-function isValid(letter) {
-  return isArabicLetter(letter) || isWhitespace(letter) || isPunctuation(letter);
 }

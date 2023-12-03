@@ -23,6 +23,7 @@
 	<h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
 	<arabic-input class="grow"
 	id="{{if not .ExcerptShared}}{{id .Excerpt.ID}}{{else}}{{id .Excerpt.CShare}}{{end}}"
+	punctuation="{{.AcceptedPunctuation}}"
 	{{if .Excerpt.CLocked}}readonly{{end}} value="{{.Excerpt.Content}}"
 	{{if .ExcerptShared}}shared{{end}}></arabic-input>
 </div>

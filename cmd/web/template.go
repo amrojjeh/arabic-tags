@@ -38,15 +38,16 @@ type symbol struct {
 }
 
 type templateData struct {
-	Excerpt         models.Excerpt
-	Type            string
-	Form            any
-	Error           string
-	GrammaticalTags []string
-	Host            string
-	ExcerptShared   bool
-	TSelectedWord   int
-	Sym             symbol
+	Excerpt             models.Excerpt
+	Type                string
+	Form                any
+	Error               string
+	GrammaticalTags     []string
+	Host                string
+	ExcerptShared       bool
+	TSelectedWord       int
+	AcceptedPunctuation string
+	Sym                 symbol
 }
 
 func newTemplateData(r *http.Request) (templateData, error) {
@@ -55,11 +56,12 @@ func newTemplateData(r *http.Request) (templateData, error) {
 		return templateData{}, err
 	}
 	data := templateData{
-		Error:           r.Form.Get("error"),
-		GrammaticalTags: speech.GrammaticalTags,
-		Host:            r.Host,
-		ExcerptShared:   r.Form.Get("share") == "true",
-		TSelectedWord:   0,
+		Error:               r.Form.Get("error"),
+		GrammaticalTags:     speech.GrammaticalTags,
+		Host:                r.Host,
+		ExcerptShared:       r.Form.Get("share") == "true",
+		TSelectedWord:       0,
+		AcceptedPunctuation: speech.Punctuation.String(),
 		Sym: symbol{
 			PDamma:    speech.Placeholder + speech.Damma,
 			PDammatan: speech.Placeholder + speech.Dammatan,
