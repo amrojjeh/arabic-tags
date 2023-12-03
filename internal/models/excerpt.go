@@ -246,11 +246,17 @@ func (m ExcerptModel) UpdateSharedContent(cShare uuid.UUID, content string) erro
 }
 
 func (m ExcerptModel) SetContentLock(id uuid.UUID, lock bool) error {
-	stmt := `UPDATE excerpt SET c_locked=?, updated=UTC_TIMESTAMP()
-	WHERE id=UUID_TO_BIN(?)`
+	var stmt string
+	if lock {
+		stmt = `UPDATE excerpt SET c_locked=TRUE, updated=UTC_TIMESTAMP()
+		WHERE id=UUID_TO_BIN(?)`
+	} else {
+		stmt = `UPDATE excerpt SET c_locked=FALSE, g_locked=FALSE, updated=UTC_TIMESTAMP()
+		WHERE id=UUID_TO_BIN(?)`
+	}
 
 	idVal, _ := id.Value()
-	_, err := m.DB.Exec(stmt, lock, idVal)
+	_, err := m.DB.Exec(stmt, idVal)
 	if err != nil {
 		return err
 	}
@@ -280,7 +286,6 @@ func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
 
 	strWords := strings.Split(content, " ")
 	words := make([]GWord, 0, len(strWords))
-NEXT_WORD:
 	for _, s := range strWords {
 		r, size := utf8.DecodeRuneInString(s)
 		if speech.IsPunctuation(r) {
@@ -294,31 +299,11 @@ NEXT_WORD:
 			})
 			s = s[size:]
 		}
-		word := ""
-		for _, r := range s {
-			if speech.IsPunctuation(r) {
-				if word != "" {
-					words = append(words, GWord{
-						Word:        word,
-						Shrinked:    false,
-						LeftOver:    false,
-						Tags:        []string{},
-						Punctuation: false,
-						Preceding:   true,
-					})
-				}
-				words = append(words, GWord{
-					Word:        string(r),
-					Shrinked:    false,
-					LeftOver:    false,
-					Tags:        []string{},
-					Punctuation: true,
-					Preceding:   false,
-				})
-				continue NEXT_WORD
-			} else {
-				word += string(r)
-			}
+		r, size = utf8.DecodeLastRuneInString(s)
+		preceding := false
+		if speech.IsPunctuation(r) {
+			s = s[:len(s)-size]
+			preceding = true
 		}
 		words = append(words, GWord{
 			Word:        s,
@@ -326,8 +311,18 @@ NEXT_WORD:
 			LeftOver:    false,
 			Tags:        []string{},
 			Punctuation: false,
-			Preceding:   false,
+			Preceding:   preceding,
 		})
+		if preceding {
+			words = append(words, GWord{
+				Word:        string(r),
+				Shrinked:    false,
+				LeftOver:    false,
+				Tags:        []string{},
+				Punctuation: true,
+				Preceding:   false,
+			})
+		}
 	}
 	grammar := Grammar{
 		Words: words,
