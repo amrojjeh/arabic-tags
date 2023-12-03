@@ -53,9 +53,13 @@ type TWord struct {
 	Ignore      bool     `json:"ignore"`
 	Shrinked    bool     `json:"finale"`
 	Punctuation bool     `json:"punctuation"`
+	Preceding   bool     `json:"preceding"`
 }
 
 func (w TWord) String() string {
+	if w.Punctuation {
+		return w.Letters[0].Letter
+	}
 	word := ""
 	for _, l := range w.Letters {
 		word += l.String()
@@ -395,9 +399,11 @@ func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 	}
 	for i, gw := range excerpt.Grammar.Words {
 		technical.Words[i] = TWord{
-			Letters:  make([]Letter, 0, utf8.RuneCountInString(gw.Word)),
-			Tags:     []string{},
-			Shrinked: gw.Shrinked,
+			Letters:     make([]Letter, 0, utf8.RuneCountInString(gw.Word)),
+			Tags:        []string{},
+			Shrinked:    gw.Shrinked,
+			Punctuation: gw.Punctuation,
+			Preceding:   gw.Preceding,
 		}
 		for _, l := range gw.Word {
 			technical.Words[i].Letters = append(technical.Words[i].Letters, Letter{

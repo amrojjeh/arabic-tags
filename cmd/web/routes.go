@@ -65,7 +65,9 @@ func (app *application) routes() http.Handler {
 
 	router.Handler(http.MethodGet, "/excerpt/technical", Adapt(app.excerptTechnicalGet(),
 		technicalExcerptRequired...))
-	router.Handler(http.MethodPut, "/excerpt/technical/tashkeel", Adapt(app.excerptGrammarVowelPut(),
+	router.Handler(http.MethodPut, "/excerpt/technical/tashkeel", Adapt(app.excerptTechnicalVowelPut(),
+		technicalExcerptRequired...))
+	router.Handler(http.MethodGet, "/excerpt/technical/word", Adapt(app.excerptTechnicalWordGet(),
 		technicalExcerptRequired...))
 	return router
 }

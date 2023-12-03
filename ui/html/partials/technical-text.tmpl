@@ -1,10 +1,19 @@
 {{define "technical-text"}}
 <div id="text">
 	<p class="text-4xl leading-loose">
-	{{range $index, $word := $.Excerpt.Technical.Words -}}
-		<span
-		class="cursor-pointer hover:text-red-700 {{if eq $index 0}}text-sky-600{{end}}">{{$word.String}}</span>
-		{{- if not $word.Shrinked -}}<span> </span>{{end}}
+	{{- range $index, $word := $.Excerpt.Technical.Words -}}
+		{{- if $word.Punctuation -}}
+			<span>{{- $word.String -}}</span>
+			{{- if not $word.Preceding -}}<span> </span>{{- end -}}
+		{{- else -}}
+			<span
+			hx-get="/excerpt/technical/word?word={{$index}}&id={{id $.Excerpt.ID}}"
+			hx-target="#text"
+			hx-select-oob="#inspector:outerHTML"
+			hx-swap="outerHTML"
+			class="cursor-pointer hover:text-red-700 {{if eq $index $.TSelectedWord}}text-sky-600{{end}}">{{- $word.String -}}</span>
+			{{- if and (not $word.Shrinked) (not $word.Preceding) -}}<span> </span>{{- end -}}
+		{{- end -}}
 	{{- end}}
 	<p>
 </div>

@@ -184,7 +184,7 @@ func (app *application) excerptTechnicalGet() http.Handler {
 	})
 }
 
-func (app *application) excerptGrammarVowelPut() http.Handler {
+func (app *application) excerptTechnicalVowelPut() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		excerpt := r.Context().Value("excerpt").(models.Excerpt)
 		wordIndex, err := strconv.Atoi(r.Form.Get("word"))
@@ -224,6 +224,27 @@ func (app *application) excerptGrammarVowelPut() http.Handler {
 			app.clientError(w, http.StatusBadRequest)
 			return
 		}
+		data.TSelectedWord = wordIndex
+		app.renderTemplate(w, "htmx-technical.tmpl", http.StatusOK, data)
+	})
+}
+
+func (app *application) excerptTechnicalWordGet() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		index_str := r.Form.Get("word")
+		index, err := strconv.Atoi(index_str)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		data, err := newTemplateData(r)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		data.TSelectedWord = index
 		app.renderTemplate(w, "htmx-technical.tmpl", http.StatusOK, data)
 	})
 }
