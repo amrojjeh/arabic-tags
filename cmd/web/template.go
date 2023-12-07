@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"path/filepath"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/amrojjeh/arabic-tags/internal/speech"
+	"github.com/amrojjeh/arabic-tags/ui"
 	"github.com/google/uuid"
 )
 
@@ -109,7 +111,7 @@ func (app *application) cacheTemplates() error {
 		"id":   IdFunc,
 	}
 
-	names, err := filepath.Glob("./ui/html/pages/*")
+	names, err := fs.Glob(ui.Files, "html/pages/*")
 	if err != nil {
 		return err
 	}
@@ -121,25 +123,25 @@ func (app *application) cacheTemplates() error {
 		var err error
 
 		if !strings.HasPrefix(baseName, "htmx-") {
-			base, err = base.ParseFiles("./ui/html/base.tmpl")
+			base, err = base.ParseFS(ui.Files, "html/base.tmpl")
 			if err != nil {
 				return err
 			}
 		}
 
-		partials, err := filepath.Glob("./ui/html/partials/*")
+		partials, err := fs.Glob(ui.Files, "html/partials/*")
 		if err != nil {
 			return err
 		}
 
 		for _, name := range partials {
-			base, err = base.ParseFiles(name)
+			base, err = base.ParseFS(ui.Files, name)
 			if err != nil {
 				return err
 			}
 		}
 
-		app.page[baseName], err = base.ParseFiles(name)
+		app.page[baseName], err = base.ParseFS(ui.Files, name)
 		if err != nil {
 			return err
 		}

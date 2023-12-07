@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/amrojjeh/arabic-tags/ui"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -11,8 +12,8 @@ func (app *application) routes() http.Handler {
 	router := httprouter.New()
 	router.NotFound = Adapt(app.notFound(), app.logRequest)
 
-	router.Handler(http.MethodGet, "/static/*file", Adapt(http.FileServer(http.Dir("./ui/static/")),
-		stripPrefix("/static"), app.logRequest))
+	router.Handler(http.MethodGet, "/static/*file", Adapt(http.FileServer(http.FS(ui.Files)),
+		app.logRequest))
 
 	router.Handler(http.MethodGet, "/", Adapt(app.excerptCreateGet(),
 		app.logRequest))
