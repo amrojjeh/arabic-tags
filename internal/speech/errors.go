@@ -10,6 +10,16 @@ var (
 	ErrBadResponse = errors.New("speech: response buffer could not be read")
 )
 
+type BadFormatError struct {
+	Text           string
+	ExpectedFormat string
+}
+
+func (e BadFormatError) Error() string {
+	return fmt.Sprintf("speech: text was not formatted properly (%v). Text=%v",
+		e.ExpectedFormat, e.Text)
+}
+
 type UnrecognizedCharacterError struct {
 	Character rune
 }

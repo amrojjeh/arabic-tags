@@ -53,7 +53,8 @@ func Disambiguate(text string) ([]Word, error) {
 	inter := camelResponse{}
 	err = json.Unmarshal(res, &inter)
 	if err != nil {
-		return nil, errors.Join(ErrBadResponse, err)
+		return nil, errors.Join(BadFormatError{Text: string(res),
+			ExpectedFormat: "json"}, err)
 	}
 
 	words := make([]Word, len(inter.Output.Disambig))
