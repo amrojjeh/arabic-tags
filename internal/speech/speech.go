@@ -20,6 +20,8 @@ const (
 	Kasratan = string(rune(0x064D))
 
 	Placeholder = string(rune(0x25CC))
+
+	SuperscriptAlef = string(rune(0x670))
 )
 
 var GrammaticalTags = []string{
@@ -127,8 +129,7 @@ func IsWordPunctuation(word string) bool {
 	return false
 }
 
-// TODO(Amr Ojjeh): Send punctuation through HTML
-var Punctuation = regexp.MustCompile("[\\.:«»]")
+var Punctuation = regexp.MustCompile("[\\.:«»،]")
 
 func IsPunctuation(letter rune) bool {
 	return Punctuation.MatchString(string(letter))
@@ -143,6 +144,16 @@ func IsArabicLetter(letter rune) bool {
 		return true
 	}
 	return false
+}
+
+func IsVowel(letter rune) bool {
+	sl := string(letter)
+	return sl == Sukoon || sl == Damma || sl == Fatha || sl == Kasra ||
+		sl == Dammatan || sl == Fathatan || sl == Kasratan
+}
+
+func IsShadda(letter rune) bool {
+	return string(letter) == Shadda
 }
 
 func CleanContent(content string) (string, error) {
