@@ -6,9 +6,8 @@ import (
 )
 
 var (
-	ErrRequest               = errors.New("speech: request was not completed successfuly")
-	ErrBadResponse           = errors.New("speech: response buffer could not be read")
-	ErrUnrecognizedCharacter = errors.New("")
+	ErrRequest     = errors.New("speech: request was not completed successfuly")
+	ErrBadResponse = errors.New("speech: response buffer could not be read")
 )
 
 type UnrecognizedCharacterError struct {
