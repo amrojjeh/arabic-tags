@@ -23,7 +23,7 @@ type GWord struct {
 	LeftOver bool     `json:"leftOver"`
 	Tags     []string `json:"tags"`
 
-	// true if the word is preceding a punctuation or if a punctuation is
+	// true if the word is preceding a punctuation or if the punctuation is
 	// preceding a word (for rendering)
 	Preceding   bool `json:"preceding"`
 	Punctuation bool `json:"punctuation"`
@@ -44,7 +44,34 @@ func (g *Grammar) Scan(src any) error {
 }
 
 type Technical struct {
-	Words []TWord
+	Words []TWord `json:"words"`
+}
+
+func (t Technical) Text() string {
+	par := ""
+	for _, w := range t.Words {
+		par += w.String()
+		if !w.Shrinked && !w.Preceding {
+			par += " "
+		}
+	}
+	par = strings.TrimSpace(par)
+	return par
+}
+
+func (t Technical) TextWithoutPunctuation() string {
+	par := ""
+	for _, w := range t.Words {
+		if w.Punctuation {
+			continue
+		}
+		par += w.String()
+		if !w.Shrinked {
+			par += " "
+		}
+	}
+	par = strings.TrimSpace(par)
+	return par
 }
 
 type TWord struct {
@@ -280,6 +307,7 @@ func (m ExcerptModel) SetGrammarLock(id uuid.UUID, lock bool) error {
 	return nil
 }
 
+// Assumes content is clean
 func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
 	var generateWord = func(word string, punctuation bool, preceding bool) GWord {
 		return GWord{
@@ -295,34 +323,30 @@ func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
 	}
 
 	content := excerpt.Content
-
-	strWords := strings.Split(content, " ")
-	words := make([]GWord, 0, len(strWords))
-	for _, s := range strWords {
-		r, size := utf8.DecodeRuneInString(s)
-		if speech.IsPunctuation(r) {
-			words = append(words, generateWord(string(r), true, true))
-			s = s[size:]
+	words := make([]GWord, 0, len(strings.Split(content, " ")))
+	word := ""
+	for _, l := range content {
+		if speech.IsPunctuation(l) {
+			if word != "" {
+				words = append(words, generateWord(word, false, true))
+				word = ""
+			}
+			// Assume preceding unless there's a space
+			words = append(words, generateWord(string(l), true, true))
+		} else if l == ' ' {
+			wordCount := len(words)
+			if word != "" {
+				words = append(words, generateWord(word, false, false))
+				word = ""
+			} else if wordCount > 0 && words[wordCount-1].Punctuation {
+				words[wordCount-1].Preceding = false
+			}
+		} else {
+			word += string(l)
 		}
-		r, size = utf8.DecodeLastRuneInString(s)
-		preceding := false
-		if speech.IsPunctuation(r) {
-			s = s[:len(s)-size]
-			preceding = true
-		}
-		// At most, a word can have three punctuations attached: "example!"
-		r2, size := utf8.DecodeLastRuneInString(s)
-		p2 := speech.IsPunctuation(r2)
-		if p2 {
-			s = s[:len(s)-size]
-		}
-		words = append(words, generateWord(s, false, preceding))
-		if p2 {
-			words = append(words, generateWord(string(r2), true, true))
-		}
-		if preceding {
-			words = append(words, generateWord(string(r), true, false))
-		}
+	}
+	if word != "" {
+		words = append(words, generateWord(word, false, false))
 	}
 	grammar := Grammar{
 		Words: words,
@@ -388,6 +412,24 @@ func (m ExcerptModel) UpdateTechnical(id uuid.UUID, technical Technical) error {
 	return nil
 }
 
+func (m ExcerptModel) UpdateSharedTechnical(tShare uuid.UUID, technical Technical) error {
+	stmt := `UPDATE excerpt SET technical=?, updated=UTC_TIMESTAMP()
+	WHERE t_share=UUID_TO_BIN(?)`
+
+	load, err := json.Marshal(technical)
+	if err != nil {
+		return err
+	}
+
+	idVal, _ := tShare.Value()
+	_, err = m.DB.Exec(stmt, load, idVal)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 	excerpt, err := m.Get(id)
 	if err != nil {
@@ -414,9 +456,54 @@ func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 		}
 	}
 
+	err = technical.Disambiguate()
+	if err != nil {
+		return err
+	}
+	fmt.Printf("===FIRST WORD===\n%v", technical.Words[0])
 	err = m.UpdateTechnical(id, technical)
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (t *Technical) Disambiguate() error {
+	fmt.Println(t.TextWithoutPunctuation())
+	dWords, err := speech.Disambiguate(t.TextWithoutPunctuation())
+	if err != nil {
+		return err
+	}
+
+	mapper := struct {
+		li int // letter index
+		wi int // word index
+	}{li: -1, wi: 0}
+	fmt.Println(dWords)
+	for _, dWord := range dWords {
+		for _, dLetter := range dWord {
+			for t.Words[mapper.wi].Punctuation {
+				mapper.li = 0
+				mapper.wi += 1
+			}
+			mapper.li += 1
+			if mapper.li == len(t.Words[mapper.wi].Letters) {
+				mapper.li = 0
+				mapper.wi += 1
+				for t.Words[mapper.wi].Punctuation {
+					mapper.wi += 1
+				}
+			}
+			letter := &t.Words[mapper.wi].Letters[mapper.li]
+			if dLetter.Vowel != 0 {
+				fmt.Printf("%x", dLetter.Vowel)
+				letter.Vowel = string(dLetter.Vowel)
+			} else {
+				letter.Vowel = string(speech.Sukoon)
+			}
+			letter.Shadda = dLetter.Shadda
+		}
+	}
+	fmt.Println(*t)
 	return nil
 }

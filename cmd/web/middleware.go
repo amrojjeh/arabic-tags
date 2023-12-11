@@ -52,7 +52,7 @@ func (app *application) idRequired(h http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "id", id)
+		ctx := context.WithValue(r.Context(), idContextKey, id)
 		r = r.WithContext(ctx)
 
 		h.ServeHTTP(w, r)
@@ -61,7 +61,7 @@ func (app *application) idRequired(h http.Handler) http.Handler {
 
 func (app *application) excerptRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value("id").(uuid.UUID)
+		id := r.Context().Value(idContextKey).(uuid.UUID)
 		shared := r.Form.Get("share") == "true"
 		var excerpt models.Excerpt
 		var err error
@@ -88,7 +88,7 @@ func (app *application) excerptRequired(h http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "excerpt", excerpt)
+		ctx := context.WithValue(r.Context(), excerptContextKey, excerpt)
 		r = r.WithContext(ctx)
 
 		h.ServeHTTP(w, r)
@@ -97,9 +97,9 @@ func (app *application) excerptRequired(h http.Handler) http.Handler {
 
 func (app *application) contentLockRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		excerpt := r.Context().Value("excerpt").(models.Excerpt)
+		excerpt := r.Context().Value(excerptContextKey).(models.Excerpt)
 		if !excerpt.CLocked {
-			id := r.Context().Value("id").(uuid.UUID)
+			id := r.Context().Value(idContextKey).(uuid.UUID)
 			http.Redirect(w, r,
 				fmt.Sprintf("/excerpt/edit?id=%v", idToString(id)),
 				http.StatusSeeOther)
@@ -111,9 +111,9 @@ func (app *application) contentLockRequired(h http.Handler) http.Handler {
 
 func (app *application) grammarLockRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		excerpt := r.Context().Value("excerpt").(models.Excerpt)
+		excerpt := r.Context().Value(excerptContextKey).(models.Excerpt)
 		if !excerpt.GLocked {
-			id := r.Context().Value("id").(uuid.UUID)
+			id := r.Context().Value(idContextKey).(uuid.UUID)
 			http.Redirect(w, r,
 				fmt.Sprintf("/excerpt/grammar?id=%v", idToString(id)),
 				http.StatusSeeOther)

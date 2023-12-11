@@ -129,7 +129,7 @@ func IsWordPunctuation(word string) bool {
 	return false
 }
 
-var Punctuation = regexp.MustCompile("[\\.:«»،]")
+var Punctuation = regexp.MustCompile("[\\.:«»،\"—]")
 
 func IsPunctuation(letter rune) bool {
 	return Punctuation.MatchString(string(letter))

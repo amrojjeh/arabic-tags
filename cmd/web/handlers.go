@@ -30,7 +30,7 @@ func (app *application) excerptEditGet() http.Handler {
 
 func (app *application) excerptEditUnlock() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value("id").(uuid.UUID)
+		id := r.Context().Value(idContextKey).(uuid.UUID)
 		err := app.excerpts.SetContentLock(id, false)
 		if err != nil {
 			app.serverError(w, err)
@@ -43,8 +43,8 @@ func (app *application) excerptEditUnlock() http.Handler {
 
 func (app *application) excerptEditLock() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value("id").(uuid.UUID)
-		excerpt := r.Context().Value("excerpt").(models.Excerpt)
+		id := r.Context().Value(idContextKey).(uuid.UUID)
+		excerpt := r.Context().Value(excerptContextKey).(models.Excerpt)
 		content, err := speech.CleanContent(excerpt.Content)
 		if err != nil {
 			http.Redirect(w, r, fmt.Sprintf(
@@ -83,7 +83,7 @@ func (app *application) excerptEditLock() http.Handler {
 
 func (app *application) excerptEditPut() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value("id").(uuid.UUID)
+		id := r.Context().Value(idContextKey).(uuid.UUID)
 		content := r.Form.Get("content")
 		shared := r.Form.Get("share") == "true"
 		var err error
@@ -107,7 +107,6 @@ func (app *application) excerptGrammarGet() http.Handler {
 			app.clientError(w, http.StatusBadRequest)
 			return
 		}
-		data.Type = "grammar"
 		app.renderTemplate(w, "grammar.tmpl", http.StatusOK, data)
 	})
 }
@@ -124,7 +123,7 @@ func (app *application) excerptGrammarPut() http.Handler {
 			return
 		}
 
-		id := r.Context().Value("id").(uuid.UUID)
+		id := r.Context().Value(idContextKey).(uuid.UUID)
 		if shared {
 			err = app.excerpts.UpdateSharedGrammar(id, grammar)
 		} else {
@@ -141,7 +140,7 @@ func (app *application) excerptGrammarPut() http.Handler {
 func (app *application) excerptGrammarLock() http.Handler {
 	// TODO(Amr Ojjeh): Verify tags
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value("id").(uuid.UUID)
+		id := r.Context().Value(idContextKey).(uuid.UUID)
 		err := app.excerpts.SetGrammarLock(id, true)
 		if err != nil {
 			app.serverError(w, err)
@@ -161,7 +160,7 @@ func (app *application) excerptGrammarLock() http.Handler {
 
 func (app *application) excerptGrammarUnlock() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value("id").(uuid.UUID)
+		id := r.Context().Value(idContextKey).(uuid.UUID)
 		err := app.excerpts.SetGrammarLock(id, false)
 		if err != nil {
 			app.serverError(w, err)
@@ -186,7 +185,7 @@ func (app *application) excerptTechnicalGet() http.Handler {
 
 func (app *application) excerptTechnicalVowelPut() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		excerpt := r.Context().Value("excerpt").(models.Excerpt)
+		excerpt := r.Context().Value(excerptContextKey).(models.Excerpt)
 		wordIndex, err := strconv.Atoi(r.Form.Get("word"))
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest)

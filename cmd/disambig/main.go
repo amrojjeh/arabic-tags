@@ -18,7 +18,7 @@ func main() {
 		fmt.Println("Input error!")
 		return
 	}
-	text, _ = strings.CutSuffix(text, "\n")
+	text = strings.TrimSpace(text)
 	words, err := speech.Disambiguate(text)
 	if err != nil {
 		if errors.Is(err, speech.ErrRequest) {

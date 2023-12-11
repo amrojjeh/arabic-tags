@@ -41,7 +41,6 @@ type symbol struct {
 
 type templateData struct {
 	Excerpt             models.Excerpt
-	Type                string
 	Form                any
 	Error               string
 	GrammaticalTags     []string
@@ -84,8 +83,8 @@ func newTemplateData(r *http.Request) (templateData, error) {
 		},
 	}
 
-	if r.Context().Value("excerpt") != nil {
-		data.Excerpt = r.Context().Value("excerpt").(models.Excerpt)
+	if r.Context().Value(excerptContextKey) != nil {
+		data.Excerpt = r.Context().Value(excerptContextKey).(models.Excerpt)
 	}
 
 	return data, nil
@@ -104,11 +103,21 @@ func IdFunc(s uuid.UUID) string {
 	return strings.ReplaceAll(s.String(), "-", "")
 }
 
+func EvenFunc(s int) bool {
+	return s%2 == 0
+}
+
+func OddFunc(s int) bool {
+	return s%2 != 0
+}
+
 func (app *application) cacheTemplates() error {
 	app.page = make(map[string]*template.Template)
 	funcs := template.FuncMap{
 		"json": JSONFunc,
 		"id":   IdFunc,
+		"even": EvenFunc,
+		"odd":  OddFunc,
 	}
 
 	names, err := fs.Glob(ui.Files, "html/pages/*")

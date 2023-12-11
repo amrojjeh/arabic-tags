@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"unicode/utf8"
 )
 
 type Word []Letter
@@ -36,6 +37,18 @@ func (l Letter) String() string {
 }
 
 func Disambiguate(text string) ([]Word, error) {
+	remaining := ""
+	if utf8.RuneCountInString(text) > 400 {
+		words := strings.Split(text, " ")
+		running := 0
+		lastIndex := 0 // exclusive
+		for running < 400 {
+			running += utf8.RuneCountInString(words[lastIndex])
+			lastIndex += 1
+		}
+		text = strings.Join(words[:lastIndex], " ")
+		remaining = strings.Join(words[lastIndex:], " ")
+	}
 	data := fmt.Sprintf(`{"dialect": "msa", "sentence": "%v"}`,
 		text)
 	body := strings.NewReader(data)
@@ -73,6 +86,13 @@ func Disambiguate(text string) ([]Word, error) {
 				return nil, UnrecognizedCharacterError{Character: cc}
 			}
 		}
+	}
+	if remaining != "" {
+		remainingWords, err := Disambiguate(remaining)
+		if err != nil {
+			return words, err
+		}
+		words = append(words, remainingWords...)
 	}
 	return words, nil
 }

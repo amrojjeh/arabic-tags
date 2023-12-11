@@ -3,7 +3,7 @@
 <div class="border-e-2 h-full overflow-y-auto" id="inspector" htmx-swap-oob="true">
 	<p class="text-5xl text-center leading-loose">{{$word.String}}</p>
 	{{range $index, $letter := $word.Letters -}}
-	<fieldset class="text-3xl p-2 leading-loose">
+	<fieldset class="text-3xl m-1 p-4 leading-loose {{if odd $index}}border-dashed border-2 border-black{{end}}">
 		<legend class="text-4xl">{{$letter.Letter}}</legend>
 		<select name="{{$index}}" class="block"
 		hx-put="/excerpt/technical/tashkeel?id={{id $.Excerpt.ID}}&word={{$.TSelectedWord}}&letter={{$index}}"
