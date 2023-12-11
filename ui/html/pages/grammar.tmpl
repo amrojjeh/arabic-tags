@@ -44,12 +44,17 @@ value="{{json .Excerpt.Grammar}}"
 	hx-push-url="true"
 	class="bg-sky-600 text-white rounded-lg p-2">Next</button>
 	{{else}}
-	<button hx-confirm="Clicking next will disable grammatical tagging. Are you sure you want to continue?"
-	hx-put="/excerpt/grammar/lock?id={{id .Excerpt.ID}}"
-	hx-target="closest body"
-	hx-swap="innerHTML"
-	hx-push-url="true"
-	class="bg-sky-600 text-white rounded-lg p-2">Next</button>
+	<div>
+		<span id="loader" class="htmx-indicator">Loading...</span>
+		<button hx-confirm="Clicking next will disable grammatical tagging. Are you sure you want to continue?"
+		hx-put="/excerpt/grammar/lock?id={{id .Excerpt.ID}}"
+		hx-target="closest body"
+		hx-swap="innerHTML"
+		hx-push-url="true"
+		hx-disabled-elt="this"
+		hx-indicator="#loader"
+		class="bg-sky-600 text-white rounded-lg p-2">Next</button>
+	</div>
 	{{end}}
 {{end}}
 {{end}}
