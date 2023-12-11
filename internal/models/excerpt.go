@@ -468,6 +468,7 @@ func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 	return nil
 }
 
+// TODO(Amr Ojjeh): Automatically vowelize mabni words
 func (t *Technical) Disambiguate() error {
 	fmt.Println(t.TextWithoutPunctuation())
 	dWords, err := speech.Disambiguate(t.TextWithoutPunctuation())
