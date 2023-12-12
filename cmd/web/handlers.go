@@ -259,6 +259,18 @@ func (app *application) excerptTechnicalSentenceStart() http.Handler {
 	})
 }
 
+func (app *application) excerptTechnicalExport() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		e := r.Context().Value(excerptContextKey).(models.Excerpt)
+		buff, err := json.Marshal(e.Technical)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		w.Write(buff)
+	})
+}
+
 type excerptForm struct {
 	Validator
 	Title string

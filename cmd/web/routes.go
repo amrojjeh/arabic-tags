@@ -20,6 +20,7 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodPost, "/", Adapt(app.excerptCreatePost(),
 		app.logRequest))
 
+	// TODO(Amr Ojjeh): Improve Adapter interface
 	idRequired := []Adapter{
 		app.idRequired,
 		app.logRequest,
@@ -81,5 +82,7 @@ func (app *application) routes() http.Handler {
 		technicalWordRequired...))
 	router.Handler(http.MethodPut, "/excerpt/technical/sentenceStart",
 		Adapt(app.excerptTechnicalSentenceStart(), technicalWordRequired...))
+	router.Handler(http.MethodGet, "/excerpt/technical/export",
+		Adapt(app.excerptTechnicalExport(), technicalExcerptRequired...))
 	return router
 }
