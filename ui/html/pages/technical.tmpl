@@ -26,5 +26,7 @@
 	class="bg-sky-600 text-white rounded-lg p-2">Back</button>
 {{end}}
 <button
-class="bg-sky-600 text-white rounded-lg p-2"><a target="_blank" href="/excerpt/technical/export?id={{.ID}}">Export</a></button>
+class="bg-sky-600 text-white rounded-lg p-2">
+	<a target="_blank" href="/excerpt/technical/export?id={{.ID}}{{if .ExcerptShared}}&share=true{{end}}">Export</a>
+</button>
 {{end}}
