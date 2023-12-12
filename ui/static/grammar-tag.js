@@ -11,14 +11,16 @@ export class GrammarTag extends HTMLElement {
     this._initData();
     this._initHTML();
     window.save = this.save.bind(this);
+    if (!this.data.disabled) {
+      this.HTML.input.addEventListener("keydown", this._keydownInput);
+      this.HTML.input.addEventListener("input", this._input);
+      this.HTML.btn_expand.addEventListener("click", this.expandSelection.bind(this));
+      this.HTML.btn_reduce.addEventListener("click", this.shrinkSelection.bind(this));
+    }
     document.body.addEventListener("keydown", this._keydownDoc);
     this.HTML.input.addEventListener("keydown", this._keydownDoc);
-    this.HTML.input.addEventListener("keydown", this._keydownInput);
-    this.HTML.input.addEventListener("input", this._input);
     this.HTML.btn_next.addEventListener("click", this.selectNext.bind(this));
     this.HTML.btn_prev.addEventListener("click", this.selectPrev.bind(this));
-    this.HTML.btn_expand.addEventListener("click", this.expandSelection.bind(this));
-    this.HTML.btn_reduce.addEventListener("click", this.shrinkSelection.bind(this));
     this.render();
   }
 
@@ -220,7 +222,13 @@ export class GrammarTag extends HTMLElement {
       selectedIndex: undefined,
       autocomplete: [],
       autocomplete_selected: -1,
+      disabled: false,
     }
+
+    if (this.getAttribute("disabled") != null) {
+      this.data.disabled = true;
+    }
+
     if (this.getAttribute("value")) {
       this.data.words = JSON.parse(this.getAttribute("value")).words;
     } else {
@@ -296,6 +304,12 @@ export class GrammarTag extends HTMLElement {
       btn_prev: this.querySelector("#btn_prev"),
       btn_expand: this.querySelector("#btn_expand"),
       btn_reduce: this.querySelector("#btn_reduce"),
+    }
+
+    if (this.data.disabled) {
+      this.HTML.input.style.display = "none";
+      this.HTML.btn_expand.style.display = "none";
+      this.HTML.btn_reduce.style.display = "none";
     }
   }
 
@@ -414,10 +428,14 @@ export class GrammarTag extends HTMLElement {
           this.selectPrev();
           break;
         case "_":
-          this.expandSelection();
+          if (!this.data.disabled) {
+            this.expandSelection();
+          }
           break;
         case "+":
-          this.shrinkSelection();
+          if (!this.data.disabled) {
+            this.shrinkSelection();
+          }
           break;
         default:
           console.error("Should not happen");

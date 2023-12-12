@@ -21,6 +21,7 @@ the later pages){{end}}</div>
 {{end}}
 <h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
 <grammar-tag
+{{if .Excerpt.GLocked}}disabled{{end}}
 id="{{.ID}}"
 value="{{json .Excerpt.Grammar}}"
 {{if .ExcerptShared}}shared{{end}}></grammar-tag>
