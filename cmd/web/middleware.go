@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
@@ -119,6 +120,21 @@ func (app *application) grammarLockRequired(h http.Handler) http.Handler {
 				http.StatusSeeOther)
 			return
 		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) technicalWordRequired(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		index_str := r.Form.Get("word")
+		index, err := strconv.Atoi(index_str)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), wordIndexContextKey, index)
+		r = r.WithContext(ctx)
 		h.ServeHTTP(w, r)
 	})
 }

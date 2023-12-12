@@ -19,7 +19,7 @@
 {{end}}
 {{define "footer"}}
 {{if not .ExcerptShared}}
-	<button hx-get="/excerpt/grammar?id={{id .Excerpt.ID}}"
+	<button hx-get="/excerpt/grammar?id={{.ID}}"
 	hx-target="closest body"
 	hx-swap="innerHTML"
 	hx-push-url="true"

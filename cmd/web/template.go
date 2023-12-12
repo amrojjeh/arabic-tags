@@ -49,6 +49,7 @@ type templateData struct {
 	TSelectedWord       int
 	AcceptedPunctuation string
 	Sym                 symbol
+	ID                  string
 }
 
 func newTemplateData(r *http.Request) (templateData, error) {
@@ -83,8 +84,12 @@ func newTemplateData(r *http.Request) (templateData, error) {
 		},
 	}
 
-	if r.Context().Value(excerptContextKey) != nil {
-		data.Excerpt = r.Context().Value(excerptContextKey).(models.Excerpt)
+	if e := r.Context().Value(excerptContextKey); e != nil {
+		data.Excerpt = e.(models.Excerpt)
+	}
+
+	if id := r.Context().Value(idContextKey); id != nil {
+		data.ID = idToString(id.(uuid.UUID))
 	}
 
 	return data, nil
@@ -100,7 +105,7 @@ func JSONFunc(s any) (string, error) {
 }
 
 func IdFunc(s uuid.UUID) string {
-	return strings.ReplaceAll(s.String(), "-", "")
+	return idToString(s)
 }
 
 func EvenFunc(s int) bool {

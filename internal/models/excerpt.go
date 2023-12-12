@@ -75,12 +75,18 @@ func (t Technical) TextWithoutPunctuation() string {
 }
 
 type TWord struct {
-	Letters     []Letter `json:"letters"`
-	Tags        []string `json:"tags"`
-	Ignore      bool     `json:"ignore"`
-	Shrinked    bool     `json:"finale"`
+	Letters []Letter `json:"letters"`
+
+	// Rendering data
+	Shrinked  bool `json:"finale"`
+	Preceding bool `json:"preceding"`
+
+	// Word data
+	Tags        []string `json:"tags"` // TODO(Amr Ojjeh): Delete once tagging is async
 	Punctuation bool     `json:"punctuation"`
-	Preceding   bool     `json:"preceding"`
+
+	// Word data (configurable)
+	SentenceStart bool `json:"sentenceStart"`
 }
 
 func (w TWord) String() string {
@@ -441,11 +447,12 @@ func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 	}
 	for i, gw := range excerpt.Grammar.Words {
 		technical.Words[i] = TWord{
-			Letters:     make([]Letter, 0, utf8.RuneCountInString(gw.Word)),
-			Tags:        []string{},
-			Shrinked:    gw.Shrinked,
-			Punctuation: gw.Punctuation,
-			Preceding:   gw.Preceding,
+			Letters:       make([]Letter, 0, utf8.RuneCountInString(gw.Word)),
+			Tags:          gw.Tags,
+			Shrinked:      gw.Shrinked,
+			Punctuation:   gw.Punctuation,
+			Preceding:     gw.Preceding,
+			SentenceStart: i == 0,
 		}
 		for _, l := range gw.Word {
 			technical.Words[i].Letters = append(technical.Words[i].Letters, Letter{
@@ -460,7 +467,6 @@ func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("===FIRST WORD===\n%v", technical.Words[0])
 	err = m.UpdateTechnical(id, technical)
 	if err != nil {
 		return err
@@ -470,7 +476,6 @@ func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 
 // TODO(Amr Ojjeh): Automatically vowelize mabni words
 func (t *Technical) Disambiguate() error {
-	fmt.Println(t.TextWithoutPunctuation())
 	dWords, err := speech.Disambiguate(t.TextWithoutPunctuation())
 	if err != nil {
 		return err
@@ -480,7 +485,6 @@ func (t *Technical) Disambiguate() error {
 		li int // letter index
 		wi int // word index
 	}{li: -1, wi: 0}
-	fmt.Println(dWords)
 	for _, dWord := range dWords {
 		for _, dLetter := range dWord {
 			for t.Words[mapper.wi].Punctuation {
@@ -497,7 +501,6 @@ func (t *Technical) Disambiguate() error {
 			}
 			letter := &t.Words[mapper.wi].Letters[mapper.li]
 			if dLetter.Vowel != 0 {
-				fmt.Printf("%x", dLetter.Vowel)
 				letter.Vowel = string(dLetter.Vowel)
 			} else {
 				letter.Vowel = string(speech.Sukoon)
@@ -505,6 +508,5 @@ func (t *Technical) Disambiguate() error {
 			letter.Shadda = dLetter.Shadda
 		}
 	}
-	fmt.Println(*t)
 	return nil
 }

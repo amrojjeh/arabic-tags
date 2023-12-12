@@ -14,14 +14,14 @@
 <span class="material-symbols-outlined align-bottom">warning</span>
 This page is locked, so it cannot be modified. {{if not .ExcerptShared}}Click 
 <a class="underline cursor-pointer"
-hx-put="/excerpt/grammar/unlock?id={{id .Excerpt.ID}}"
+hx-put="/excerpt/grammar/unlock?id={{.ID}}"
 hx-swap="innerHTML"
 hx-target="closest body">here</a> to unlock it (note that this resets
 the later pages){{end}}</div>
 {{end}}
 <h2 class="text-2xl text-center">{{.Excerpt.Title}}</h2>
 <grammar-tag
-id="{{if not .ExcerptShared}}{{id .Excerpt.ID}}{{else}}{{id .Excerpt.GShare}}{{end}}"
+id="{{.ID}}"
 value="{{json .Excerpt.Grammar}}"
 {{if .ExcerptShared}}shared{{end}}></grammar-tag>
 <template id="template-tags">
@@ -32,13 +32,13 @@ value="{{json .Excerpt.Grammar}}"
 {{end}}
 {{define "footer"}}
 {{if not .ExcerptShared}}
-	<button hx-get="/excerpt/edit?id={{id .Excerpt.ID}}"
+	<button hx-get="/excerpt/edit?id={{.ID}}"
 	hx-target="closest body"
 	hx-swap="innerHTML"
 	hx-push-url="true"
 	class="bg-sky-600 text-white rounded-lg p-2">Back</button>
 	{{if .Excerpt.GLocked}}
-	<button hx-get="/excerpt/technical?id={{id .Excerpt.ID}}"
+	<button hx-get="/excerpt/technical?id={{.ID}}"
 	hx-target="closest body"
 	hx-swap="innerHTML"
 	hx-push-url="true"
@@ -47,7 +47,7 @@ value="{{json .Excerpt.Grammar}}"
 	<div>
 		<span id="loader" class="htmx-indicator">Loading...</span>
 		<button hx-confirm="Clicking next will disable grammatical tagging. Are you sure you want to continue?"
-		hx-put="/excerpt/grammar/lock?id={{id .Excerpt.ID}}"
+		hx-put="/excerpt/grammar/lock?id={{.ID}}"
 		hx-target="closest body"
 		hx-swap="innerHTML"
 		hx-push-url="true"

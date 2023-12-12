@@ -46,6 +46,15 @@ func (app *application) routes() http.Handler {
 		app.logRequest,
 	}
 
+	technicalWordRequired := []Adapter{
+		app.technicalWordRequired,
+		app.grammarLockRequired,
+		app.contentLockRequired,
+		app.excerptRequired,
+		app.idRequired,
+		app.logRequest,
+	}
+
 	router.Handler(http.MethodGet, "/excerpt/edit", Adapt(app.excerptEditGet(),
 		contentExcerptRequired...))
 	router.Handler(http.MethodPut, "/excerpt/edit", Adapt(app.excerptEditPut(),
@@ -67,8 +76,10 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/excerpt/technical", Adapt(app.excerptTechnicalGet(),
 		technicalExcerptRequired...))
 	router.Handler(http.MethodPut, "/excerpt/technical/tashkeel", Adapt(app.excerptTechnicalVowelPut(),
-		technicalExcerptRequired...))
+		technicalWordRequired...))
 	router.Handler(http.MethodGet, "/excerpt/technical/word", Adapt(app.excerptTechnicalWordGet(),
-		technicalExcerptRequired...))
+		technicalWordRequired...))
+	router.Handler(http.MethodPut, "/excerpt/technical/sentenceStart",
+		Adapt(app.excerptTechnicalSentenceStart(), technicalWordRequired...))
 	return router
 }

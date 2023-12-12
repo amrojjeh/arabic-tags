@@ -186,11 +186,7 @@ func (app *application) excerptTechnicalGet() http.Handler {
 func (app *application) excerptTechnicalVowelPut() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		excerpt := r.Context().Value(excerptContextKey).(models.Excerpt)
-		wordIndex, err := strconv.Atoi(r.Form.Get("word"))
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
+		wordIndex := r.Context().Value(wordIndexContextKey).(int)
 		letterIndex, err := strconv.Atoi(r.Form.Get("letter"))
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest)
@@ -230,13 +226,7 @@ func (app *application) excerptTechnicalVowelPut() http.Handler {
 
 func (app *application) excerptTechnicalWordGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		index_str := r.Form.Get("word")
-		index, err := strconv.Atoi(index_str)
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
-
+		index := r.Context().Value(wordIndexContextKey).(int)
 		data, err := newTemplateData(r)
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest)
@@ -244,6 +234,27 @@ func (app *application) excerptTechnicalWordGet() http.Handler {
 		}
 
 		data.TSelectedWord = index
+		app.renderTemplate(w, "htmx-technical.tmpl", http.StatusOK, data)
+	})
+}
+
+func (app *application) excerptTechnicalSentenceStart() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Context().Value(idContextKey).(uuid.UUID)
+		e := r.Context().Value(excerptContextKey).(models.Excerpt)
+		wi := r.Context().Value(wordIndexContextKey).(int)
+		e.Technical.Words[wi].SentenceStart =
+			r.Form.Get("sentenceStart") == "true"
+		data, err := newTemplateData(r)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		err = app.excerpts.UpdateTechnical(id, e.Technical)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
 		app.renderTemplate(w, "htmx-technical.tmpl", http.StatusOK, data)
 	})
 }
