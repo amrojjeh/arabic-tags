@@ -78,7 +78,7 @@ type TWord struct {
 	Letters []Letter `json:"letters"`
 
 	// Rendering data
-	Shrinked  bool `json:"finale"`
+	Shrinked  bool `json:"shrinked"`
 	Preceding bool `json:"preceding"`
 
 	// Word data
