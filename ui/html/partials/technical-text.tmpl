@@ -7,7 +7,7 @@
 			{{- if not $word.Preceding -}}<span> </span>{{- end -}}
 		{{- else -}}
 			<span
-			hx-get="/excerpt/technical/word?word={{$index}}&id={{$.ID}}"
+			hx-get="/excerpt/technical/word?word={{$index}}&id={{$.ID}}{{if .ExcerptShared}}&share=true{{end}}"
 			hx-target="#text"
 			hx-select-oob="#inspector:outerHTML"
 			hx-swap="outerHTML"
