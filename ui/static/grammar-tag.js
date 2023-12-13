@@ -146,9 +146,11 @@ export class GrammarTag extends HTMLElement {
     const frag = document.createDocumentFragment();
     const li = document.createElement("li");
     li.innerText = tagValue;
-    li.classList.add("hover:line-through", "cursor-pointer", "max-w-fit",
-      "decoration-red-500");
-    li.addEventListener("click", this._clickTag);
+    if (!this.data.disabled) {
+      li.classList.add("hover:line-through", "cursor-pointer", "max-w-fit",
+        "decoration-red-500");
+      li.addEventListener("click", this._clickTag);
+    }
     li.setAttribute("data-i", i);
     frag.appendChild(li);
     return frag;
