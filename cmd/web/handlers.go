@@ -240,7 +240,6 @@ func (app *application) excerptTechnicalWordGet() http.Handler {
 
 func (app *application) excerptTechnicalSentenceStart() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value(idContextKey).(uuid.UUID)
 		e := r.Context().Value(excerptContextKey).(models.Excerpt)
 		wi := r.Context().Value(wordIndexContextKey).(int)
 		e.Technical.Words[wi].SentenceStart =
@@ -250,7 +249,7 @@ func (app *application) excerptTechnicalSentenceStart() http.Handler {
 			app.clientError(w, http.StatusBadRequest)
 			return
 		}
-		err = app.excerpts.UpdateTechnical(id, e.Technical)
+		err = app.excerpts.UpdateTechnical(e.ID, e.Technical)
 		if err != nil {
 			app.serverError(w, err)
 			return

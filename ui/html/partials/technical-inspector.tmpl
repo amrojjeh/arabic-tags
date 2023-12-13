@@ -14,7 +14,7 @@
 	<fieldset class="text-3xl m-1 p-4 leading-loose {{if odd $index}}border-dashed border-2 border-black{{end}}">
 		<legend class="text-4xl">{{$letter.Letter}}</legend>
 		<select name="{{$index}}" class="block"
-		hx-put="/excerpt/technical/tashkeel?id={{$.ID}}{{if .ExcerptShared}}&share=true{{end}}&word={{$.TSelectedWord}}&letter={{$index}}"
+		hx-put="/excerpt/technical/tashkeel?id={{$.ID}}{{if $.ExcerptShared}}&share=true{{end}}&word={{$.TSelectedWord}}&letter={{$index}}"
 		hx-target="#text"
 		hx-select-oob="#inspector:outerHTML"
 		hx-swap="outerHTML" required>
