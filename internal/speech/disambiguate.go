@@ -43,7 +43,8 @@ func Disambiguate(text string) ([]Word, error) {
 		running := 0
 		lastIndex := 0 // exclusive
 		for running < 400 {
-			running += utf8.RuneCountInString(words[lastIndex])
+			// Adding one to account for space
+			running += utf8.RuneCountInString(words[lastIndex]) + 1
 			lastIndex += 1
 		}
 		text = strings.Join(words[:lastIndex], " ")

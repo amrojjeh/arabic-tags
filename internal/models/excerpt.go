@@ -457,7 +457,7 @@ func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 		for _, l := range gw.Word {
 			technical.Words[i].Letters = append(technical.Words[i].Letters, Letter{
 				Letter: string(l),
-				Vowel:  speech.Sukoon,
+				Vowel:  "",
 				Shadda: false,
 			})
 		}
