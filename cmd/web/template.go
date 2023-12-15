@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
-	"github.com/amrojjeh/arabic-tags/internal/speech"
 	"github.com/amrojjeh/arabic-tags/ui"
+	"github.com/amrojjeh/kalam"
 	"github.com/google/uuid"
 )
 
@@ -59,28 +59,28 @@ func newTemplateData(r *http.Request) (templateData, error) {
 	}
 	data := templateData{
 		Error:               r.Form.Get("error"),
-		GrammaticalTags:     speech.GrammaticalTags,
+		GrammaticalTags:     kalam.GrammaticalTags,
 		Host:                r.Host,
 		ExcerptShared:       r.Form.Get("share") == "true",
 		TSelectedWord:       0,
-		AcceptedPunctuation: speech.Punctuation.String(),
+		AcceptedPunctuation: kalam.Punctuation.String(),
 		Sym: symbol{
-			PDamma:    speech.Placeholder + speech.Damma,
-			PDammatan: speech.Placeholder + speech.Dammatan,
-			PFatha:    speech.Placeholder + speech.Fatha,
-			PFathatan: speech.Placeholder + speech.Fathatan,
-			PKasra:    speech.Placeholder + speech.Kasra,
-			PKasratan: speech.Placeholder + speech.Kasratan,
-			PSukoon:   speech.Placeholder + speech.Sukoon,
-			PShadda:   speech.Placeholder + speech.Shadda,
-			Damma:     speech.Damma,
-			Dammatan:  speech.Dammatan,
-			Fatha:     speech.Fatha,
-			Fathatan:  speech.Fathatan,
-			Kasra:     speech.Kasra,
-			Kasratan:  speech.Kasratan,
-			Sukoon:    speech.Sukoon,
-			Shadda:    speech.Shadda,
+			PDamma:    kalam.Placeholder + kalam.Damma,
+			PDammatan: kalam.Placeholder + kalam.Dammatan,
+			PFatha:    kalam.Placeholder + kalam.Fatha,
+			PFathatan: kalam.Placeholder + kalam.Fathatan,
+			PKasra:    kalam.Placeholder + kalam.Kasra,
+			PKasratan: kalam.Placeholder + kalam.Kasratan,
+			PSukoon:   kalam.Placeholder + kalam.Sukoon,
+			PShadda:   kalam.Placeholder + kalam.Shadda,
+			Damma:     kalam.Damma,
+			Dammatan:  kalam.Dammatan,
+			Fatha:     kalam.Fatha,
+			Fathatan:  kalam.Fathatan,
+			Kasra:     kalam.Kasra,
+			Kasratan:  kalam.Kasratan,
+			Sukoon:    kalam.Sukoon,
+			Shadda:    kalam.Shadda,
 		},
 	}
 

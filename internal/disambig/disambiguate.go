@@ -1,4 +1,4 @@
-package speech
+package disambig
 
 import (
 	"encoding/json"
@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/amrojjeh/kalam"
 )
 
 type Word []Letter
@@ -29,7 +31,7 @@ type Letter struct {
 func (l Letter) String() string {
 	var shadda string
 	if l.Shadda {
-		shadda = Shadda
+		shadda = kalam.Shadda
 	} else {
 		shadda = ""
 	}
@@ -76,14 +78,14 @@ func Disambiguate(text string) ([]Word, error) {
 		words[i] = []Letter{}
 		lastLetter := -1
 		for _, cc := range cWord.Analyses[0].Analysis.Diac {
-			if IsArabicLetter(cc) {
+			if kalam.IsArabicLetter(cc) {
 				words[i] = append(words[i], Letter{Letter: cc})
 				lastLetter += 1
-			} else if IsVowel(cc) {
+			} else if kalam.IsVowel(cc) {
 				words[i][lastLetter].Vowel = cc
-			} else if IsShadda(cc) {
+			} else if kalam.IsShadda(cc) {
 				words[i][lastLetter].Shadda = true
-			} else if string(cc) != SuperscriptAlef {
+			} else if string(cc) != kalam.SuperscriptAlef {
 				return nil, UnrecognizedCharacterError{Character: cc}
 			}
 		}

@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/amrojjeh/arabic-tags/internal/speech"
+	"github.com/amrojjeh/arabic-tags/internal/disambig"
 )
 
 func main() {
@@ -19,9 +19,9 @@ func main() {
 		return
 	}
 	text = strings.TrimSpace(text)
-	words, err := speech.Disambiguate(text)
+	words, err := disambig.Disambiguate(text)
 	if err != nil {
-		if errors.Is(err, speech.ErrRequest) {
+		if errors.Is(err, disambig.ErrRequest) {
 			fmt.Printf("%v\n", text)
 			return
 		}

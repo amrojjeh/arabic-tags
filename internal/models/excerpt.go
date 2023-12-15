@@ -9,7 +9,8 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/amrojjeh/arabic-tags/internal/speech"
+	"github.com/amrojjeh/arabic-tags/internal/disambig"
+	"github.com/amrojjeh/kalam"
 	"github.com/google/uuid"
 )
 
@@ -108,7 +109,7 @@ type Letter struct {
 
 func (l Letter) String() string {
 	if l.Shadda {
-		return fmt.Sprintf("%v%v%v", l.Letter, l.Vowel, speech.Shadda)
+		return fmt.Sprintf("%v%v%v", l.Letter, l.Vowel, kalam.Shadda)
 	}
 	return fmt.Sprintf("%v%v", l.Letter, l.Vowel)
 }
@@ -332,7 +333,7 @@ func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
 	words := make([]GWord, 0, len(strings.Split(content, " ")))
 	word := ""
 	for _, l := range content {
-		if speech.IsPunctuation(l) {
+		if kalam.IsPunctuation(l) {
 			if word != "" {
 				words = append(words, generateWord(word, false, true))
 				word = ""
@@ -476,7 +477,7 @@ func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 
 // TODO(Amr Ojjeh): Automatically vowelize mabni words
 func (t *Technical) Disambiguate() error {
-	dWords, err := speech.Disambiguate(t.TextWithoutPunctuation())
+	dWords, err := disambig.Disambiguate(t.TextWithoutPunctuation())
 	if err != nil {
 		return err
 	}
@@ -503,7 +504,7 @@ func (t *Technical) Disambiguate() error {
 			if dLetter.Vowel != 0 {
 				letter.Vowel = string(dLetter.Vowel)
 			} else {
-				letter.Vowel = string(speech.Sukoon)
+				letter.Vowel = string(kalam.Sukoon)
 			}
 			letter.Shadda = dLetter.Shadda
 		}

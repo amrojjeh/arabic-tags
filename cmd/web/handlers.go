@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
-	"github.com/amrojjeh/arabic-tags/internal/speech"
+	"github.com/amrojjeh/kalam"
 	"github.com/google/uuid"
 )
 
@@ -45,7 +45,7 @@ func (app *application) excerptEditLock() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.Context().Value(idContextKey).(uuid.UUID)
 		excerpt := r.Context().Value(excerptContextKey).(models.Excerpt)
-		content, err := speech.CleanContent(excerpt.Content)
+		content, err := kalam.CleanContent(excerpt.Content)
 		if err != nil {
 			http.Redirect(w, r, fmt.Sprintf(
 				"/excerpt/edit?id=%v&error=Could not proceed. Found errors.", id),
@@ -196,13 +196,13 @@ func (app *application) excerptTechnicalVowelPut() http.Handler {
 		vowel := r.Form.Get(strconv.Itoa(letterIndex))
 
 		if !Radio(vowel, []string{
-			speech.Damma,
-			speech.Dammatan,
-			speech.Kasra,
-			speech.Kasratan,
-			speech.Fatha,
-			speech.Fathatan,
-			speech.Sukoon,
+			kalam.Damma,
+			kalam.Dammatan,
+			kalam.Kasra,
+			kalam.Kasratan,
+			kalam.Fatha,
+			kalam.Fathatan,
+			kalam.Sukoon,
 		}) {
 			app.clientError(w, http.StatusBadRequest)
 			return
