@@ -9,7 +9,7 @@
 			<span
 			hx-get="/excerpt/technical/word?word={{$index}}&id={{$.ID}}{{if $.ExcerptShared}}&share=true{{end}}"
 			hx-target="#text"
-			hx-select-oob="#inspector:outerHTML"
+			hx-select-oob="#inspector"
 			hx-swap="outerHTML"
 			class="cursor-pointer hover:text-red-700 {{if eq $index $.TSelectedWord}}text-sky-600{{end}}">{{- $word.String -}}</span>
 			{{- if and (not $word.Shrinked) (not $word.Preceding) -}}<span> </span>{{- end -}}

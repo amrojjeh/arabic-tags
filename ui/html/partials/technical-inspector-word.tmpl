@@ -1,0 +1,5 @@
+{{define "technical-inspector-word"}}
+{{with index .Excerpt.Technical.Words .TSelectedWord}}
+<p id="inspector-word" class="text-5xl text-center leading-loose">{{.}}</p>
+{{end}}
+{{end}}

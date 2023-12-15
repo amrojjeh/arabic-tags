@@ -220,7 +220,7 @@ func (app *application) excerptTechnicalVowelPut() http.Handler {
 			return
 		}
 		data.TSelectedWord = wordIndex
-		app.renderTemplate(w, "htmx-technical.tmpl", http.StatusOK, data)
+		app.renderTemplate(w, "htmx-technical-inspector-update.tmpl", http.StatusOK, data)
 	})
 }
 
@@ -234,7 +234,7 @@ func (app *application) excerptTechnicalWordGet() http.Handler {
 		}
 
 		data.TSelectedWord = index
-		app.renderTemplate(w, "htmx-technical.tmpl", http.StatusOK, data)
+		app.renderTemplate(w, "htmx-technical-change-word.tmpl", http.StatusOK, data)
 	})
 }
 
@@ -244,17 +244,12 @@ func (app *application) excerptTechnicalSentenceStart() http.Handler {
 		wi := r.Context().Value(wordIndexContextKey).(int)
 		e.Technical.Words[wi].SentenceStart =
 			r.Form.Get("sentenceStart") == "true"
-		data, err := newTemplateData(r)
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-			return
-		}
-		err = app.excerpts.UpdateTechnical(e.ID, e.Technical)
+		err := app.excerpts.UpdateTechnical(e.ID, e.Technical)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
-		app.renderTemplate(w, "htmx-technical.tmpl", http.StatusOK, data)
+		app.noBody(w)
 	})
 }
 

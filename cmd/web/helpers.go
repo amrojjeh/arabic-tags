@@ -19,6 +19,7 @@ func (app *application) serverError(w http.ResponseWriter, err error) {
 }
 
 func (app *application) noBody(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(""))
 }
 

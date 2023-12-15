@@ -1,7 +1,7 @@
 {{define "technical-inspector"}}
 {{ $word := index .Excerpt.Technical.Words .TSelectedWord}}
 <div class="border-e-2 m-1 h-full overflow-y-auto" id="inspector" htmx-swap-oob="true">
-	<p class="text-5xl text-center leading-loose">{{$word.String}}</p>
+	{{template "technical-inspector-word" $}}
 	<div class="border-solid border-2 border-black bg-slate-200 flex align-center m-1 p-1">
 		<input type="checkbox"
 		name="sentenceStart"
@@ -14,9 +14,10 @@
 	<fieldset class="text-3xl m-1 p-4 leading-loose {{if odd $index}}border-dashed border-2 border-black{{end}}">
 		<legend class="text-4xl">{{$letter.Letter}}</legend>
 		<select name="{{$index}}" class="block"
+		id="letter-{{$index}}"
 		hx-put="/excerpt/technical/tashkeel?id={{$.ID}}{{if $.ExcerptShared}}&share=true{{end}}&word={{$.TSelectedWord}}&letter={{$index}}"
 		hx-target="#text"
-		hx-select-oob="#inspector:outerHTML"
+		hx-select-oob="#inspector-word"
 		hx-swap="outerHTML" required>
 			<option value="{{$.Sym.Damma}}" {{if eq $letter.Vowel $.Sym.Damma}}selected{{end}}>{{$.Sym.PDamma}}</option>
 			<option value="{{$.Sym.Dammatan}}" {{if eq $letter.Vowel $.Sym.Dammatan}}selected{{end}}>{{$.Sym.PDammatan}}</option>
