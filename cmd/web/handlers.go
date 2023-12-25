@@ -45,20 +45,20 @@ func (app *application) excerptEditLock() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.Context().Value(idContextKey).(uuid.UUID)
 		excerpt := r.Context().Value(excerptContextKey).(models.Excerpt)
-		content, err := kalam.CleanContent(excerpt.Content)
-		if err != nil {
+		if !kalam.IsContentClean(excerpt.Content) {
 			http.Redirect(w, r, fmt.Sprintf(
 				"/excerpt/edit?id=%v&error=Could not proceed. Found errors.", id),
 				http.StatusSeeOther)
 			return
 		}
+		content := kalam.RemoveExtraWhitespace(excerpt.Content)
 		if content == "" {
 			http.Redirect(w, r, fmt.Sprintf(
 				"/excerpt/edit?id=%v&error=Could not proceed. There's no text.", id),
 				http.StatusSeeOther)
 			return
 		}
-		err = app.excerpts.UpdateContent(id, content)
+		err := app.excerpts.UpdateContent(id, content)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -196,13 +196,13 @@ func (app *application) excerptTechnicalVowelPut() http.Handler {
 		vowel := r.Form.Get(strconv.Itoa(letterIndex))
 
 		if !Radio(vowel, []string{
-			kalam.Damma,
-			kalam.Dammatan,
-			kalam.Kasra,
-			kalam.Kasratan,
-			kalam.Fatha,
-			kalam.Fathatan,
-			kalam.Sukoon,
+			string(kalam.Damma),
+			string(kalam.Dammatan),
+			string(kalam.Kasra),
+			string(kalam.Kasratan),
+			string(kalam.Fatha),
+			string(kalam.Fathatan),
+			string(kalam.Sukoon),
 		}) {
 			app.clientError(w, http.StatusBadRequest)
 			return
@@ -255,8 +255,9 @@ func (app *application) excerptTechnicalSentenceStart() http.Handler {
 
 func (app *application) excerptTechnicalExport() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		e := r.Context().Value(excerptContextKey).(models.Excerpt)
-		buff, err := json.Marshal(e.Technical)
+		buff, err := e.Export()
 		if err != nil {
 			app.serverError(w, err)
 			return

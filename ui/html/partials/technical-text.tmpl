@@ -12,7 +12,7 @@
 			hx-select-oob="#inspector"
 			hx-swap="outerHTML"
 			class="cursor-pointer hover:text-red-700 {{if eq $index $.TSelectedWord}}text-sky-600{{end}}">{{- $word.String -}}</span>
-			{{- if and (not $word.Shrinked) (not $word.Preceding) -}}<span> </span>{{- end -}}
+			{{- if (not $word.Preceding) -}}<span> </span>{{- end -}}
 		{{- end -}}
 	{{- end}}
 	<p>

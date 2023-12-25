@@ -66,6 +66,8 @@ export class GrammarTag extends HTMLElement {
       const nextWord = wordObj.word[wordObj.word.length - 1];
       const nextWordObj = this.genWord(nextWord);
       nextWordObj.leftOver = true;
+      nextWordObj.preceding = wordObj.preceding;
+      wordObj.preceding = false;
       this.data.words.splice(this.data.selectedIndex + 1, 0, nextWordObj);
     } else {
       const nextWordObj = this.data.words[this.data.selectedIndex + 1];
@@ -87,6 +89,7 @@ export class GrammarTag extends HTMLElement {
     const newWord = wordObj.word + nextWordObj.word[0];
     const nextWord = nextWordObj.word.substring(1);
     if (nextWord === "") {
+      wordObj.preceding = nextWordObj.preceding;
       this.data.words.splice(this.data.selectedIndex + 1, 1);
       const newNextWord = this.data.words[this.data.selectedIndex + 1];
       if (!newNextWord || (newNextWord && !newNextWord.leftOver)) {

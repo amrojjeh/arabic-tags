@@ -57,30 +57,34 @@ func newTemplateData(r *http.Request) (templateData, error) {
 	if err != nil {
 		return templateData{}, err
 	}
+	regex, err := kalam.PunctuationRegex()
+	if err != nil {
+		return templateData{}, err
+	}
 	data := templateData{
 		Error:               r.Form.Get("error"),
 		GrammaticalTags:     kalam.GrammaticalTags,
 		Host:                r.Host,
 		ExcerptShared:       r.Form.Get("share") == "true",
 		TSelectedWord:       0,
-		AcceptedPunctuation: kalam.Punctuation.String(),
+		AcceptedPunctuation: regex.String(),
 		Sym: symbol{
-			PDamma:    kalam.Placeholder + kalam.Damma,
-			PDammatan: kalam.Placeholder + kalam.Dammatan,
-			PFatha:    kalam.Placeholder + kalam.Fatha,
-			PFathatan: kalam.Placeholder + kalam.Fathatan,
-			PKasra:    kalam.Placeholder + kalam.Kasra,
-			PKasratan: kalam.Placeholder + kalam.Kasratan,
-			PSukoon:   kalam.Placeholder + kalam.Sukoon,
-			PShadda:   kalam.Placeholder + kalam.Shadda,
-			Damma:     kalam.Damma,
-			Dammatan:  kalam.Dammatan,
-			Fatha:     kalam.Fatha,
-			Fathatan:  kalam.Fathatan,
-			Kasra:     kalam.Kasra,
-			Kasratan:  kalam.Kasratan,
-			Sukoon:    kalam.Sukoon,
-			Shadda:    kalam.Shadda,
+			PDamma:    string(kalam.Placeholder) + string(kalam.Damma),
+			PDammatan: string(kalam.Placeholder) + string(kalam.Dammatan),
+			PFatha:    string(kalam.Placeholder) + string(kalam.Fatha),
+			PFathatan: string(kalam.Placeholder) + string(kalam.Fathatan),
+			PKasra:    string(kalam.Placeholder) + string(kalam.Kasra),
+			PKasratan: string(kalam.Placeholder) + string(kalam.Kasratan),
+			PSukoon:   string(kalam.Placeholder) + string(kalam.Sukoon),
+			PShadda:   string(kalam.Placeholder) + string(kalam.Shadda),
+			Damma:     string(kalam.Damma),
+			Dammatan:  string(kalam.Dammatan),
+			Fatha:     string(kalam.Fatha),
+			Fathatan:  string(kalam.Fathatan),
+			Kasra:     string(kalam.Kasra),
+			Kasratan:  string(kalam.Kasratan),
+			Sukoon:    string(kalam.Sukoon),
+			Shadda:    string(kalam.Shadda),
 		},
 	}
 

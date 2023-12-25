@@ -25,7 +25,7 @@ type GWord struct {
 	Tags     []string `json:"tags"`
 
 	// true if the word is preceding a punctuation or if the punctuation is
-	// preceding a word (for rendering)
+	// preceding a word (for rendering). Note that this is different from kalam's preceding
 	Preceding   bool `json:"preceding"`
 	Punctuation bool `json:"punctuation"`
 }
@@ -52,7 +52,7 @@ func (t Technical) Text() string {
 	par := ""
 	for _, w := range t.Words {
 		par += w.String()
-		if !w.Shrinked && !w.Preceding {
+		if !w.Preceding {
 			par += " "
 		}
 	}
@@ -64,27 +64,25 @@ func (t Technical) TextWithoutPunctuation() string {
 	par := ""
 	for _, w := range t.Words {
 		if w.Punctuation {
+			par += " "
 			continue
 		}
 		par += w.String()
-		if !w.Shrinked {
+		if !w.Preceding {
 			par += " "
 		}
 	}
-	par = strings.TrimSpace(par)
-	return par
+	return kalam.RemoveExtraWhitespace(par)
 }
 
 type TWord struct {
 	Letters []Letter `json:"letters"`
 
 	// Rendering data
-	Shrinked  bool `json:"shrinked"`
 	Preceding bool `json:"preceding"`
 
 	// Word data
-	Tags        []string `json:"tags"` // TODO(Amr Ojjeh): Delete once tagging is async
-	Punctuation bool     `json:"punctuation"`
+	Punctuation bool `json:"punctuation"`
 
 	// Word data (configurable)
 	SentenceStart bool `json:"sentenceStart"`
@@ -449,10 +447,8 @@ func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 	for i, gw := range excerpt.Grammar.Words {
 		technical.Words[i] = TWord{
 			Letters:       make([]Letter, 0, utf8.RuneCountInString(gw.Word)),
-			Tags:          gw.Tags,
-			Shrinked:      gw.Shrinked,
 			Punctuation:   gw.Punctuation,
-			Preceding:     gw.Preceding,
+			Preceding:     gw.Preceding || gw.Shrinked,
 			SentenceStart: i == 0,
 		}
 		for _, l := range gw.Word {
@@ -473,6 +469,39 @@ func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
 		return err
 	}
 	return nil
+}
+
+func (e Excerpt) Export() ([]byte, error) {
+	export := kalam.Excerpt{
+		Name:      e.Title,
+		Sentences: []kalam.Sentence{},
+	}
+
+	var sen *kalam.Sentence = nil
+	for i, w := range e.Technical.Words {
+		if w.SentenceStart {
+			if sen != nil {
+				export.Sentences = append(export.Sentences, *sen)
+			}
+			sen = &kalam.Sentence{
+				Words: []kalam.Word{},
+			}
+		}
+		sen.Words = append(sen.Words, kalam.Word{
+			PointedWord: w.String(),
+			Tags:        e.Grammar.Words[i].Tags,
+			Punctuation: w.Punctuation,
+			// TODO(Amr Ojjeh): Add feature
+			Ignore:    true,
+			Preceding: w.Preceding,
+		})
+	}
+
+	if sen != nil {
+		export.Sentences = append(export.Sentences, *sen)
+	}
+
+	return json.Marshal(export)
 }
 
 // TODO(Amr Ojjeh): Automatically vowelize mabni words

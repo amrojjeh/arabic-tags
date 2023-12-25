@@ -31,7 +31,7 @@ type Letter struct {
 func (l Letter) String() string {
 	var shadda string
 	if l.Shadda {
-		shadda = kalam.Shadda
+		shadda = string(kalam.Shadda)
 	} else {
 		shadda = ""
 	}
@@ -81,11 +81,11 @@ func Disambiguate(text string) ([]Word, error) {
 			if kalam.IsArabicLetter(cc) {
 				words[i] = append(words[i], Letter{Letter: cc})
 				lastLetter += 1
-			} else if kalam.IsVowel(cc) {
+			} else if kalam.IsShortVowel(cc) {
 				words[i][lastLetter].Vowel = cc
 			} else if kalam.IsShadda(cc) {
 				words[i][lastLetter].Shadda = true
-			} else if string(cc) != kalam.SuperscriptAlef {
+			} else if cc != kalam.SuperscriptAlef {
 				return nil, UnrecognizedCharacterError{Character: cc}
 			}
 		}
