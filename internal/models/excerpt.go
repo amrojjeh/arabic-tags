@@ -86,6 +86,7 @@ type TWord struct {
 
 	// Word data (configurable)
 	SentenceStart bool `json:"sentenceStart"`
+	Ignore        bool `json:"ignore"`
 }
 
 func (w TWord) String() string {

@@ -82,6 +82,8 @@ func (app *application) routes() http.Handler {
 		technicalWordRequired...))
 	router.Handler(http.MethodPut, "/excerpt/technical/sentenceStart",
 		Adapt(app.excerptTechnicalSentenceStart(), technicalWordRequired...))
+	router.Handler(http.MethodPut, "/excerpt/technical/ignore",
+		Adapt(app.excerptTechnicalIgnore(), technicalWordRequired...))
 	router.Handler(http.MethodGet, "/excerpt/technical/export.json",
 		Adapt(app.excerptTechnicalExport(), technicalExcerptRequired...))
 	return router

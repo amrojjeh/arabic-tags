@@ -253,6 +253,21 @@ func (app *application) excerptTechnicalSentenceStart() http.Handler {
 	})
 }
 
+func (app *application) excerptTechnicalIgnore() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		e := r.Context().Value(excerptContextKey).(models.Excerpt)
+		wi := r.Context().Value(wordIndexContextKey).(int)
+		e.Technical.Words[wi].Ignore =
+			r.Form.Get("ignore") == "true"
+		err := app.excerpts.UpdateTechnical(e.ID, e.Technical)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		app.noBody(w)
+	})
+}
+
 func (app *application) excerptTechnicalExport() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
