@@ -492,9 +492,8 @@ func (e Excerpt) Export() ([]byte, error) {
 			PointedWord: w.String(),
 			Tags:        e.Grammar.Words[i].Tags,
 			Punctuation: w.Punctuation,
-			// TODO(Amr Ojjeh): Add feature
-			Ignore:    true,
-			Preceding: w.Preceding,
+			Ignore:      w.Ignore,
+			Preceding:   w.Preceding,
 		})
 	}
 
