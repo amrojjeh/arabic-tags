@@ -39,7 +39,9 @@
 			<option value="{{$.Sym.Kasratan}}" {{if eq $letter.Vowel $.Sym.Kasratan}}selected{{end}}>{{$.Sym.PKasratan}}</option>
 			<option value="{{$.Sym.Sukoon}}" {{if eq $letter.Vowel $.Sym.Sukoon}}selected{{end}}>{{$.Sym.PSukoon}}</option>
 		</select>
-	<label><input type="checkbox" name="{{$index}}" {{if $letter.Shadda}}checked{{end}}>{{$.Sym.PShadda}}</label>
+	<label><input hx-target="#text" hx-select-oob="#inspector-word" hx-swap="outerHTML"
+		hx-put="/excerpt/technical/shadda?id={{$.ID}}{{if $.ExcerptShared}}&share=true{{end}}&word={{$.TSelectedWord}}&letter={{$index}}"
+		type="checkbox" value="true" name="shadda" {{if $letter.Shadda}}checked{{end}}>{{$.Sym.PShadda}}</label>
 	</fieldset>
 	{{- end}}
 </div>

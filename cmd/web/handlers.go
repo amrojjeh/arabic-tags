@@ -224,6 +224,32 @@ func (app *application) excerptTechnicalVowelPut() http.Handler {
 	})
 }
 
+func (app *application) excerptTechnicalShadda() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		e := r.Context().Value(excerptContextKey).(models.Excerpt)
+		wi := r.Context().Value(wordIndexContextKey).(int)
+		letterIndex, err := strconv.Atoi(r.Form.Get("letter"))
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		e.Technical.Words[wi].Letters[letterIndex].Shadda =
+			r.Form.Get("shadda") == "true"
+		err = app.excerpts.UpdateTechnical(e.ID, e.Technical)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		data, err := newTemplateData(r)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		data.TSelectedWord = wi
+		app.renderTemplate(w, "htmx-technical-inspector-update.tmpl", http.StatusOK, data)
+	})
+}
+
 func (app *application) excerptTechnicalWordGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		index := r.Context().Value(wordIndexContextKey).(int)

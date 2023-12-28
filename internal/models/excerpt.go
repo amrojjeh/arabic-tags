@@ -108,7 +108,7 @@ type Letter struct {
 
 func (l Letter) String() string {
 	if l.Shadda {
-		return fmt.Sprintf("%v%v%v", l.Letter, l.Vowel, kalam.Shadda)
+		return fmt.Sprintf("%v%v%c", l.Letter, l.Vowel, kalam.Shadda)
 	}
 	return fmt.Sprintf("%v%v", l.Letter, l.Vowel)
 }
