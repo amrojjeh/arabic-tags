@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path"
 	"time"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
@@ -23,6 +24,7 @@ func main() {
 	addr := flag.String("addr", ":8080", "HTTP Address")
 	dsn := flag.String("dsn", "web:pass@/arabic_tags?parseTime=true",
 		"Data source name")
+	cert := flag.String("cert", "./tls", "location of tls certificate and private key")
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -60,7 +62,9 @@ func main() {
 	}
 
 	logger.Info("starting server", slog.String("addr", *addr))
-	if err := server.ListenAndServe(); err != nil {
+	err = server.ListenAndServeTLS(path.Join(*cert, "cert.pem"),
+		path.Join(*cert, "key.pem"))
+	if err != nil {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
