@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"database/sql"
 	"flag"
 	"html/template"
@@ -54,11 +55,16 @@ func main() {
 		logger.Error("cannot cache templates", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
+
+	tlsConfig := &tls.Config{
+		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
+	}
 	server := &http.Server{
 		Handler:      app.routes(),
 		Addr:         *addr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
+		TLSConfig:    tlsConfig,
 	}
 
 	logger.Info("starting server", slog.String("addr", *addr))
