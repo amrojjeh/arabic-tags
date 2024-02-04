@@ -135,9 +135,6 @@ type Excerpt struct {
 	Technical Technical
 	CLocked   bool
 	GLocked   bool
-	CShare    uuid.UUID
-	GShare    uuid.UUID
-	TShare    uuid.UUID
 	Created   time.Time
 	Updated   time.Time
 }
@@ -157,8 +154,7 @@ func (m ExcerptModel) Get(id uuid.UUID) (Excerpt, error) {
 	// UUID.Value always returns nil
 	idVal, _ := id.Value()
 	err := m.DB.QueryRow(stmt, idVal).Scan(&e.Title, &e.Content, &e.Grammar,
-		&e.Technical, &e.CLocked, &e.GLocked, &e.CShare, &e.GShare, &e.TShare,
-		&e.Created, &e.Updated)
+		&e.Technical, &e.CLocked, &e.GLocked, &e.Created, &e.Updated)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return e, ErrNoRecord
@@ -175,12 +171,9 @@ func (m ExcerptModel) GetSharedContent(cShare uuid.UUID) (Excerpt, error) {
 	FROM excerpt WHERE excerpt.c_share=UUID_TO_BIN(?)`
 
 	var e Excerpt
-	e.CShare = cShare
-
 	cShareVal, _ := cShare.Value()
 	err := m.DB.QueryRow(stmt, cShareVal).Scan(&e.ID, &e.Title, &e.Content,
-		&e.Grammar, &e.Technical, &e.CLocked, &e.GLocked, &e.GShare, &e.TShare,
-		&e.Created, &e.Updated)
+		&e.Grammar, &e.Technical, &e.CLocked, &e.GLocked, &e.Created, &e.Updated)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return e, ErrNoRecord
@@ -196,12 +189,10 @@ func (m ExcerptModel) GetSharedGrammar(gShare uuid.UUID) (Excerpt, error) {
 	FROM excerpt WHERE excerpt.g_share=UUID_TO_BIN(?)`
 
 	var e Excerpt
-	e.GShare = gShare
 
 	gShareVal, _ := gShare.Value()
 	err := m.DB.QueryRow(stmt, gShareVal).Scan(&e.ID, &e.Title, &e.Content,
-		&e.Grammar, &e.Technical, &e.CLocked, &e.GLocked, &e.CShare, &e.TShare,
-		&e.Created, &e.Updated)
+		&e.Grammar, &e.Technical, &e.CLocked, &e.GLocked, &e.Created, &e.Updated)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return e, ErrNoRecord
@@ -217,12 +208,10 @@ func (m ExcerptModel) GetSharedTechnical(tShare uuid.UUID) (Excerpt, error) {
 	FROM excerpt WHERE excerpt.t_share=UUID_TO_BIN(?)`
 
 	var e Excerpt
-	e.TShare = tShare
 
 	tShareVal, _ := tShare.Value()
 	err := m.DB.QueryRow(stmt, tShareVal).Scan(&e.ID, &e.Title, &e.Content,
-		&e.Grammar, &e.Technical, &e.CLocked, &e.GLocked, &e.CShare, &e.GShare,
-		&e.Created, &e.Updated)
+		&e.Grammar, &e.Technical, &e.CLocked, &e.GLocked, &e.Created, &e.Updated)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return e, ErrNoRecord

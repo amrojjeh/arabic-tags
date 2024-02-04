@@ -50,7 +50,6 @@ func main() {
 		excerpts: models.ExcerptModel{DB: db},
 	}
 
-	err = app.cacheTemplates()
 	if err != nil {
 		logger.Error("cannot cache templates", slog.String("error", err.Error()))
 		os.Exit(1)

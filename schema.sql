@@ -10,9 +10,6 @@ CREATE TABLE IF NOT EXISTS excerpt (
     technical JSON NOT NULL,
     c_locked BOOLEAN NOT NULL,
     g_locked BOOLEAN NOT NULL,
-    c_share BINARY(16) NOT NULL,
-    g_share BINARY(16) NOT NULL,
-    t_share BINARY(16) NOT NULL,
     created DATETIME NOT NULL,
     updated DATETIME NOT NULL
 );

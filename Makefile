@@ -1,5 +1,8 @@
 .PHONY: air tailwind clean
 
+run: tailwind
+	go run ./cmd/web
+
 air: tailwind
 	go build -o ./tmp/main ./cmd/web
 

@@ -5,88 +5,58 @@ import (
 
 	"github.com/amrojjeh/arabic-tags/ui"
 	"github.com/julienschmidt/httprouter"
+	"github.com/justinas/alice"
 )
 
 // TODO(Amr Ojjeh): Setup secure headers
 func (app *application) routes() http.Handler {
 	router := httprouter.New()
-	router.NotFound = Adapt(app.notFound(), app.logRequest)
+	router.NotFound = app.notFound()
 
-	router.Handler(http.MethodGet, "/static/*file", Adapt(http.FileServer(http.FS(ui.Files)),
-		app.logRequest))
+	router.Handler(http.MethodGet, "/static/*file",
+		http.FileServer(http.FS(ui.Files)))
 
-	router.Handler(http.MethodGet, "/", Adapt(app.excerptCreateGet(),
-		app.logRequest))
-	router.Handler(http.MethodPost, "/", Adapt(app.excerptCreatePost(),
-		app.logRequest))
+	router.Handler(http.MethodGet, "/", app.excerptCreateGet())
+	// router.Handler(http.MethodPost, "/", app.excerptCreatePost())
 
 	// TODO(Amr Ojjeh): Improve Adapter interface
-	idRequired := []Adapter{
-		app.idRequired,
-		app.logRequest,
-	}
+	// idRequired := alice.New(app.idRequired)
+	// contentExcerptRequired := idRequired.Append(app.excerptRequired)
+	// grammarExcerptRequired := contentExcerptRequired.Append(app.contentLockRequired)
+	// technicalExcerptRequired := grammarExcerptRequired.Append(app.grammarLockRequired)
+	// technicalWordRequired := technicalExcerptRequired.Append(app.technicalWordRequired)
 
-	contentExcerptRequired := []Adapter{
-		app.excerptRequired,
-		app.idRequired,
-		app.logRequest,
-	}
+	// router.Handler(http.MethodGet, "/excerpt/edit",
+	// 	contentExcerptRequired.Then(app.excerptEditGet()))
+	// router.Handler(http.MethodPut, "/excerpt/edit",
+	// 	idRequired.Then(app.excerptEditPut()))
+	// router.Handler(http.MethodPut, "/excerpt/edit/lock",
+	// 	contentExcerptRequired.Then(app.excerptEditLock()))
+	// router.Handler(http.MethodPut, "/excerpt/edit/unlock",
+	// 	idRequired.Then(app.excerptEditUnlock()))
+	// router.Handler(http.MethodGet, "/excerpt/grammar",
+	// 	grammarExcerptRequired.Then(app.excerptGrammarGet()))
+	// router.Handler(http.MethodPut, "/excerpt/grammar",
+	// 	grammarExcerptRequired.Then(app.excerptGrammarPut()))
+	// router.Handler(http.MethodPut, "/excerpt/grammar/lock",
+	// 	grammarExcerptRequired.Then(app.excerptGrammarLock()))
+	// router.Handler(http.MethodPut, "/excerpt/grammar/unlock",
+	// 	grammarExcerptRequired.Then(app.excerptGrammarUnlock()))
 
-	grammarExcerptRequired := []Adapter{
-		app.contentLockRequired,
-		app.excerptRequired,
-		app.idRequired,
-		app.logRequest,
-	}
-
-	technicalExcerptRequired := []Adapter{
-		app.grammarLockRequired,
-		app.contentLockRequired,
-		app.excerptRequired,
-		app.idRequired,
-		app.logRequest,
-	}
-
-	technicalWordRequired := []Adapter{
-		app.technicalWordRequired,
-		app.grammarLockRequired,
-		app.contentLockRequired,
-		app.excerptRequired,
-		app.idRequired,
-		app.logRequest,
-	}
-
-	router.Handler(http.MethodGet, "/excerpt/edit", Adapt(app.excerptEditGet(),
-		contentExcerptRequired...))
-	router.Handler(http.MethodPut, "/excerpt/edit", Adapt(app.excerptEditPut(),
-		idRequired...))
-	router.Handler(http.MethodPut, "/excerpt/edit/lock", Adapt(app.excerptEditLock(),
-		contentExcerptRequired...))
-	router.Handler(http.MethodPut, "/excerpt/edit/unlock", Adapt(app.excerptEditUnlock(),
-		idRequired...))
-
-	router.Handler(http.MethodGet, "/excerpt/grammar", Adapt(app.excerptGrammarGet(),
-		grammarExcerptRequired...))
-	router.Handler(http.MethodPut, "/excerpt/grammar", Adapt(app.excerptGrammarPut(),
-		grammarExcerptRequired...))
-	router.Handler(http.MethodPut, "/excerpt/grammar/lock", Adapt(app.excerptGrammarLock(),
-		grammarExcerptRequired...))
-	router.Handler(http.MethodPut, "/excerpt/grammar/unlock", Adapt(app.excerptGrammarUnlock(),
-		grammarExcerptRequired...))
-
-	router.Handler(http.MethodGet, "/excerpt/technical", Adapt(app.excerptTechnicalGet(),
-		technicalExcerptRequired...))
-	router.Handler(http.MethodPut, "/excerpt/technical/tashkeel", Adapt(app.excerptTechnicalVowelPut(),
-		technicalWordRequired...))
-	router.Handler(http.MethodPut, "/excerpt/technical/shadda", Adapt(app.excerptTechnicalShadda(),
-		technicalWordRequired...))
-	router.Handler(http.MethodGet, "/excerpt/technical/word", Adapt(app.excerptTechnicalWordGet(),
-		technicalWordRequired...))
-	router.Handler(http.MethodPut, "/excerpt/technical/sentenceStart",
-		Adapt(app.excerptTechnicalSentenceStart(), technicalWordRequired...))
-	router.Handler(http.MethodPut, "/excerpt/technical/ignore",
-		Adapt(app.excerptTechnicalIgnore(), technicalWordRequired...))
-	router.Handler(http.MethodGet, "/excerpt/technical/export.json",
-		Adapt(app.excerptTechnicalExport(), technicalExcerptRequired...))
-	return router
+	// router.Handler(http.MethodGet, "/excerpt/technical",
+	// 	technicalExcerptRequired.Then(app.excerptTechnicalGet()))
+	// router.Handler(http.MethodPut, "/excerpt/technical/tashkeel",
+	// 	technicalWordRequired.Then(app.excerptTechnicalVowelPut()))
+	// router.Handler(http.MethodPut, "/excerpt/technical/shadda",
+	// 	technicalWordRequired.Then(app.excerptTechnicalShadda()))
+	// router.Handler(http.MethodGet, "/excerpt/technical/word",
+	// 	technicalWordRequired.Then(app.excerptTechnicalWordGet()))
+	// router.Handler(http.MethodPut, "/excerpt/technical/sentenceStart",
+	// 	technicalWordRequired.Then(app.excerptTechnicalSentenceStart()))
+	// router.Handler(http.MethodPut, "/excerpt/technical/ignore",
+	// 	technicalWordRequired.Then(app.excerptTechnicalIgnore()))
+	// router.Handler(http.MethodGet, "/excerpt/technical/export.json",
+	// 	technicalExcerptRequired.Then(app.excerptTechnicalExport()))
+	base := alice.New(app.logRequest)
+	return base.Then(router)
 }

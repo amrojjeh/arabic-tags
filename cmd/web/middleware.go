@@ -7,13 +7,10 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/google/uuid"
 )
-
-type Adapter func(http.Handler) http.Handler
 
 func (app *application) logRequest(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -23,12 +20,6 @@ func (app *application) logRequest(h http.Handler) http.Handler {
 			slog.String("remote-addr", r.RemoteAddr))
 		h.ServeHTTP(w, r)
 	})
-}
-
-func stripPrefix(prefix string) Adapter {
-	return func(h http.Handler) http.Handler {
-		return http.StripPrefix(prefix, h)
-	}
 }
 
 func (app *application) idRequired(h http.Handler) http.Handler {
@@ -63,23 +54,9 @@ func (app *application) idRequired(h http.Handler) http.Handler {
 func (app *application) excerptRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.Context().Value(idContextKey).(uuid.UUID)
-		shared := r.Form.Get("share") == "true"
 		var excerpt models.Excerpt
 		var err error
-		if shared {
-			if strings.Contains(r.URL.Path, "edit") {
-				excerpt, err = app.excerpts.GetSharedContent(id)
-			} else if strings.Contains(r.URL.Path, "grammar") {
-				excerpt, err = app.excerpts.GetSharedGrammar(id)
-			} else if strings.Contains(r.URL.Path, "technical") {
-				excerpt, err = app.excerpts.GetSharedTechnical(id)
-			} else {
-				app.clientError(w, http.StatusNotFound)
-				return
-			}
-		} else {
-			excerpt, err = app.excerpts.Get(id)
-		}
+		excerpt, err = app.excerpts.Get(id)
 		if err != nil {
 			if errors.Is(err, models.ErrNoRecord) {
 				app.excerptNotFound(w, r)
@@ -137,11 +114,4 @@ func (app *application) technicalWordRequired(h http.Handler) http.Handler {
 		r = r.WithContext(ctx)
 		h.ServeHTTP(w, r)
 	})
-}
-
-func Adapt(h http.Handler, adapters ...Adapter) http.Handler {
-	for _, adapter := range adapters {
-		h = adapter(h)
-	}
-	return h
 }
