@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -69,34 +68,6 @@ func (app *application) excerptRequired(h http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), excerptContextKey, excerpt)
 		r = r.WithContext(ctx)
 
-		h.ServeHTTP(w, r)
-	})
-}
-
-func (app *application) contentLockRequired(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		excerpt := r.Context().Value(excerptContextKey).(models.Excerpt)
-		if !excerpt.CLocked {
-			id := r.Context().Value(idContextKey).(uuid.UUID)
-			http.Redirect(w, r,
-				fmt.Sprintf("/excerpt/edit?id=%v", idToString(id)),
-				http.StatusSeeOther)
-			return
-		}
-		h.ServeHTTP(w, r)
-	})
-}
-
-func (app *application) grammarLockRequired(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		excerpt := r.Context().Value(excerptContextKey).(models.Excerpt)
-		if !excerpt.GLocked {
-			id := r.Context().Value(idContextKey).(uuid.UUID)
-			http.Redirect(w, r,
-				fmt.Sprintf("/excerpt/grammar?id=%v", idToString(id)),
-				http.StatusSeeOther)
-			return
-		}
 		h.ServeHTTP(w, r)
 	})
 }

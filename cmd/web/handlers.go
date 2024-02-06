@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/amrojjeh/arabic-tags/internal/validator"
 	"github.com/amrojjeh/arabic-tags/ui/pages"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (app *application) notFound() http.Handler {
@@ -12,16 +15,76 @@ func (app *application) notFound() http.Handler {
 	})
 }
 
-// func (app *application) excerptEditGet() http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		data, err := newTemplateData(r)
-// 		if err != nil {
-// 			app.clientError(w, http.StatusBadRequest)
-// 			return
-// 		}
-// 		app.renderTemplate(w, "add.tmpl", http.StatusOK, data)
-// 	})
-// }
+func (app *application) homeGet() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := pages.HomePage(pages.HomeProps{
+			TitleField: "",
+			TitleError: "",
+		}).Render(w)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+		}
+	})
+}
+
+func (app *application) homePost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		title := r.Form.Get("title")
+		password := r.Form.Get("password")
+
+		titleError :=
+			validator.NewValidator("title", title).NotBlank().MaxLength(100).
+				Validate()
+		passwordError :=
+			validator.NewValidator("password", password).NotBlank().MaxBytes(72).
+				Validate()
+
+		if titleError != "" || passwordError != "" {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			err = pages.HomePage(pages.HomeProps{
+				TitleField:    title,
+				TitleError:    titleError,
+				PasswordError: passwordError,
+			}).Render(w)
+
+			if err != nil {
+				app.serverError(w, err)
+			}
+
+			return
+		}
+
+		hashed, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		id, err := app.excerpts.Insert(title, hashed)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		idStr := idToString(id)
+		http.Redirect(w, r, fmt.Sprintf("/excerpt/manuscript?id=%v", idStr),
+			http.StatusSeeOther)
+	})
+}
+
+func (app *application) manuscriptGet() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO(Amr Ojjeh): Check if logged into excerpt
+		// If not, show readonly mode
+		// Otherwise, show editable mode
+	})
+}
 
 // func (app *application) excerptEditUnlock() http.Handler {
 // 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -289,65 +352,5 @@ func (app *application) notFound() http.Handler {
 // 			return
 // 		}
 // 		w.Write(buff)
-// 	})
-// }
-
-type excerptForm struct {
-	Validator
-	Title string
-}
-
-func (app *application) excerptCreateGet() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := pages.HomePage(pages.HomeProps{
-			TitleField: "",
-			TitleError: "",
-		}).Render(w)
-		if err != nil {
-			app.clientError(w, http.StatusBadRequest)
-		}
-	})
-}
-
-// func (app *application) excerptCreatePost() http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		err := r.ParseForm()
-// 		if err != nil {
-// 			app.clientError(w, http.StatusBadRequest)
-// 			return
-// 		}
-// 		form := excerptForm{}
-
-// 		form.Title = r.Form.Get("title")
-// 		form.CheckField(NotBlank(form.Title),
-// 			"title", "Title cannot be blank")
-// 		form.CheckField(MaxChars(form.Title, 100), "title",
-// 			"Title cannot exceed 100 characters")
-
-// 		if !form.Valid() {
-// 			data, err := newTemplateData(r)
-// 			if err != nil {
-// 				app.clientError(w, http.StatusBadRequest)
-// 				return
-// 			}
-// 			data.Form = form
-
-// 			if r.Header.Get("HX-Boosted") == "true" {
-// 				app.renderTemplate(w, "home.tmpl", http.StatusOK, data)
-// 			} else {
-// 				app.renderTemplate(w, "home.tmpl", http.StatusUnprocessableEntity, data)
-// 			}
-// 			return
-// 		}
-
-// 		id, err := app.excerpts.Insert(form.Title)
-// 		if err != nil {
-// 			app.serverError(w, err)
-// 			return
-// 		}
-
-// 		idStr := idToString(id)
-// 		http.Redirect(w, r, fmt.Sprintf("/excerpt/edit?id=%v", idStr),
-// 			http.StatusSeeOther)
 // 	})
 // }

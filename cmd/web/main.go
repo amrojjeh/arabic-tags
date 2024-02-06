@@ -10,6 +10,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/alexedwards/scs/mysqlstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/amrojjeh/arabic-tags/internal/models"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -18,6 +20,7 @@ type application struct {
 	logger   *slog.Logger
 	page     map[string]*template.Template
 	excerpts models.ExcerptModel
+	session  *scs.SessionManager
 }
 
 func main() {
@@ -45,9 +48,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	session := scs.New()
+	session.Lifetime = 24 * time.Hour
+	session.Store = mysqlstore.New(db)
+
 	app := application{
 		logger:   logger,
 		excerpts: models.ExcerptModel{DB: db},
+		session:  session,
 	}
 
 	if err != nil {

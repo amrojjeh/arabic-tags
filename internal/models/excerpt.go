@@ -221,26 +221,20 @@ func (m ExcerptModel) GetSharedTechnical(tShare uuid.UUID) (Excerpt, error) {
 	return e, nil
 }
 
-func (m ExcerptModel) Insert(title string) (uuid.UUID, error) {
-	stmt := `INSERT INTO excerpt (id, title, content, grammar, technical,
-	c_locked, g_locked, c_share, g_share, t_share, created, updated)
-	VALUES (UUID_TO_BIN(?), ?, "", "{}", "{}", FALSE, FALSE, UUID_TO_BIN(?),
-	UUID_TO_BIN(?), UUID_TO_BIN(?), UTC_TIMESTAMP(), UTC_TIMESTAMP())`
+func (m ExcerptModel) Insert(title string, password_hash []byte) (uuid.UUID, error) {
+	stmt := `INSERT INTO excerpt (id, title, password_hash, created, updated)
+	VALUES (UUID_TO_BIN(?), ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`
 
 	// Technically it's not good practice to use UUIDv4 as a PK,
-	// however, since we don't have an auth and we're using urls
-	// to protect read and writes, the id needs to be hard to guess,
-	// so we cannot just autoincrement it.
+	// however, to prevent people from finding random excerpts using url scrapers
+	// the id needs to be hard to guess, so we cannot just autoincrement it.
 
 	// We're also unlikely to run into perf issues since we're operating on a
 	// small scale.
 	id := uuid.New()
 	idVal, _ := id.Value()
 
-	cShareVal, _ := uuid.New().Value()
-	gShareVal, _ := uuid.New().Value()
-	tShareVal, _ := uuid.New().Value()
-	_, err := m.DB.Exec(stmt, idVal, title, cShareVal, gShareVal, tShareVal)
+	_, err := m.DB.Exec(stmt, idVal, title, string(password_hash))
 	if err != nil {
 		return uuid.UUID{}, err
 	}

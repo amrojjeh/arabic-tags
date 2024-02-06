@@ -16,8 +16,8 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/static/*file",
 		http.FileServer(http.FS(ui.Files)))
 
-	router.Handler(http.MethodGet, "/", app.excerptCreateGet())
-	// router.Handler(http.MethodPost, "/", app.excerptCreatePost())
+	router.Handler(http.MethodGet, "/", app.homeGet())
+	router.Handler(http.MethodPost, "/", app.homePost())
 
 	// TODO(Amr Ojjeh): Improve Adapter interface
 	// idRequired := alice.New(app.idRequired)

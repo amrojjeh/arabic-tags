@@ -615,6 +615,10 @@ video {
   width: 50%;
 }
 
+.w-4 {
+  width: 1rem;
+}
+
 .w-60 {
   width: 15rem;
 }
@@ -700,6 +704,10 @@ video {
 
 .gap-0 {
   gap: 0px;
+}
+
+.gap-1 {
+  gap: 0.25rem;
 }
 
 .gap-2 {
@@ -1018,6 +1026,10 @@ video {
 
 .caret-black {
   caret-color: #000;
+}
+
+.opacity-30 {
+  opacity: 0.3;
 }
 
 .shadow-key {

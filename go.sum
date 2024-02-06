@@ -1,3 +1,7 @@
+github.com/alexedwards/scs/mysqlstore v0.0.0-20240203174419-a38e822451b6 h1:npjiNTwvsVAwF+ukm1At6RbzCzFAsOInhgZWzaKulkk=
+github.com/alexedwards/scs/mysqlstore v0.0.0-20240203174419-a38e822451b6/go.mod h1:p8jK3D80sw1PFrCSdlcJF1O75bp55HqbgDyyCLM0FrE=
+github.com/alexedwards/scs/v2 v2.7.0 h1:DY4rqLCM7UIR9iwxFS0++z1NhTzQlKV30aMHkJCDWKw=
+github.com/alexedwards/scs/v2 v2.7.0/go.mod h1:ToaROZxyKukJKT/xLcVQAChi5k6+Pn1Gvmdl7h3RRj8=
 github.com/amrojjeh/kalam v0.0.0-20231215182137-9d67980152cd h1:RELHZLDkM4fUBahOcBhlni7Jt2lITSkwWL5L7xSPwVg=
 github.com/amrojjeh/kalam v0.0.0-20231215182137-9d67980152cd/go.mod h1:rfTF4hy9n+fY213bionhhFpva1G+ggmKWO23GLXuM54=
 github.com/amrojjeh/kalam v0.0.0-20231225193534-f3f4bfa21f8f h1:ri33Ti6wvMA259rdCXwBOGwPFg/nrfG592Kb556aMNs=
@@ -20,3 +24,5 @@ github.com/justinas/alice v1.2.0 h1:+MHSA/vccVCF4Uq37S42jwlkvI2Xzl7zTPCN5BnZNVo=
 github.com/justinas/alice v1.2.0/go.mod h1:fN5HRH/reO/zrUflLfTN43t3vXvKzvZIENsNEe7i7qA=
 github.com/maragudk/gomponents v0.20.1 h1:TeJY1fXEcfUvzmvjeUgxol42dvkYMggK1c0V67crWWs=
 github.com/maragudk/gomponents v0.20.1/go.mod h1:nHkNnZL6ODgMBeJhrZjkMHVvNdoYsfmpKB2/hjdQ0Hg=
+golang.org/x/crypto v0.18.0 h1:PGVlW0xEltQnzFZ55hkuX5+KLyrMYhHld1YHO4AKcdc=
+golang.org/x/crypto v0.18.0/go.mod h1:R0j02AL6hcrfOiy9T4ZYp/rcWeMxM3L6QYxlOuEG1mg=
