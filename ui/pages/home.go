@@ -24,7 +24,7 @@ func HomePage(p HomeProps) g.Node {
 				),
 				FormEl(Class("flex flex-col gap-3"), Action("/"), Method("post"), AutoComplete("off"),
 					Div(
-						P(Class("text-md text-red-500 font-bold text-center pb-1"),
+						P(Class("w-60 text-md text-red-500 font-bold text-center pb-1"),
 							g.Text(p.TitleError),
 						),
 						Div(Class("flex gap-1"),
@@ -33,7 +33,7 @@ func HomePage(p HomeProps) g.Node {
 						),
 					),
 					Div(
-						P(Class("text-md text-red-500 font-bold text-center pb-1"),
+						P(Class("w-60 text-md text-red-500 font-bold text-center pb-1"),
 							g.Text(p.PasswordError),
 						),
 						Div(Class("flex gap-1"),
