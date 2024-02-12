@@ -21,6 +21,17 @@ func (app *application) logRequest(h http.Handler) http.Handler {
 	})
 }
 
+func (app *application) authRequired(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		email := app.session.GetString(r.Context(), authorizedEmailSessionKey)
+		if email == "" {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
 func (app *application) idRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
@@ -55,7 +66,7 @@ func (app *application) excerptRequired(h http.Handler) http.Handler {
 		id := r.Context().Value(idContextKey).(uuid.UUID)
 		var excerpt models.Excerpt
 		var err error
-		excerpt, err = app.excerpts.Get(id)
+		excerpt, err = app.excerpt.Get(id)
 		if err != nil {
 			if errors.Is(err, models.ErrNoRecord) {
 				app.excerptNotFound(w, r)

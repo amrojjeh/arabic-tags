@@ -16,10 +16,17 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/static/*file",
 		http.FileServer(http.FS(ui.Files)))
 
-	router.Handler(http.MethodGet, "/", app.homeGet())
-	router.Handler(http.MethodPost, "/", app.homePost())
+	router.Handler(http.MethodGet, "/register", app.registerGet())
+	router.Handler(http.MethodPost, "/register", app.registerPost())
 
-	// TODO(Amr Ojjeh): Improve Adapter interface
+	router.Handler(http.MethodGet, "/login", app.loginGet())
+	router.Handler(http.MethodPost, "/login", app.loginPost())
+
+	authRequired := alice.New(app.authRequired)
+
+	router.Handler(http.MethodPost, "/logout", authRequired.Then(app.logoutPost()))
+	router.Handler(http.MethodGet, "/home", authRequired.Then(app.homeGet()))
+
 	// idRequired := alice.New(app.idRequired)
 	// contentExcerptRequired := idRequired.Append(app.excerptRequired)
 	// grammarExcerptRequired := contentExcerptRequired.Append(app.contentLockRequired)
@@ -57,6 +64,6 @@ func (app *application) routes() http.Handler {
 	// 	technicalWordRequired.Then(app.excerptTechnicalIgnore()))
 	// router.Handler(http.MethodGet, "/excerpt/technical/export.json",
 	// 	technicalExcerptRequired.Then(app.excerptTechnicalExport()))
-	base := alice.New(app.logRequest)
+	base := alice.New(app.logRequest, app.session.LoadAndSave)
 	return base.Then(router)
 }

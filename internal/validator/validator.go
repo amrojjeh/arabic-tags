@@ -44,13 +44,6 @@ func (v Validator) MaxBytes(max int) Validator {
 	return v
 }
 
-func (v Validator) Required() Validator {
-	if v.value == "" {
-		v = v.SetError(fmt.Sprintf("Please provide a %s", v.field))
-	}
-	return v
-}
-
 func (v Validator) SameAs(val string) Validator {
 	if v.value != val {
 		v = v.SetError(fmt.Sprintf("Your %s did not match", v.field))
@@ -66,7 +59,7 @@ func (v Validator) IsEmail() Validator {
 	return v
 }
 
-func (v Validator) NotBlank() Validator {
+func (v Validator) Required() Validator {
 	if strings.TrimSpace(v.value) == "" {
 		v = v.SetError(fmt.Sprintf("You must provide a %s", v.field))
 	}
@@ -78,8 +71,9 @@ func (v Validator) CustomMessage(message string) Validator {
 	return v
 }
 
-func (v Validator) Validate() string {
+func (v Validator) Validate(valid *bool) string {
 	if !v.valid {
+		*valid = false
 		return v.errMessage
 	}
 	return ""

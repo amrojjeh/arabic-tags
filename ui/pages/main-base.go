@@ -25,12 +25,10 @@ func MainBase(p MainBaseProps) g.Node {
 		},
 		Body: []g.Node{
 			Class("h-screen gap-0 flex flex-col bg-red-50/25"),
-			Nav(
-				Class("text-white bg-red-800 px-5 py-2 grid grid-cols-3 grid-rows-1"),
+			Nav(Class("text-white bg-red-800 px-5 py-2 grid grid-cols-3 grid-rows-1 items-center"),
 				g.Group(p.Nav),
 			),
-			Div(
-				Class("bg-red-200 text-center text-2xl text-red-800"),
+			Div(Class("bg-red-200 text-center text-2xl text-red-800"),
 				g.Text(p.Error),
 			),
 			// TODO(Amr Ojjeh): Make offline work

@@ -12,6 +12,7 @@ import (
 	"github.com/amrojjeh/arabic-tags/internal/disambig"
 	"github.com/amrojjeh/kalam"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Grammar struct {
@@ -221,7 +222,7 @@ func (m ExcerptModel) GetSharedTechnical(tShare uuid.UUID) (Excerpt, error) {
 	return e, nil
 }
 
-func (m ExcerptModel) Insert(title string, password_hash []byte) (uuid.UUID, error) {
+func (m ExcerptModel) Insert(title string, password string) (uuid.UUID, error) {
 	stmt := `INSERT INTO excerpt (id, title, password_hash, created, updated)
 	VALUES (UUID_TO_BIN(?), ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`
 
@@ -234,7 +235,12 @@ func (m ExcerptModel) Insert(title string, password_hash []byte) (uuid.UUID, err
 	id := uuid.New()
 	idVal, _ := id.Value()
 
-	_, err := m.DB.Exec(stmt, idVal, title, string(password_hash))
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	_, err = m.DB.Exec(stmt, idVal, title, string(hashed))
 	if err != nil {
 		return uuid.UUID{}, err
 	}

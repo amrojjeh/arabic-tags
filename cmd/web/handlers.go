@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/amrojjeh/arabic-tags/internal/validator"
 	"github.com/amrojjeh/arabic-tags/ui/pages"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func (app *application) notFound() http.Handler {
@@ -15,66 +13,151 @@ func (app *application) notFound() http.Handler {
 	})
 }
 
-func (app *application) homeGet() http.Handler {
+func (app *application) registerGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := pages.HomePage(pages.HomeProps{
-			TitleField: "",
-			TitleError: "",
-		}).Render(w)
+		err := pages.RegisterPage(pages.RegisterProps{}).Render(w)
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest)
 		}
 	})
 }
 
-func (app *application) homePost() http.Handler {
+func (app *application) registerPost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseForm()
+		res, err := pages.NewRegisterResponse(r)
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest)
 			return
 		}
 
-		title := r.Form.Get("title")
-		password := r.Form.Get("password")
+		props := res.Props()
+		valid := true
+		props.EmailError = validator.NewValidator("email", res.Email).
+			Required().
+			IsEmail().
+			MaxLength(255).
+			Validate(&valid)
 
-		titleError :=
-			validator.NewValidator("title", title).NotBlank().MaxLength(100).
-				Validate()
-		passwordError :=
-			validator.NewValidator("password", password).NotBlank().MaxBytes(72).
-				Validate()
+		props.UsernameError = validator.NewValidator("username", res.Username).
+			Required().
+			MaxLength(255).
+			Validate(&valid)
 
-		if titleError != "" || passwordError != "" {
+		props.PasswordError =
+			validator.NewValidator("password", res.Password).
+				Required().
+				SameAs(res.RePassword).
+				MaxBytes(72).
+				Validate(&valid)
+
+		if !valid {
 			w.WriteHeader(http.StatusUnprocessableEntity)
-			err = pages.HomePage(pages.HomeProps{
-				TitleField:    title,
-				TitleError:    titleError,
-				PasswordError: passwordError,
-			}).Render(w)
-
+			err = pages.RegisterPage(props).Render(w)
 			if err != nil {
 				app.serverError(w, err)
 			}
-
 			return
 		}
 
-		hashed, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+		err = app.user.Register(res.Username, res.Email, res.Password)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
 
-		id, err := app.excerpts.Insert(title, hashed)
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	})
+}
+
+func (app *application) loginGet() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := pages.LoginPage(pages.LoginProps{}).Render(w)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+		}
+	})
+}
+
+func (app *application) loginPost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		res, err := pages.NewLoginResponse(r)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		props := res.Props()
+		valid := true
+		props.EmailError = validator.NewValidator("email", res.Email).
+			Required().
+			IsEmail().
+			Validate(&valid)
+		props.PasswordError = validator.NewValidator("password", res.Password).
+			Required().
+			Validate(&valid)
+
+		if !valid {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			err = pages.LoginPage(props).Render(w)
+			if err != nil {
+				app.serverError(w, err)
+			}
+			return
+		}
+
+		auth, err := app.user.Authenticate(res.Email, res.Password)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
 
-		idStr := idToString(id)
-		http.Redirect(w, r, fmt.Sprintf("/excerpt/manuscript?id=%v", idStr),
-			http.StatusSeeOther)
+		if !auth {
+			props.LoginError = "The email or password is incorrect"
+			err = pages.LoginPage(props).Render(w)
+			if err != nil {
+				app.serverError(w, err)
+			}
+			return
+		}
+
+		app.session.Put(r.Context(), authorizedEmailSessionKey, res.Email)
+		err = app.session.RenewToken(r.Context())
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		http.Redirect(w, r, "/home", http.StatusSeeOther)
+	})
+}
+
+func (app *application) logoutPost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		app.session.Remove(r.Context(), authorizedEmailSessionKey)
+		err := app.session.RenewToken(r.Context())
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	})
+}
+
+func (app *application) homeGet() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		email := app.session.GetString(r.Context(), authorizedEmailSessionKey)
+		user, err := app.user.Get(email)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		err = pages.HomePage(pages.HomeProps{
+			Username: user.Username,
+		}).Render(w)
+		if err != nil {
+			app.serverError(w, err)
+		}
 	})
 }
 

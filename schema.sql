@@ -2,18 +2,38 @@ CREATE DATABASE IF NOT EXISTS arabic_tags;
 
 USE arabic_tags;
 
-CREATE TABLE IF NOT EXISTS excerpt (
-    id BINARY(16) NOT NULL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS user (
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
     password_hash CHAR(60) NOT NULL,
-    title VARCHAR(100) NOT NULL,
     created DATETIME NOT NULL,
-    updated DATETIME NOT NULL
+    updated DATETIME NOT NULL,
+
+    CONSTRAINT user_email_uc UNIQUE (email),
+    CONSTRAINT user_username_uc UNIQUE (username)
+);
+
+CREATE TABLE IF NOT EXISTS excerpt (
+    id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(100) NOT NULL,
+    user_id INTEGER NOT NULL,
+    created DATETIME NOT NULL,
+    updated DATETIME NOT NULL,
+
+    FOREIGN KEY (user_id)
+        REFERENCES user(id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS word (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     word VARCHAR(30) NOT NULL,
-    excerpt_id BINARY(16) NOT NULL,
+    word_pos INTEGER UNSIGNED NOT NULL,
+    excerpt_id INTEGER NOT NULL,
+    created DATETIME NOT NULL,
+    updated DATETIME NOT NULL,
 
     FOREIGN KEY (excerpt_id)
         REFERENCES excerpt(id)
@@ -25,7 +45,9 @@ CREATE TABLE IF NOT EXISTS manuscript (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     content TEXT NOT NULL,
     locked BOOLEAN NOT NULL,
-    excerpt_id BINARY(16) NOT NULL,
+    excerpt_id INTEGER NOT NULL,
+    created DATETIME NOT NULL,
+    updated DATETIME NOT NULL,
 
     FOREIGN KEY (excerpt_id)
         REFERENCES excerpt(id)
@@ -34,6 +56,7 @@ CREATE TABLE IF NOT EXISTS manuscript (
 );
 
 -- For: https://github.com/alexedwards/scs/tree/master/mysqlstore
+-- Should be "session" :(
 CREATE TABLE sessions (
 	token CHAR(43) PRIMARY KEY,
 	data BLOB NOT NULL,
