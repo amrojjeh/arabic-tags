@@ -7,12 +7,10 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"unicode/utf8"
 
 	"github.com/amrojjeh/arabic-tags/internal/disambig"
 	"github.com/amrojjeh/kalam"
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type Grammar struct {
@@ -129,7 +127,7 @@ func (t *Technical) Scan(src any) error {
 }
 
 type Excerpt struct {
-	ID        uuid.UUID
+	Id        int
 	Title     string
 	Content   string
 	Grammar   Grammar
@@ -141,110 +139,44 @@ type Excerpt struct {
 }
 
 type ExcerptModel struct {
-	DB *sql.DB
+	Db *sql.DB
 }
 
-func (m ExcerptModel) Get(id uuid.UUID) (Excerpt, error) {
-	stmt := `SELECT title, content, grammar, technical, c_locked, g_locked,
-	c_share, g_share, t_share, created, updated
-	FROM excerpt WHERE excerpt.id=UUID_TO_BIN(?)`
+// func (m ExcerptModel) Get(id uuid.UUID) (Excerpt, error) {
+// 	stmt := `SELECT title, content, grammar, technical, c_locked, g_locked,
+// 	c_share, g_share, t_share, created, updated
+// 	FROM excerpt WHERE excerpt.id=UUID_TO_BIN(?)`
 
-	var e Excerpt
-	e.ID = id
+// 	var e Excerpt
+// 	e.Id = id
 
-	// UUID.Value always returns nil
-	idVal, _ := id.Value()
-	err := m.DB.QueryRow(stmt, idVal).Scan(&e.Title, &e.Content, &e.Grammar,
-		&e.Technical, &e.CLocked, &e.GLocked, &e.Created, &e.Updated)
+// 	// UUID.Value always returns nil
+// 	idVal, _ := id.Value()
+// 	err := m.Db.QueryRow(stmt, idVal).Scan(&e.Title, &e.Content, &e.Grammar,
+// 		&e.Technical, &e.CLocked, &e.GLocked, &e.Created, &e.Updated)
+// 	if err != nil {
+// 		if errors.Is(err, sql.ErrNoRows) {
+// 			return e, ErrNoRecord
+// 		}
+// 		return e, err
+// 	}
+
+// 	return e, nil
+// }
+
+func (m ExcerptModel) Insert(title, author_email string) (int, error) {
+	stmt := `INSERT INTO excerpt (title, author_id, created, updated)
+	VALUES (?, (SELECT id FROM user WHERE email=?), UTC_TIMESTAMP(), UTC_TIMESTAMP())`
+
+	res, err := m.Db.Exec(stmt, title, author_email)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return e, ErrNoRecord
-		}
-		return e, err
+		return 0, err
 	}
-
-	return e, nil
-}
-
-func (m ExcerptModel) GetSharedContent(cShare uuid.UUID) (Excerpt, error) {
-	stmt := `SELECT id, title, content, grammar, technical, c_locked, g_locked,
-	g_share, t_share, created, updated
-	FROM excerpt WHERE excerpt.c_share=UUID_TO_BIN(?)`
-
-	var e Excerpt
-	cShareVal, _ := cShare.Value()
-	err := m.DB.QueryRow(stmt, cShareVal).Scan(&e.ID, &e.Title, &e.Content,
-		&e.Grammar, &e.Technical, &e.CLocked, &e.GLocked, &e.Created, &e.Updated)
+	id, err := res.LastInsertId()
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return e, ErrNoRecord
-		}
-		return e, err
+		return 0, err
 	}
-	return e, nil
-}
-
-func (m ExcerptModel) GetSharedGrammar(gShare uuid.UUID) (Excerpt, error) {
-	stmt := `SELECT id, title, content, grammar, technical, c_locked, g_locked,
-	c_share, t_share, created, updated
-	FROM excerpt WHERE excerpt.g_share=UUID_TO_BIN(?)`
-
-	var e Excerpt
-
-	gShareVal, _ := gShare.Value()
-	err := m.DB.QueryRow(stmt, gShareVal).Scan(&e.ID, &e.Title, &e.Content,
-		&e.Grammar, &e.Technical, &e.CLocked, &e.GLocked, &e.Created, &e.Updated)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return e, ErrNoRecord
-		}
-		return e, err
-	}
-	return e, nil
-}
-
-func (m ExcerptModel) GetSharedTechnical(tShare uuid.UUID) (Excerpt, error) {
-	stmt := `SELECT id, title, content, grammar, technical, c_locked, g_locked,
-	c_share, g_share, created, updated
-	FROM excerpt WHERE excerpt.t_share=UUID_TO_BIN(?)`
-
-	var e Excerpt
-
-	tShareVal, _ := tShare.Value()
-	err := m.DB.QueryRow(stmt, tShareVal).Scan(&e.ID, &e.Title, &e.Content,
-		&e.Grammar, &e.Technical, &e.CLocked, &e.GLocked, &e.Created, &e.Updated)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return e, ErrNoRecord
-		}
-		return e, err
-	}
-	return e, nil
-}
-
-func (m ExcerptModel) Insert(title string, password string) (uuid.UUID, error) {
-	stmt := `INSERT INTO excerpt (id, title, password_hash, created, updated)
-	VALUES (UUID_TO_BIN(?), ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`
-
-	// Technically it's not good practice to use UUIDv4 as a PK,
-	// however, to prevent people from finding random excerpts using url scrapers
-	// the id needs to be hard to guess, so we cannot just autoincrement it.
-
-	// We're also unlikely to run into perf issues since we're operating on a
-	// small scale.
-	id := uuid.New()
-	idVal, _ := id.Value()
-
-	hashed, err := bcrypt.GenerateFromPassword([]byte(password), 12)
-	if err != nil {
-		return uuid.UUID{}, err
-	}
-
-	_, err = m.DB.Exec(stmt, idVal, title, string(hashed))
-	if err != nil {
-		return uuid.UUID{}, err
-	}
-	return id, nil
+	return int(id), nil
 }
 
 func (m ExcerptModel) UpdateContent(id uuid.UUID, content string) error {
@@ -252,19 +184,7 @@ func (m ExcerptModel) UpdateContent(id uuid.UUID, content string) error {
 	WHERE id=UUID_TO_BIN(?) AND c_locked=FALSE`
 
 	idVal, _ := id.Value()
-	_, err := m.DB.Exec(stmt, content, idVal)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m ExcerptModel) UpdateSharedContent(cShare uuid.UUID, content string) error {
-	stmt := `UPDATE excerpt SET content=?, updated=UTC_TIMESTAMP()
-	WHERE c_share=UUID_TO_BIN(?) AND c_locked=FALSE`
-
-	idVal, _ := cShare.Value()
-	_, err := m.DB.Exec(stmt, content, idVal)
+	_, err := m.Db.Exec(stmt, content, idVal)
 	if err != nil {
 		return err
 	}
@@ -282,78 +202,65 @@ func (m ExcerptModel) SetContentLock(id uuid.UUID, lock bool) error {
 	}
 
 	idVal, _ := id.Value()
-	_, err := m.DB.Exec(stmt, idVal)
+	_, err := m.Db.Exec(stmt, idVal)
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func (m ExcerptModel) SetGrammarLock(id uuid.UUID, lock bool) error {
-	stmt := `UPDATE excerpt SET g_locked=?, updated=UTC_TIMESTAMP()
-	WHERE id=UUID_TO_BIN(?)`
-
-	idVal, _ := id.Value()
-	_, err := m.DB.Exec(stmt, lock, idVal)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 // Assumes content is clean
-func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
-	var generateWord = func(word string, punctuation bool, preceding bool) GWord {
-		return GWord{
-			Word:        word,
-			Tags:        []string{},
-			Punctuation: punctuation,
-			Preceding:   preceding,
-		}
-	}
-	excerpt, err := m.Get(id)
-	if err != nil {
-		return err
-	}
+// func (m ExcerptModel) ResetGrammar(id uuid.UUID) error {
+// 	var generateWord = func(word string, punctuation bool, preceding bool) GWord {
+// 		return GWord{
+// 			Word:        word,
+// 			Tags:        []string{},
+// 			Punctuation: punctuation,
+// 			Preceding:   preceding,
+// 		}
+// 	}
+// 	excerpt, err := m.Get(id)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	content := excerpt.Content
-	words := make([]GWord, 0, len(strings.Split(content, " ")))
-	word := ""
-	for _, l := range content {
-		if kalam.IsPunctuation(l) {
-			if word != "" {
-				words = append(words, generateWord(word, false, true))
-				word = ""
-			}
-			// Assume preceding unless there's a space
-			words = append(words, generateWord(string(l), true, true))
-		} else if l == ' ' {
-			wordCount := len(words)
-			if word != "" {
-				words = append(words, generateWord(word, false, false))
-				word = ""
-			} else if wordCount > 0 && words[wordCount-1].Punctuation {
-				words[wordCount-1].Preceding = false
-			}
-		} else {
-			word += string(l)
-		}
-	}
-	if word != "" {
-		words = append(words, generateWord(word, false, false))
-	}
-	grammar := Grammar{
-		Words: words,
-	}
+// 	content := excerpt.Content
+// 	words := make([]GWord, 0, len(strings.Split(content, " ")))
+// 	word := ""
+// 	for _, l := range content {
+// 		if kalam.IsPunctuation(l) {
+// 			if word != "" {
+// 				words = append(words, generateWord(word, false, true))
+// 				word = ""
+// 			}
+// 			// Assume preceding unless there's a space
+// 			words = append(words, generateWord(string(l), true, true))
+// 		} else if l == ' ' {
+// 			wordCount := len(words)
+// 			if word != "" {
+// 				words = append(words, generateWord(word, false, false))
+// 				word = ""
+// 			} else if wordCount > 0 && words[wordCount-1].Punctuation {
+// 				words[wordCount-1].Preceding = false
+// 			}
+// 		} else {
+// 			word += string(l)
+// 		}
+// 	}
+// 	if word != "" {
+// 		words = append(words, generateWord(word, false, false))
+// 	}
+// 	grammar := Grammar{
+// 		Words: words,
+// 	}
 
-	err = m.UpdateGrammar(id, grammar)
-	if err != nil {
-		return err
-	}
+// 	err = m.UpdateGrammar(id, grammar)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func (m ExcerptModel) UpdateGrammar(id uuid.UUID, grammar Grammar) error {
 	stmt := `UPDATE excerpt SET grammar=?, updated=UTC_TIMESTAMP()
@@ -364,24 +271,7 @@ func (m ExcerptModel) UpdateGrammar(id uuid.UUID, grammar Grammar) error {
 	if err != nil {
 		return err
 	}
-	_, err = m.DB.Exec(stmt, load, idVal)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m ExcerptModel) UpdateSharedGrammar(gShare uuid.UUID, grammar Grammar) error {
-	stmt := `UPDATE excerpt SET grammar=?, updated=UTC_TIMESTAMP()
-	WHERE g_share=UUID_TO_BIN(?) AND g_locked=FALSE`
-
-	idVal, _ := gShare.Value()
-	load, err := json.Marshal(grammar)
-	if err != nil {
-		return err
-	}
-	_, err = m.DB.Exec(stmt, load, idVal)
+	_, err = m.Db.Exec(stmt, load, idVal)
 	if err != nil {
 		return err
 	}
@@ -399,7 +289,7 @@ func (m ExcerptModel) UpdateTechnical(id uuid.UUID, technical Technical) error {
 	}
 
 	idVal, _ := id.Value()
-	_, err = m.DB.Exec(stmt, load, idVal)
+	_, err = m.Db.Exec(stmt, load, idVal)
 	if err != nil {
 		return err
 	}
@@ -407,59 +297,41 @@ func (m ExcerptModel) UpdateTechnical(id uuid.UUID, technical Technical) error {
 	return nil
 }
 
-func (m ExcerptModel) UpdateSharedTechnical(tShare uuid.UUID, technical Technical) error {
-	stmt := `UPDATE excerpt SET technical=?, updated=UTC_TIMESTAMP()
-	WHERE t_share=UUID_TO_BIN(?)`
+// func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
+// 	excerpt, err := m.Get(id)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	load, err := json.Marshal(technical)
-	if err != nil {
-		return err
-	}
+// 	technical := Technical{
+// 		Words: make([]TWord, len(excerpt.Grammar.Words)),
+// 	}
+// 	for i, gw := range excerpt.Grammar.Words {
+// 		technical.Words[i] = TWord{
+// 			Letters:       make([]Letter, 0, utf8.RuneCountInString(gw.Word)),
+// 			Punctuation:   gw.Punctuation,
+// 			Preceding:     gw.Preceding || gw.Shrinked,
+// 			SentenceStart: i == 0,
+// 		}
+// 		for _, l := range gw.Word {
+// 			technical.Words[i].Letters = append(technical.Words[i].Letters, Letter{
+// 				Letter: string(l),
+// 				Vowel:  "",
+// 				Shadda: false,
+// 			})
+// 		}
+// 	}
 
-	idVal, _ := tShare.Value()
-	_, err = m.DB.Exec(stmt, load, idVal)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m ExcerptModel) ResetTechnical(id uuid.UUID) error {
-	excerpt, err := m.Get(id)
-	if err != nil {
-		return err
-	}
-
-	technical := Technical{
-		Words: make([]TWord, len(excerpt.Grammar.Words)),
-	}
-	for i, gw := range excerpt.Grammar.Words {
-		technical.Words[i] = TWord{
-			Letters:       make([]Letter, 0, utf8.RuneCountInString(gw.Word)),
-			Punctuation:   gw.Punctuation,
-			Preceding:     gw.Preceding || gw.Shrinked,
-			SentenceStart: i == 0,
-		}
-		for _, l := range gw.Word {
-			technical.Words[i].Letters = append(technical.Words[i].Letters, Letter{
-				Letter: string(l),
-				Vowel:  "",
-				Shadda: false,
-			})
-		}
-	}
-
-	err = technical.Disambiguate()
-	if err != nil {
-		return err
-	}
-	err = m.UpdateTechnical(id, technical)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// 	err = technical.Disambiguate()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = m.UpdateTechnical(id, technical)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func (e Excerpt) Export() ([]byte, error) {
 	export := kalam.Excerpt{
@@ -528,4 +400,28 @@ func (t *Technical) Disambiguate() error {
 		}
 	}
 	return nil
+}
+
+func (m *ExcerptModel) GetByEmail(email string) ([]Excerpt, error) {
+	stmt := `SELECT e.id, e.title, e.created, e.updated
+	FROM user AS u
+	INNER JOIN excerpt AS e ON u.id = e.author_id
+	WHERE u.email=?`
+	rows, err := m.Db.Query(stmt, email)
+	if err != nil {
+		return []Excerpt{}, err
+	}
+	defer rows.Close()
+
+	excerpts := []Excerpt{}
+	for rows.Next() {
+		e := Excerpt{}
+		err = rows.Scan(&e.Id, &e.Title, &e.Created, &e.Updated)
+		if err != nil {
+			return excerpts, err
+		}
+		excerpts = append(excerpts, e)
+	}
+
+	return excerpts, nil
 }

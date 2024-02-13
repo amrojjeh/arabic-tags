@@ -2,12 +2,10 @@ package main
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
 
-	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/google/uuid"
 )
 
@@ -61,27 +59,27 @@ func (app *application) idRequired(h http.Handler) http.Handler {
 	})
 }
 
-func (app *application) excerptRequired(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id := r.Context().Value(idContextKey).(uuid.UUID)
-		var excerpt models.Excerpt
-		var err error
-		excerpt, err = app.excerpt.Get(id)
-		if err != nil {
-			if errors.Is(err, models.ErrNoRecord) {
-				app.excerptNotFound(w, r)
-				return
-			}
-			app.serverError(w, err)
-			return
-		}
+// func (app *application) excerptRequired(h http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		id := r.Context().Value(idContextKey).(uuid.UUID)
+// 		var excerpt models.Excerpt
+// 		var err error
+// 		excerpt, err = app.excerpt.Get(id)
+// 		if err != nil {
+// 			if errors.Is(err, models.ErrNoRecord) {
+// 				app.excerptNotFound(w, r)
+// 				return
+// 			}
+// 			app.serverError(w, err)
+// 			return
+// 		}
 
-		ctx := context.WithValue(r.Context(), excerptContextKey, excerpt)
-		r = r.WithContext(ctx)
+// 		ctx := context.WithValue(r.Context(), excerptContextKey, excerpt)
+// 		r = r.WithContext(ctx)
 
-		h.ServeHTTP(w, r)
-	})
-}
+// 		h.ServeHTTP(w, r)
+// 	})
+// }
 
 func (app *application) technicalWordRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

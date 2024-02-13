@@ -3,8 +3,10 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -31,6 +33,13 @@ func (m *UserModel) Register(username, email, password string) error {
 
 	_, err = m.Db.Exec(stmt, username, email, string(password_hash))
 	if err != nil {
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			if strings.Contains(mysqlErr.Message, "user_username_uc") {
+				return ErrDuplicateUsername
+			}
+			return ErrDuplicateEmail
+		}
 		return err
 	}
 

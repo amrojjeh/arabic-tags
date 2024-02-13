@@ -55,7 +55,7 @@ func main() {
 
 	app := application{
 		logger:  logger,
-		excerpt: models.ExcerptModel{DB: db},
+		excerpt: models.ExcerptModel{Db: db},
 		user:    models.UserModel{Db: db},
 		session: session,
 	}

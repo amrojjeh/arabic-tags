@@ -16,54 +16,25 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/static/*file",
 		http.FileServer(http.FS(ui.Files)))
 
+	authRequired := alice.New(app.authRequired)
+	// TODO(Amr Ojjeh): Write an index page
+	router.Handler(http.MethodGet, "/", authRequired.Then(app.homeGet()))
+
 	router.Handler(http.MethodGet, "/register", app.registerGet())
 	router.Handler(http.MethodPost, "/register", app.registerPost())
 
 	router.Handler(http.MethodGet, "/login", app.loginGet())
 	router.Handler(http.MethodPost, "/login", app.loginPost())
 
-	authRequired := alice.New(app.authRequired)
-
 	router.Handler(http.MethodPost, "/logout", authRequired.Then(app.logoutPost()))
+
 	router.Handler(http.MethodGet, "/home", authRequired.Then(app.homeGet()))
 
-	// idRequired := alice.New(app.idRequired)
-	// contentExcerptRequired := idRequired.Append(app.excerptRequired)
-	// grammarExcerptRequired := contentExcerptRequired.Append(app.contentLockRequired)
-	// technicalExcerptRequired := grammarExcerptRequired.Append(app.grammarLockRequired)
-	// technicalWordRequired := technicalExcerptRequired.Append(app.technicalWordRequired)
+	router.Handler(http.MethodGet, "/excerpt", authRequired.Then(app.createExcerptGet()))
+	router.Handler(http.MethodPost, "/excerpt", authRequired.Then(app.createExcerptPost()))
 
-	// router.Handler(http.MethodGet, "/excerpt/edit",
-	// 	contentExcerptRequired.Then(app.excerptEditGet()))
-	// router.Handler(http.MethodPut, "/excerpt/edit",
-	// 	idRequired.Then(app.excerptEditPut()))
-	// router.Handler(http.MethodPut, "/excerpt/edit/lock",
-	// 	contentExcerptRequired.Then(app.excerptEditLock()))
-	// router.Handler(http.MethodPut, "/excerpt/edit/unlock",
-	// 	idRequired.Then(app.excerptEditUnlock()))
-	// router.Handler(http.MethodGet, "/excerpt/grammar",
-	// 	grammarExcerptRequired.Then(app.excerptGrammarGet()))
-	// router.Handler(http.MethodPut, "/excerpt/grammar",
-	// 	grammarExcerptRequired.Then(app.excerptGrammarPut()))
-	// router.Handler(http.MethodPut, "/excerpt/grammar/lock",
-	// 	grammarExcerptRequired.Then(app.excerptGrammarLock()))
-	// router.Handler(http.MethodPut, "/excerpt/grammar/unlock",
-	// 	grammarExcerptRequired.Then(app.excerptGrammarUnlock()))
+	router.Handler(http.MethodGet, "/excerpt/:id", authRequired.Then(app.excerptGet()))
 
-	// router.Handler(http.MethodGet, "/excerpt/technical",
-	// 	technicalExcerptRequired.Then(app.excerptTechnicalGet()))
-	// router.Handler(http.MethodPut, "/excerpt/technical/tashkeel",
-	// 	technicalWordRequired.Then(app.excerptTechnicalVowelPut()))
-	// router.Handler(http.MethodPut, "/excerpt/technical/shadda",
-	// 	technicalWordRequired.Then(app.excerptTechnicalShadda()))
-	// router.Handler(http.MethodGet, "/excerpt/technical/word",
-	// 	technicalWordRequired.Then(app.excerptTechnicalWordGet()))
-	// router.Handler(http.MethodPut, "/excerpt/technical/sentenceStart",
-	// 	technicalWordRequired.Then(app.excerptTechnicalSentenceStart()))
-	// router.Handler(http.MethodPut, "/excerpt/technical/ignore",
-	// 	technicalWordRequired.Then(app.excerptTechnicalIgnore()))
-	// router.Handler(http.MethodGet, "/excerpt/technical/export.json",
-	// 	technicalExcerptRequired.Then(app.excerptTechnicalExport()))
 	base := alice.New(app.logRequest, app.session.LoadAndSave)
 	return base.Then(router)
 }

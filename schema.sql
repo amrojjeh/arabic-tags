@@ -17,11 +17,11 @@ CREATE TABLE IF NOT EXISTS user (
 CREATE TABLE IF NOT EXISTS excerpt (
     id INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(100) NOT NULL,
-    user_id INTEGER NOT NULL,
+    author_id INTEGER NOT NULL,
     created DATETIME NOT NULL,
     updated DATETIME NOT NULL,
 
-    FOREIGN KEY (user_id)
+    FOREIGN KEY (author_id)
         REFERENCES user(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE

@@ -1,10 +1,16 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 
+	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/amrojjeh/arabic-tags/internal/validator"
+	"github.com/amrojjeh/arabic-tags/ui/layers"
 	"github.com/amrojjeh/arabic-tags/ui/pages"
+	"github.com/julienschmidt/httprouter"
 )
 
 func (app *application) notFound() http.Handler {
@@ -61,6 +67,21 @@ func (app *application) registerPost() http.Handler {
 
 		err = app.user.Register(res.Username, res.Email, res.Password)
 		if err != nil {
+			if errors.Is(err, models.ErrDuplicateEmail) {
+				props.EmailError = "Email is already taken"
+				err = pages.RegisterPage(props).Render(w)
+				if err != nil {
+					app.serverError(w, err)
+				}
+				return
+			} else if errors.Is(err, models.ErrDuplicateUsername) {
+				props.UsernameError = "Username is already taken"
+				err = pages.RegisterPage(props).Render(w)
+				if err != nil {
+					app.serverError(w, err)
+				}
+				return
+			}
 			app.serverError(w, err)
 			return
 		}
@@ -152,12 +173,65 @@ func (app *application) homeGet() http.Handler {
 			app.serverError(w, err)
 			return
 		}
+		excerpts, err := app.excerpt.GetByEmail(email)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		homeExcerpts := make([]pages.HomeExcerpt, len(excerpts))
+		for x := 0; x < len(homeExcerpts); x++ {
+			homeExcerpts[x] = pages.HomeExcerpt{
+				Name: excerpts[x].Title,
+				Url:  fmt.Sprintf("/excerpt/%d", excerpts[x].Id),
+			}
+		}
 		err = pages.HomePage(pages.HomeProps{
 			Username: user.Username,
+			Excerpts: homeExcerpts,
+			AddUrl:   "/excerpt",
 		}).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
+	})
+}
+
+func (app *application) createExcerptGet() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := layers.ExcerptLayer("/excerpt").Render(w)
+		if err != nil {
+			app.serverError(w, err)
+		}
+	})
+}
+
+func (app *application) createExcerptPost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		res, err := layers.NewExcerptResponse(r)
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		email := app.session.GetString(r.Context(), authorizedEmailSessionKey)
+		id, err := app.excerpt.Insert(res.Title, email)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		http.Redirect(w, r, fmt.Sprintf("/excerpt/%v", id), http.StatusSeeOther)
+	})
+}
+
+func (app *application) excerptGet() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.Atoi(httprouter.ParamsFromContext(r.Context()).ByName("id"))
+		if err != nil {
+			app.clientError(w, http.StatusUnprocessableEntity)
+			return
+		}
+		w.Write([]byte(strconv.Itoa(id)))
 	})
 }
 
