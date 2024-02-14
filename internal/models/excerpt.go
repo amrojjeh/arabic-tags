@@ -10,6 +10,7 @@ import (
 
 	"github.com/amrojjeh/arabic-tags/internal/disambig"
 	"github.com/amrojjeh/kalam"
+	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 )
 
@@ -127,49 +128,46 @@ func (t *Technical) Scan(src any) error {
 }
 
 type Excerpt struct {
-	Id        int
-	Title     string
-	Content   string
-	Grammar   Grammar
-	Technical Technical
-	CLocked   bool
-	GLocked   bool
-	Created   time.Time
-	Updated   time.Time
+	Id          int
+	Title       string
+	AuthorEmail string
+	Created     time.Time
+	Updated     time.Time
 }
 
 type ExcerptModel struct {
 	Db *sql.DB
 }
 
-// func (m ExcerptModel) Get(id uuid.UUID) (Excerpt, error) {
-// 	stmt := `SELECT title, content, grammar, technical, c_locked, g_locked,
-// 	c_share, g_share, t_share, created, updated
-// 	FROM excerpt WHERE excerpt.id=UUID_TO_BIN(?)`
+func (m ExcerptModel) Get(id int) (Excerpt, error) {
+	stmt := `SELECT id, title, author_email, created, updated
+	FROM excerpt WHERE id=?`
 
-// 	var e Excerpt
-// 	e.Id = id
+	var e Excerpt
+	err := m.Db.QueryRow(stmt, id).Scan(&e.Id, &e.Title, &e.AuthorEmail,
+		&e.Created, &e.Updated)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return e, ErrNoRecord
+		}
+		return e, err
+	}
 
-// 	// UUID.Value always returns nil
-// 	idVal, _ := id.Value()
-// 	err := m.Db.QueryRow(stmt, idVal).Scan(&e.Title, &e.Content, &e.Grammar,
-// 		&e.Technical, &e.CLocked, &e.GLocked, &e.Created, &e.Updated)
-// 	if err != nil {
-// 		if errors.Is(err, sql.ErrNoRows) {
-// 			return e, ErrNoRecord
-// 		}
-// 		return e, err
-// 	}
-
-// 	return e, nil
-// }
+	return e, nil
+}
 
 func (m ExcerptModel) Insert(title, author_email string) (int, error) {
-	stmt := `INSERT INTO excerpt (title, author_id, created, updated)
-	VALUES (?, (SELECT id FROM user WHERE email=?), UTC_TIMESTAMP(), UTC_TIMESTAMP())`
+	stmt := `INSERT INTO excerpt (title, author_email, created, updated)
+	VALUES (?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`
 
 	res, err := m.Db.Exec(stmt, title, author_email)
 	if err != nil {
+		var mysqlerr *mysql.MySQLError
+		if errors.As(err, &mysqlerr) {
+			if mysqlerr.Number == 1452 {
+				return 0, ErrEmailDoesNotExist
+			}
+		}
 		return 0, err
 	}
 	id, err := res.LastInsertId()
@@ -177,36 +175,6 @@ func (m ExcerptModel) Insert(title, author_email string) (int, error) {
 		return 0, err
 	}
 	return int(id), nil
-}
-
-func (m ExcerptModel) UpdateContent(id uuid.UUID, content string) error {
-	stmt := `UPDATE excerpt SET content=?, updated=UTC_TIMESTAMP()
-	WHERE id=UUID_TO_BIN(?) AND c_locked=FALSE`
-
-	idVal, _ := id.Value()
-	_, err := m.Db.Exec(stmt, content, idVal)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m ExcerptModel) SetContentLock(id uuid.UUID, lock bool) error {
-	var stmt string
-	if lock {
-		stmt = `UPDATE excerpt SET c_locked=TRUE, updated=UTC_TIMESTAMP()
-		WHERE id=UUID_TO_BIN(?)`
-	} else {
-		stmt = `UPDATE excerpt SET c_locked=FALSE, g_locked=FALSE, updated=UTC_TIMESTAMP()
-		WHERE id=UUID_TO_BIN(?)`
-	}
-
-	idVal, _ := id.Value()
-	_, err := m.Db.Exec(stmt, idVal)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // Assumes content is clean
@@ -333,37 +301,37 @@ func (m ExcerptModel) UpdateTechnical(id uuid.UUID, technical Technical) error {
 // 	return nil
 // }
 
-func (e Excerpt) Export() ([]byte, error) {
-	export := kalam.Excerpt{
-		Name:      e.Title,
-		Sentences: []kalam.Sentence{},
-	}
+// func (e Excerpt) Export() ([]byte, error) {
+// 	export := kalam.Excerpt{
+// 		Name:      e.Title,
+// 		Sentences: []kalam.Sentence{},
+// 	}
 
-	var sen *kalam.Sentence = nil
-	for i, w := range e.Technical.Words {
-		if w.SentenceStart {
-			if sen != nil {
-				export.Sentences = append(export.Sentences, *sen)
-			}
-			sen = &kalam.Sentence{
-				Words: []kalam.Word{},
-			}
-		}
-		sen.Words = append(sen.Words, kalam.Word{
-			PointedWord: w.String(),
-			Tags:        e.Grammar.Words[i].Tags,
-			Punctuation: w.Punctuation,
-			Ignore:      w.Ignore,
-			Preceding:   w.Preceding,
-		})
-	}
+// 	var sen *kalam.Sentence = nil
+// 	for i, w := range e.Technical.Words {
+// 		if w.SentenceStart {
+// 			if sen != nil {
+// 				export.Sentences = append(export.Sentences, *sen)
+// 			}
+// 			sen = &kalam.Sentence{
+// 				Words: []kalam.Word{},
+// 			}
+// 		}
+// 		sen.Words = append(sen.Words, kalam.Word{
+// 			PointedWord: w.String(),
+// 			Tags:        e.Grammar.Words[i].Tags,
+// 			Punctuation: w.Punctuation,
+// 			Ignore:      w.Ignore,
+// 			Preceding:   w.Preceding,
+// 		})
+// 	}
 
-	if sen != nil {
-		export.Sentences = append(export.Sentences, *sen)
-	}
+// 	if sen != nil {
+// 		export.Sentences = append(export.Sentences, *sen)
+// 	}
 
-	return json.Marshal(export)
-}
+// 	return json.Marshal(export)
+// }
 
 // TODO(Amr Ojjeh): Automatically vowelize mabni words
 func (t *Technical) Disambiguate() error {
@@ -403,10 +371,9 @@ func (t *Technical) Disambiguate() error {
 }
 
 func (m *ExcerptModel) GetByEmail(email string) ([]Excerpt, error) {
-	stmt := `SELECT e.id, e.title, e.created, e.updated
-	FROM user AS u
-	INNER JOIN excerpt AS e ON u.id = e.author_id
-	WHERE u.email=?`
+	stmt := `SELECT id, title, author_email, created, updated
+	FROM excerpt
+	WHERE author_email=?`
 	rows, err := m.Db.Query(stmt, email)
 	if err != nil {
 		return []Excerpt{}, err
@@ -416,7 +383,7 @@ func (m *ExcerptModel) GetByEmail(email string) ([]Excerpt, error) {
 	excerpts := []Excerpt{}
 	for rows.Next() {
 		e := Excerpt{}
-		err = rows.Scan(&e.Id, &e.Title, &e.Created, &e.Updated)
+		err = rows.Scan(&e.Id, &e.Title, &e.AuthorEmail, &e.Created, &e.Updated)
 		if err != nil {
 			return excerpts, err
 		}

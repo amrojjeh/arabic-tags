@@ -16,10 +16,6 @@ func LayerBase(p LayerBaseProps) g.Node {
 		Title:       p.Title,
 		Description: "Tag arabic text with metadata and irab",
 		Language:    "en",
-		Head: []g.Node{
-			Link(Rel("stylesheet"), Href("/static/main.css")),
-			Script(Src("/static/main.js")),
-		},
 		Body: []g.Node{
 			Class("gap-0 flex flex-col"),
 			Main(Class("grow p-4 overflow-y-hidden"),

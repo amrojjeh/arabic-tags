@@ -19,10 +19,6 @@ func MainBase(p MainBaseProps) g.Node {
 		Title:       p.Title,
 		Description: "Tag arabic text with metadata and irab",
 		Language:    "en",
-		Head: []g.Node{
-			Link(Rel("stylesheet"), Href("/static/main.css")),
-			Script(Src("/static/main.js")),
-		},
 		Body: []g.Node{
 			Class("h-screen gap-0 flex flex-col bg-red-50/25"),
 			g.If(p.Nav != nil, Nav(Class("text-white bg-red-800 px-5 py-2 grid grid-cols-3 grid-rows-1 items-center"),

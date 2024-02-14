@@ -17,11 +17,12 @@ import (
 )
 
 type application struct {
-	logger  *slog.Logger
-	page    map[string]*template.Template
-	excerpt models.ExcerptModel
-	user    models.UserModel
-	session *scs.SessionManager
+	logger     *slog.Logger
+	page       map[string]*template.Template
+	user       models.UserModel
+	excerpt    models.ExcerptModel
+	manuscript models.ManuscriptModel
+	session    *scs.SessionManager
 }
 
 func main() {
@@ -54,10 +55,11 @@ func main() {
 	session.Store = mysqlstore.New(db)
 
 	app := application{
-		logger:  logger,
-		excerpt: models.ExcerptModel{Db: db},
-		user:    models.UserModel{Db: db},
-		session: session,
+		logger:     logger,
+		user:       models.UserModel{Db: db},
+		excerpt:    models.ExcerptModel{Db: db},
+		manuscript: models.ManuscriptModel{Db: db},
+		session:    session,
 	}
 
 	if err != nil {

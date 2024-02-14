@@ -15,7 +15,6 @@ type UserModel struct {
 }
 
 type User struct {
-	Id       int
 	Username string
 	Email    string
 	Created  time.Time
@@ -66,10 +65,10 @@ func (m *UserModel) Authenticate(email, password string) (bool, error) {
 }
 
 func (m *UserModel) Get(email string) (User, error) {
-	stmt := `SELECT id, username, email, created, updated FROM user WHERE email=?`
+	stmt := `SELECT email, username, created, updated FROM user WHERE email=?`
 	var user User
 	res := m.Db.QueryRow(stmt, email)
-	err := res.Scan(&user.Id, &user.Username, &user.Email, &user.Created, &user.Updated)
+	err := res.Scan(&user.Email, &user.Username, &user.Created, &user.Updated)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return User{}, ErrNoRecord
