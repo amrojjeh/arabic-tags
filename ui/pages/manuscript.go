@@ -12,6 +12,9 @@ type ManuscriptProps struct {
 	AcceptedPunctuation string
 	Content             string
 	SubmitUrl           string
+	Warning             string
+	Error               string
+	Username            string
 }
 
 func ManuscriptPage(p ManuscriptProps) g.Node {
@@ -21,7 +24,7 @@ func ManuscriptPage(p ManuscriptProps) g.Node {
 			H2(Class("text-2xl text-center"),
 				g.Text(p.ExcerptTitle)),
 			g.El("arabic-input", Class("grow"), g.Attr("url", p.SubmitUrl), g.Attr("punctuation", p.AcceptedPunctuation), Value(p.Content), g.If(p.ReadOnly, ReadOnly())))},
-		Nav: partials.MainNav(),
+		Nav: partials.SimpleNav(p.Username),
 		Footer: []g.Node{
 			Div(
 				// TODO(Amr Ojjeh): Move to backend
@@ -36,6 +39,7 @@ func ManuscriptPage(p ManuscriptProps) g.Node {
 				),
 			),
 		},
-		Error: "",
+		Error:   p.Error,
+		Warning: p.Warning,
 	})
 }

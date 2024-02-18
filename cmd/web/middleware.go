@@ -37,7 +37,7 @@ func (app *application) logRequest(h http.Handler) http.Handler {
 
 func (app *application) authRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		email := app.session.GetString(r.Context(), authorizedEmailSessionKey)
+		email := app.getAuthenticatedEmail(r)
 		if email == "" {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return

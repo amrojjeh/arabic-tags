@@ -166,7 +166,7 @@ func (app *application) logoutPost() http.Handler {
 
 func (app *application) homeGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		email := app.session.GetString(r.Context(), authorizedEmailSessionKey)
+		email := app.getAuthenticatedEmail(r)
 		user, err := app.user.Get(email)
 		if err != nil {
 			app.serverError(w, err)
@@ -243,13 +243,32 @@ func (app *application) excerptGet() http.Handler {
 			return
 		}
 
-		err = pages.ManuscriptPage(pages.ManuscriptProps{
+		props := pages.ManuscriptProps{
 			ExcerptTitle:        excerpt.Title,
-			ReadOnly:            false,
 			AcceptedPunctuation: kalam.PunctuationRegex().String(),
 			Content:             manuscript.Content,
 			SubmitUrl:           r.URL.String(),
-		}).Render(w)
+		}
+
+		email := app.getAuthenticatedEmail(r)
+		if loggedIn := email != ""; !loggedIn {
+			props.ReadOnly = true
+			props.Warning = "Log in as the owner if you wish to edit the excerpt"
+		} else {
+			user, err := app.user.Get(email)
+			if err != nil {
+				app.serverError(w, err)
+				return
+			}
+			props.Username = user.Username
+
+			if owner := email == excerpt.AuthorEmail; !owner {
+				props.ReadOnly = true
+				props.Warning = "You cannot make changes as you're not the owner of the excerpt"
+			}
+		}
+
+		err = pages.ManuscriptPage(props).Render(w)
 
 		if err != nil {
 			app.serverError(w, err)

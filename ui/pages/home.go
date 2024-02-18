@@ -37,6 +37,6 @@ func HomePage(p HomeProps) g.Node {
 				})),
 			),
 		},
-		Nav: partials.UserNav(p.Username),
+		Nav: partials.SimpleNav(p.Username),
 	})
 }

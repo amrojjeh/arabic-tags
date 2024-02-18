@@ -7,11 +7,12 @@ import (
 )
 
 type MainBaseProps struct {
-	Title  string
-	Main   []g.Node
-	Nav    []g.Node
-	Footer []g.Node
-	Error  string
+	Title   string
+	Main    []g.Node
+	Nav     []g.Node
+	Footer  []g.Node
+	Error   string
+	Warning string
 }
 
 func MainBase(p MainBaseProps) g.Node {
@@ -35,6 +36,11 @@ func MainBase(p MainBaseProps) g.Node {
 					Img(Src("/static/icons/warning.svg"), Class("inline align-bottom")),
 					g.Text("You're offline. Any changes you make will not be saved until you're back online."),
 				),
+				g.If(p.Warning != "", Div(ID("any-warning"),
+					Class("text-center bg-yellow-300 text-black"),
+					Img(Src("/static/icons/warning.svg"), Class("inline align-bottom")),
+					g.Text(p.Warning),
+				)),
 				g.Group(p.Main)),
 			g.If(p.Footer != nil,
 				Footer(

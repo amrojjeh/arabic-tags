@@ -23,3 +23,7 @@ func (app *application) noBody(w http.ResponseWriter) {
 func (app *application) excerptNotFound(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/?error=Excerpt not found", http.StatusSeeOther)
 }
+
+func (app *application) getAuthenticatedEmail(r *http.Request) string {
+	return app.session.GetString(r.Context(), authorizedEmailSessionKey)
+}

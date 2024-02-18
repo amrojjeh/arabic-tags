@@ -28,7 +28,7 @@ type RegisterResponse struct {
 func RegisterPage(p RegisterProps) g.Node {
 	return MainBase(MainBaseProps{
 		Title: "Register",
-		Nav:   partials.SimpleNav(),
+		Nav:   partials.SimpleNav(""),
 		Main: []g.Node{
 			Div(Class("flex flex-col gap-3 items-center justify-center h-full"),
 				H1(Class("text-2xl"),
