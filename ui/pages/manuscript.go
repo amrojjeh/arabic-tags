@@ -11,19 +11,23 @@ type ManuscriptProps struct {
 	ReadOnly            bool
 	AcceptedPunctuation string
 	Content             string
-	SubmitUrl           string
 	Warning             string
 	Error               string
 	Username            string
+	SubmitUrl           string
+	TitleUrl            string
 }
 
 func ManuscriptPage(p ManuscriptProps) g.Node {
 	return MainBase(MainBaseProps{
 		Title: p.ExcerptTitle,
-		Main: []g.Node{Div(Class("flex flex-col h-full"),
-			H2(Class("text-2xl text-center"),
-				g.Text(p.ExcerptTitle)),
-			g.El("arabic-input", Class("grow"), g.Attr("url", p.SubmitUrl), g.Attr("punctuation", p.AcceptedPunctuation), Value(p.Content), g.If(p.ReadOnly, ReadOnly())))},
+		Main: []g.Node{
+			Div(Class("flex flex-col h-full"),
+				Div(Class("flex justify-center"),
+					partials.TitleRegular(p.TitleUrl, p.ExcerptTitle),
+				),
+				g.El("arabic-input", Class("grow"), g.Attr("url", p.SubmitUrl), g.Attr("punctuation", p.AcceptedPunctuation), Value(p.Content), g.If(p.ReadOnly, ReadOnly())),
+			)},
 		Nav: partials.SimpleNav(p.Username),
 		Footer: []g.Node{
 			Div(

@@ -21,7 +21,7 @@ type User struct {
 	Updated  time.Time
 }
 
-func (m *UserModel) Register(username, email, password string) error {
+func (m UserModel) Register(username, email, password string) error {
 	stmt := `INSERT INTO user (username, email, password_hash, created,
 		updated) VALUES (?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`
 
@@ -45,7 +45,7 @@ func (m *UserModel) Register(username, email, password string) error {
 	return nil
 }
 
-func (m *UserModel) Authenticate(email, password string) (bool, error) {
+func (m UserModel) Authenticate(email, password string) (bool, error) {
 	stmt := `SELECT password_hash FROM user WHERE email=?`
 	var pass_hash string
 	res := m.Db.QueryRow(stmt, email)
@@ -64,7 +64,7 @@ func (m *UserModel) Authenticate(email, password string) (bool, error) {
 	return true, nil
 }
 
-func (m *UserModel) Get(email string) (User, error) {
+func (m UserModel) Get(email string) (User, error) {
 	stmt := `SELECT email, username, created, updated FROM user WHERE email=?`
 	var user User
 	res := m.Db.QueryRow(stmt, email)

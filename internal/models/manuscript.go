@@ -41,16 +41,9 @@ func (m ManuscriptModel) Update(id int, content string) error {
 	SET content=?, updated=UTC_TIMESTAMP()
 	WHERE id=?`
 
-	res, err := m.Db.Exec(stmt, content, id)
+	_, err := m.Db.Exec(stmt, content, id)
 	if err != nil {
 		return err
-	}
-	r, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if r == 0 {
-		return ErrNoRecord
 	}
 	return nil
 }
@@ -60,16 +53,9 @@ func (m ManuscriptModel) UpdateByExcerptId(excerpt_id int, content string) error
 	SET content=?, updated=UTC_TIMESTAMP()
 	WHERE excerpt_id=?`
 
-	res, err := m.Db.Exec(stmt, content, excerpt_id)
+	_, err := m.Db.Exec(stmt, content, excerpt_id)
 	if err != nil {
 		return err
-	}
-	r, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if r == 0 {
-		return ErrNoRecord
 	}
 	return nil
 }

@@ -1,6 +1,9 @@
 up.link.config.instantSelectors.push('a[href]')
 up.link.config.followSelectors.push('a[href]')
 up.form.config.submitSelectors.push(['form'])
+up.compiler("[select]", function(el) {
+  el.select()
+})
 
 function setOffline(offline = true) {
   if (offline) {

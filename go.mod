@@ -7,7 +7,6 @@ require (
 	github.com/alexedwards/scs/v2 v2.7.0
 	github.com/amrojjeh/kalam v0.7.3
 	github.com/go-sql-driver/mysql v1.7.1
-	github.com/google/uuid v1.6.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/justinas/alice v1.2.0
 	github.com/maragudk/gomponents v0.20.2

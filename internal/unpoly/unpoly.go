@@ -18,3 +18,7 @@ func History(mode bool) g.Node {
 	}
 	return g.Attr("up-history", "false")
 }
+
+func Target(selector string) g.Node {
+	return g.Attr("up-target", selector)
+}

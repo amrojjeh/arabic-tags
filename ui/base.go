@@ -36,3 +36,7 @@ func HTML5(p HTML5Props) g.Node {
 		),
 	)
 }
+
+func SelectAttr() g.Node {
+	return g.Attr("select")
+}

@@ -9,6 +9,7 @@ import (
 	"github.com/amrojjeh/arabic-tags/internal/validator"
 	"github.com/amrojjeh/arabic-tags/ui/layers"
 	"github.com/amrojjeh/arabic-tags/ui/pages"
+	"github.com/amrojjeh/arabic-tags/ui/partials"
 	"github.com/amrojjeh/kalam"
 )
 
@@ -248,6 +249,7 @@ func (app *application) excerptGet() http.Handler {
 			AcceptedPunctuation: kalam.PunctuationRegex().String(),
 			Content:             manuscript.Content,
 			SubmitUrl:           r.URL.String(),
+			TitleUrl:            fmt.Sprintf("/excerpt/%v/title", excerpt.Id),
 		}
 
 		email := app.getAuthenticatedEmail(r)
@@ -295,6 +297,40 @@ func (app *application) excerptPost() http.Handler {
 		if err != nil {
 			app.serverError(w, err)
 			return
+		}
+	})
+}
+
+func (app *application) excerptTitleGet() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		e := getExcerptFromContext(r.Context())
+		err := partials.TitleForm(
+			fmt.Sprintf("/excerpt/%v/title", e.Id), e.Title).Render(w)
+		if err != nil {
+			app.serverError(w, err)
+		}
+	})
+}
+
+func (app *application) excerptTitlePost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseForm()
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		excerpt := getExcerptFromContext(r.Context())
+		title := r.Form.Get("title")
+		err = app.excerpt.UpdateTitle(excerpt.Id, title)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		err = partials.TitleRegular(fmt.Sprintf("/excerpt/%v/title", excerpt.Id),
+			title).Render(w)
+		if err != nil {
+			app.serverError(w, err)
 		}
 	})
 }
