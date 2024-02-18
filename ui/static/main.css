@@ -566,10 +566,6 @@ video {
   top: 0px;
 }
 
-.col-start-1 {
-  grid-column-start: 1;
-}
-
 .col-start-2 {
   grid-column-start: 2;
 }

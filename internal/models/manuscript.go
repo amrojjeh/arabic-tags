@@ -36,6 +36,44 @@ func (m ManuscriptModel) Insert(excerpt_id int) (int, error) {
 	return int(id), nil
 }
 
+func (m ManuscriptModel) Update(id int, content string) error {
+	stmt := `UPDATE manuscript
+	SET content=?, updated=UTC_TIMESTAMP()
+	WHERE id=?`
+
+	res, err := m.Db.Exec(stmt, content, id)
+	if err != nil {
+		return err
+	}
+	r, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRecord
+	}
+	return nil
+}
+
+func (m ManuscriptModel) UpdateByExcerptId(excerpt_id int, content string) error {
+	stmt := `UPDATE manuscript
+	SET content=?, updated=UTC_TIMESTAMP()
+	WHERE excerpt_id=?`
+
+	res, err := m.Db.Exec(stmt, content, excerpt_id)
+	if err != nil {
+		return err
+	}
+	r, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRecord
+	}
+	return nil
+}
+
 func (m ManuscriptModel) Get(id int) (Manuscript, error) {
 	stmt := `SELECT id, content, locked, excerpt_id, created, updated
 	FROM manuscript
@@ -47,7 +85,7 @@ func (m ManuscriptModel) Get(id int) (Manuscript, error) {
 		&ms.Created, &ms.Updated)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return Manuscript{}, ErrNoRecord
+			return Manuscript{}, errors.Join(ErrNoRecord, err)
 		}
 		return Manuscript{}, err
 	}
@@ -65,7 +103,7 @@ func (m ManuscriptModel) GetByExcerptId(excerpt_id int) (Manuscript, error) {
 		&ms.Created, &ms.Updated)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return Manuscript{}, ErrNoRecord
+			return Manuscript{}, errors.Join(ErrNoRecord, err)
 		}
 		return Manuscript{}, err
 	}

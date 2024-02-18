@@ -71,7 +71,7 @@ func (m *UserModel) Get(email string) (User, error) {
 	err := res.Scan(&user.Email, &user.Username, &user.Created, &user.Updated)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return User{}, ErrNoRecord
+			return User{}, errors.Join(ErrNoRecord, err)
 		}
 		return User{}, err
 	}

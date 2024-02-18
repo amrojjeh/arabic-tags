@@ -35,7 +35,7 @@ func (app *application) routes() http.Handler {
 
 	excerptRequired := alice.New(app.excerptRequired)
 	router.Handler(http.MethodGet, "/excerpt/:id", excerptRequired.Then(app.excerptGet()))
-	router.Handler(http.MethodPut, "/excerpt/:id", excerptRequired.Then(app.excerptPut()))
+	router.Handler(http.MethodPost, "/excerpt/:id", excerptRequired.Then(app.excerptPost()))
 
 	base := alice.New(app.session.LoadAndSave, app.recoverPanic, app.logRequest)
 	return base.Then(router)

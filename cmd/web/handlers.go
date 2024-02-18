@@ -257,7 +257,25 @@ func (app *application) excerptGet() http.Handler {
 	})
 }
 
-func (app *application) excerptPut() http.Handler {
+func (app *application) excerptPost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusUnprocessableEntity)
+			return
+		}
+
+		e := getExcerptFromContext(r.Context())
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		c := r.Form.Get("content")
+		err = app.manuscript.UpdateByExcerptId(e.Id, c)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
 	})
 }

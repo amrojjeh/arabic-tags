@@ -33,9 +33,11 @@ class ArabicInput extends HTMLElement {
 
   connectedCallback() {
     this.innerHTML = this.initHTML()
-    this.HTML = Object.create(null)
-    this.HTML.textarea = this.querySelector("textarea")
-    this.HTML.highlighted = this.querySelector("div > div > div")
+    this.HTML = {
+      textarea: this.querySelector("textarea"),
+      highlighted: this.querySelector("div > div > div"),
+      form: this.querySelector("form")
+    }
 
     this.HTML.textarea.tabindex = "0"
     if (typeof this.getAttribute("readonly") !== "string") {
@@ -50,7 +52,7 @@ class ArabicInput extends HTMLElement {
       this.HTML.textarea.value = this.getAttribute("value")
     }
     if (this.getAttribute("url") != null) {
-      this.saveUrl = this.getAttribute("url")
+      this.HTML.form.action = this.getAttribute("url");
     } else {
       console.error("There is no save url!")
     }
@@ -78,28 +80,20 @@ class ArabicInput extends HTMLElement {
       <div dir="rtl" class="h-full">
         <div class="relative h-full">
           <div class="ps-5 text-clip overflow-y-auto leading-loose absolute break-words top-0 left-0 h-full w-full text-3xl"></div>
-          <textarea spellcheck="false"
-            name="content"
-            class="ps-5 leading-loose absolute focus:outline-none top-0 left-0 caret-black
-            text-transparent bg-transparent h-full w-full text-3xl resize-none"
-            placeholder="اكتب..."></textarea>
+          <form action="" method="post" up-autosubmit>
+            <textarea spellcheck="false"
+              name="content"
+              autofocus
+              class="ps-5 leading-loose absolute focus:outline-none top-0 left-0 caret-black
+              text-transparent bg-transparent h-full w-full text-3xl resize-none"
+              placeholder="اكتب..."></textarea>
+          </form>
         </div>
       </div>`
   }
 
   save() {
-    const xhr = new XMLHttpRequest()
-    xhr.open("PUT", this.saveUrl)
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState == XMLHttpRequest.DONE) {
-        if (xhr.status == 200) {
-          setOffline(false)
-        } else {
-          setOffline(true)
-        }
-      }
-    }
-    xhr.send(`content=${this.HTML.textarea.value}`)
+    up.submit("form", {})
   }
 
   render() {

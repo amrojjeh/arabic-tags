@@ -14,36 +14,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type Grammar struct {
-	Words []GWord `json:"words"`
-}
-
-type GWord struct {
-	Word     string   `json:"word"`
-	Shrinked bool     `json:"shrinked"`
-	LeftOver bool     `json:"leftOver"`
-	Tags     []string `json:"tags"`
-
-	// true if the word is preceding a punctuation or if the punctuation is
-	// preceding a word (for rendering). Note that this is different from kalam's preceding
-	Preceding   bool `json:"preceding"`
-	Punctuation bool `json:"punctuation"`
-}
-
-func (g *Grammar) Scan(src any) error {
-	switch src.(type) {
-	case []byte:
-		err := json.Unmarshal(src.([]byte), g)
-		if err != nil {
-			return err
-		}
-	default:
-		return errors.New("grammar: cannot scan type")
-	}
-
-	return nil
-}
-
 type Technical struct {
 	Words []TWord `json:"words"`
 }
@@ -148,7 +118,7 @@ func (m ExcerptModel) Get(id int) (Excerpt, error) {
 		&e.Created, &e.Updated)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return e, ErrNoRecord
+			return e, errors.Join(ErrNoRecord, err)
 		}
 		return e, err
 	}
@@ -229,23 +199,6 @@ func (m ExcerptModel) Insert(title, author_email string) (int, error) {
 
 // 	return nil
 // }
-
-func (m ExcerptModel) UpdateGrammar(id uuid.UUID, grammar Grammar) error {
-	stmt := `UPDATE excerpt SET grammar=?, updated=UTC_TIMESTAMP()
-	WHERE id=UUID_TO_BIN(?) AND g_locked=FALSE`
-
-	idVal, _ := id.Value()
-	load, err := json.Marshal(grammar)
-	if err != nil {
-		return err
-	}
-	_, err = m.Db.Exec(stmt, load, idVal)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 func (m ExcerptModel) UpdateTechnical(id uuid.UUID, technical Technical) error {
 	stmt := `UPDATE excerpt SET technical=?, updated=UTC_TIMESTAMP()

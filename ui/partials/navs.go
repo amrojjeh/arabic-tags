@@ -26,13 +26,9 @@ func SimpleNav() []g.Node {
 
 func MainNav() []g.Node {
 	return []g.Node{
-		H2(Class("select-none col-start-1 text-xl text-center"),
-			g.Text("saving..."),
-		),
 		H1(Class("font-black col-start-2 text-2xl text-center"),
 			A(Href("/"), g.Text("Arabic Tags")),
 		),
-		Div(),
 	}
 }
 
