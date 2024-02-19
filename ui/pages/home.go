@@ -13,10 +13,13 @@ type HomeExcerpt struct {
 }
 
 type HomeProps struct {
-	Username string
-	Excerpts []HomeExcerpt
-	AddUrl   string
-	Error    string
+	Username    string
+	Excerpts    []HomeExcerpt
+	Error       string
+	AddUrl      string
+	LoginUrl    string
+	RegisterUrl string
+	LogoutUrl   string
 }
 
 func HomePage(p HomeProps) g.Node {
@@ -38,7 +41,7 @@ func HomePage(p HomeProps) g.Node {
 				})),
 			),
 		},
-		Nav:   partials.SimpleNav(p.Username),
+		Nav:   partials.SimpleNav(p.Username, p.LoginUrl, p.RegisterUrl, p.LogoutUrl),
 		Error: p.Error,
 	})
 }

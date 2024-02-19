@@ -14,7 +14,10 @@ type LoginProps struct {
 
 	PasswordError string
 
-	LoginError string
+	LoginError  string
+	LoginUrl    string
+	RegisterUrl string
+	LogoutUrl   string
 }
 
 type LoginResponse struct {
@@ -25,7 +28,7 @@ type LoginResponse struct {
 func LoginPage(p LoginProps) g.Node {
 	return MainBase(MainBaseProps{
 		Title: "Login",
-		Nav:   partials.SimpleNav(""),
+		Nav:   partials.SimpleNav("", p.LoginError, p.RegisterUrl, p.LogoutUrl),
 		Main: []g.Node{
 			Div(Class("flex flex-col gap-3 items-center justify-center h-full"),
 				H1(Class("text-2xl"),

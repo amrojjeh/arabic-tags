@@ -359,3 +359,37 @@ func (app *application) excerptTitlePost() http.Handler {
 		}
 	})
 }
+
+func (app *application) testRoute() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		pages.EditPage(pages.EditProps{
+			ExcerptTitle: "Test",
+			Username:     "amrojjeh",
+			SelectedWord: pages.SelectedWordProps{Word: "هذا", Letters: []pages.LetterProps{{Letter: "ه", ShortVowel: kalam.Fatha, Shadda: false, Index: 0, PostUrl: "#"}}},
+			Words: []pages.WordProps{
+				{
+					Word:        "هذا",
+					Punctuation: false,
+					Preceding:   false,
+					Selected:    true,
+				},
+				{
+					Word:        "بيت",
+					Punctuation: false,
+					Preceding:   true,
+					Selected:    false,
+				},
+				{
+					Word:        "ه",
+					Punctuation: false,
+					Preceding:   false,
+					Selected:    false,
+				},
+			},
+			Error:     "",
+			Warning:   "",
+			TitleUrl:  "#",
+			ExportUrl: "#",
+		}).Render(w)
+	})
+}

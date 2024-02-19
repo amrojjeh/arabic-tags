@@ -16,6 +16,9 @@ type ManuscriptProps struct {
 	Username            string
 	SubmitUrl           string
 	TitleUrl            string
+	LoginUrl            string
+	RegisterUrl         string
+	LogoutUrl           string
 }
 
 func ManuscriptPage(p ManuscriptProps) g.Node {
@@ -28,7 +31,7 @@ func ManuscriptPage(p ManuscriptProps) g.Node {
 				),
 				g.El("arabic-input", Class("grow"), g.Attr("url", p.SubmitUrl), g.Attr("punctuation", p.AcceptedPunctuation), Value(p.Content), g.If(p.ReadOnly, ReadOnly())),
 			)},
-		Nav: partials.SimpleNav(p.Username),
+		Nav: partials.SimpleNav(p.Username, p.LoginUrl, p.RegisterUrl, p.LogoutUrl),
 		Footer: []g.Node{
 			Div(
 				// TODO(Amr Ojjeh): Move to backend
