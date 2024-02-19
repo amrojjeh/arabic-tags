@@ -9,7 +9,7 @@ import (
 
 func TitleForm(postUrl, title string) g.Node {
 	return FormEl(ID("excerpt-title"), Action(postUrl), Method("post"), up.Target("#excerpt-title"), Class("flex items-center"),
-		Input(ui.SelectAttr(), Name("title"), AutoFocus(), Value(title), Class("mr-2")),
+		Input(AutoComplete("off"), ui.SelectAttr(), Name("title"), AutoFocus(), Value(title), Class("mr-2")),
 		Button(Type("submit"), Img(Src("/static/icons/check-solid.svg"), Class("w-4"))),
 	)
 }
