@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
@@ -21,7 +20,11 @@ func (app *application) notFound() http.Handler {
 
 func (app *application) registerGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := pages.RegisterPage(pages.RegisterProps{}).Render(w)
+		err := pages.RegisterPage(pages.RegisterProps{
+			LoginUrl:    app.u.login(),
+			RegisterUrl: app.u.register(),
+			LogoutUrl:   app.u.logout(),
+		}).Render(w)
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest)
 		}
@@ -36,7 +39,7 @@ func (app *application) registerPost() http.Handler {
 			return
 		}
 
-		props := res.Props()
+		props := res.Props(app.u.login(), app.u.register(), app.u.logout())
 		valid := true
 		props.EmailError = validator.NewValidator("email", res.Email).
 			Required().
@@ -86,13 +89,17 @@ func (app *application) registerPost() http.Handler {
 			return
 		}
 
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, app.u.login(), http.StatusSeeOther)
 	})
 }
 
 func (app *application) loginGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := pages.LoginPage(pages.LoginProps{}).Render(w)
+		err := pages.LoginPage(pages.LoginProps{
+			LoginUrl:    app.u.login(),
+			RegisterUrl: app.u.register(),
+			LogoutUrl:   app.u.logout(),
+		}).Render(w)
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest)
 		}
@@ -107,7 +114,7 @@ func (app *application) loginPost() http.Handler {
 			return
 		}
 
-		props := res.Props()
+		props := res.Props(app.u.login(), app.u.register(), app.u.logout())
 		valid := true
 		props.EmailError = validator.NewValidator("email", res.Email).
 			Required().
@@ -148,7 +155,7 @@ func (app *application) loginPost() http.Handler {
 			return
 		}
 
-		http.Redirect(w, r, "/home", http.StatusSeeOther)
+		http.Redirect(w, r, app.u.home(), http.StatusSeeOther)
 	})
 }
 
@@ -161,7 +168,7 @@ func (app *application) logoutPost() http.Handler {
 			return
 		}
 
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, app.u.login(), http.StatusSeeOther)
 	})
 }
 
@@ -183,14 +190,17 @@ func (app *application) homeGet() http.Handler {
 		for x := 0; x < len(homeExcerpts); x++ {
 			homeExcerpts[x] = pages.HomeExcerpt{
 				Name: excerpts[x].Title,
-				Url:  fmt.Sprintf("/excerpt/%d", excerpts[x].Id),
+				Url:  app.u.excerpt(excerpts[x].Id),
 			}
 		}
 		err = pages.HomePage(pages.HomeProps{
-			Username: user.Username,
-			Excerpts: homeExcerpts,
-			AddUrl:   "/excerpt",
-			Error:    app.session.PopString(r.Context(), errorSessionKey),
+			Username:    user.Username,
+			Excerpts:    homeExcerpts,
+			Error:       app.session.PopString(r.Context(), errorSessionKey),
+			AddUrl:      app.u.createExcerpt(),
+			LoginUrl:    app.u.login(),
+			RegisterUrl: app.u.register(),
+			LogoutUrl:   app.u.logout(),
 		}).Render(w)
 		if err != nil {
 			app.serverError(w, err)
@@ -200,7 +210,7 @@ func (app *application) homeGet() http.Handler {
 
 func (app *application) createExcerptGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := layers.ExcerptLayer("/excerpt").Render(w)
+		err := layers.ExcerptLayer(app.u.createExcerpt()).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
@@ -221,7 +231,7 @@ func (app *application) createExcerptPost() http.Handler {
 			Validate(&valid)
 		if !valid {
 			app.session.Put(r.Context(), errorSessionKey, msg)
-			http.Redirect(w, r, "/home", http.StatusSeeOther)
+			http.Redirect(w, r, app.u.home(), http.StatusSeeOther)
 			return
 		}
 		email := app.session.GetString(r.Context(), authorizedEmailSessionKey)
@@ -237,7 +247,7 @@ func (app *application) createExcerptPost() http.Handler {
 			return
 		}
 
-		http.Redirect(w, r, fmt.Sprintf("/excerpt/%v", id), http.StatusSeeOther)
+		http.Redirect(w, r, app.u.excerpt(id), http.StatusSeeOther)
 	})
 }
 
@@ -257,11 +267,15 @@ func (app *application) excerptGet() http.Handler {
 
 		props := pages.ManuscriptProps{
 			ExcerptTitle:        excerpt.Title,
+			ReadOnly:            false,
 			AcceptedPunctuation: kalam.PunctuationRegex().String(),
 			Content:             manuscript.Content,
-			SubmitUrl:           r.URL.String(),
-			TitleUrl:            fmt.Sprintf("/excerpt/%v/title", excerpt.Id),
 			Error:               app.session.PopString(r.Context(), errorSessionKey),
+			SubmitUrl:           r.URL.String(),
+			TitleUrl:            app.u.excerptTitle(excerpt.Id),
+			LoginUrl:            app.u.login(),
+			RegisterUrl:         app.u.register(),
+			LogoutUrl:           app.u.logout(),
 		}
 
 		email := app.getAuthenticatedEmail(r)
@@ -316,8 +330,7 @@ func (app *application) excerptPost() http.Handler {
 func (app *application) excerptTitleGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		e := getExcerptFromContext(r.Context())
-		err := partials.TitleForm(
-			fmt.Sprintf("/excerpt/%v/title", e.Id), e.Title).Render(w)
+		err := partials.TitleForm(app.u.excerptTitle(e.Id), e.Title).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
@@ -340,8 +353,8 @@ func (app *application) excerptTitlePost() http.Handler {
 			MaxLength(100).
 			Validate(&valid)
 		if !valid {
-			err = partials.WithError(msg, partials.TitleRegular(fmt.Sprintf("/excerpt/%v/title",
-				excerpt.Id), excerpt.Title)).Render(w)
+			err = partials.WithError(msg, partials.TitleRegular(
+				app.u.excerptTitle(excerpt.Id), excerpt.Title)).Render(w)
 			if err != nil {
 				app.serverError(w, err)
 			}
@@ -352,44 +365,10 @@ func (app *application) excerptTitlePost() http.Handler {
 			app.serverError(w, err)
 			return
 		}
-		err = partials.TitleRegular(fmt.Sprintf("/excerpt/%v/title", excerpt.Id),
+		err = partials.TitleRegular(app.u.excerptTitle(excerpt.Id),
 			title).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
-	})
-}
-
-func (app *application) testRoute() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pages.EditPage(pages.EditProps{
-			ExcerptTitle: "Test",
-			Username:     "amrojjeh",
-			SelectedWord: pages.SelectedWordProps{Word: "هذا", Letters: []pages.LetterProps{{Letter: "ه", ShortVowel: kalam.Fatha, Shadda: false, Index: 0, PostUrl: "#"}}},
-			Words: []pages.WordProps{
-				{
-					Word:        "هذا",
-					Punctuation: false,
-					Preceding:   false,
-					Selected:    true,
-				},
-				{
-					Word:        "بيت",
-					Punctuation: false,
-					Preceding:   true,
-					Selected:    false,
-				},
-				{
-					Word:        "ه",
-					Punctuation: false,
-					Preceding:   false,
-					Selected:    false,
-				},
-			},
-			Error:     "",
-			Warning:   "",
-			TitleUrl:  "#",
-			ExportUrl: "#",
-		}).Render(w)
 	})
 }

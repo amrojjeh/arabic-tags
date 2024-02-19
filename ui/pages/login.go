@@ -73,7 +73,7 @@ func NewLoginResponse(r *http.Request) (LoginResponse, error) {
 	}, nil
 }
 
-func (l LoginResponse) Props() LoginProps {
+func (l LoginResponse) Props(loginUrl, registerUrl, logoutUrl string) LoginProps {
 	return LoginProps{
 		EmailField: l.Email,
 	}

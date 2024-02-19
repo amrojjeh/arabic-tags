@@ -86,7 +86,7 @@ func NewRegisterResponse(r *http.Request) (RegisterResponse, error) {
 	}, nil
 }
 
-func (r RegisterResponse) Props() RegisterProps {
+func (r RegisterResponse) Props(loginUrl, registerUrl, logoutUrl string) RegisterProps {
 	return RegisterProps{
 		UsernameField: r.Username,
 		EmailField:    r.Email,

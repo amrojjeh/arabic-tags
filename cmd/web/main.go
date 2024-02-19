@@ -18,6 +18,7 @@ import (
 
 type application struct {
 	logger     *slog.Logger
+	u          url
 	page       map[string]*template.Template
 	user       models.UserModel
 	excerpt    models.ExcerptModel
