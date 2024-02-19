@@ -190,6 +190,7 @@ func (app *application) homeGet() http.Handler {
 			Username: user.Username,
 			Excerpts: homeExcerpts,
 			AddUrl:   "/excerpt",
+			Error:    app.session.PopString(r.Context(), errorSessionKey),
 		}).Render(w)
 		if err != nil {
 			app.serverError(w, err)
@@ -211,6 +212,16 @@ func (app *application) createExcerptPost() http.Handler {
 		res, err := layers.NewExcerptResponse(r)
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		valid := true
+		msg := validator.NewValidator("title", res.Title).
+			Required().
+			MaxLength(100).
+			Validate(&valid)
+		if !valid {
+			app.session.Put(r.Context(), errorSessionKey, msg)
+			http.Redirect(w, r, "/home", http.StatusSeeOther)
 			return
 		}
 		email := app.session.GetString(r.Context(), authorizedEmailSessionKey)
@@ -250,6 +261,7 @@ func (app *application) excerptGet() http.Handler {
 			Content:             manuscript.Content,
 			SubmitUrl:           r.URL.String(),
 			TitleUrl:            fmt.Sprintf("/excerpt/%v/title", excerpt.Id),
+			Error:               app.session.PopString(r.Context(), errorSessionKey),
 		}
 
 		email := app.getAuthenticatedEmail(r)
@@ -322,6 +334,19 @@ func (app *application) excerptTitlePost() http.Handler {
 
 		excerpt := getExcerptFromContext(r.Context())
 		title := r.Form.Get("title")
+		valid := true
+		msg := validator.NewValidator("title", title).
+			Required().
+			MaxLength(100).
+			Validate(&valid)
+		if !valid {
+			err = partials.WithError(msg, partials.TitleRegular(fmt.Sprintf("/excerpt/%v/title",
+				excerpt.Id), excerpt.Title)).Render(w)
+			if err != nil {
+				app.serverError(w, err)
+			}
+			return
+		}
 		err = app.excerpt.UpdateTitle(excerpt.Id, title)
 		if err != nil {
 			app.serverError(w, err)

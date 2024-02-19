@@ -2,6 +2,7 @@ package pages
 
 import (
 	"github.com/amrojjeh/arabic-tags/ui"
+	"github.com/amrojjeh/arabic-tags/ui/partials"
 	g "github.com/maragudk/gomponents"
 	. "github.com/maragudk/gomponents/html"
 )
@@ -25,9 +26,7 @@ func MainBase(p MainBaseProps) g.Node {
 			g.If(p.Nav != nil, Nav(Class("text-white bg-red-800 px-5 py-2 grid grid-cols-3 grid-rows-1 items-center"),
 				g.Group(p.Nav),
 			)),
-			Div(Class("bg-red-200 text-center text-2xl text-red-800"),
-				g.Text(p.Error),
-			),
+			partials.Error(p.Error),
 			// TODO(Amr Ojjeh): Make offline work
 			Main(
 				Class("grow p-0 overflow-y-hidden"),

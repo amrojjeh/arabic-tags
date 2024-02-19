@@ -22,3 +22,7 @@ func History(mode bool) g.Node {
 func Target(selector string) g.Node {
 	return g.Attr("up-target", selector)
 }
+
+func Hungry() g.Node {
+	return g.Attr("up-hungry")
+}
