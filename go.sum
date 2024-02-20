@@ -4,6 +4,14 @@ github.com/alexedwards/scs/v2 v2.7.0 h1:DY4rqLCM7UIR9iwxFS0++z1NhTzQlKV30aMHkJCD
 github.com/alexedwards/scs/v2 v2.7.0/go.mod h1:ToaROZxyKukJKT/xLcVQAChi5k6+Pn1Gvmdl7h3RRj8=
 github.com/amrojjeh/kalam v0.7.3 h1:94JzOIbyqWj5RAelIKJvbmwJOWM5jqYMmCm/ssFbo08=
 github.com/amrojjeh/kalam v0.7.3/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
+github.com/amrojjeh/kalam v0.7.4 h1:Bckkg43CLFWi495JHIQrBnDsWixB9Uq4iUdWi1aGmi4=
+github.com/amrojjeh/kalam v0.7.4/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
+github.com/amrojjeh/kalam v0.7.5 h1:WJUZVJV9bkuEkodhz7fSFG1MVgSmOwk278/pIerk+4g=
+github.com/amrojjeh/kalam v0.7.5/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
+github.com/amrojjeh/kalam v0.7.6-0.20240220223955-cf866b0c5193 h1:sHvZEjAp4pEFO+MXgF1EW24vH4MnduritN5Xt6pifOo=
+github.com/amrojjeh/kalam v0.7.6-0.20240220223955-cf866b0c5193/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
+github.com/amrojjeh/kalam v0.7.6-0.20240220224126-8c359def25f0 h1:5Lwn1Iuc6h8O8PL6+2GnT3cP4IFZDB35gMe70Kr7x+8=
+github.com/amrojjeh/kalam v0.7.6-0.20240220224126-8c359def25f0/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
 github.com/go-sql-driver/mysql v1.7.1 h1:lUIinVbN1DY0xBg0eMOzmmtGoHwWBbvnWubQUrtU8EI=
 github.com/go-sql-driver/mysql v1.7.1/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=

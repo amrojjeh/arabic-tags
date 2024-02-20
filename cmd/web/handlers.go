@@ -307,6 +307,17 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 
 			if w.WordPos == selected {
 				props.SelectedWord.Word = w.Word
+				ls := kalam.LetterPacks(w.Word)
+				for i, l := range ls {
+					props.SelectedWord.Letters = append(props.SelectedWord.Letters,
+						pages.LetterProps{
+							Letter:     l.Unpointed(false),
+							ShortVowel: l.Vowel,
+							Shadda:     l.Shadda,
+							Index:      i,
+							PostUrl:    "#",
+						})
+				}
 			}
 		}
 
