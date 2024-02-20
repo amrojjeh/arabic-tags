@@ -14,7 +14,8 @@ type ManuscriptProps struct {
 	Warning             string
 	Error               string
 	Username            string
-	SubmitUrl           string
+	SaveUrl             string
+	LockUrl             string
 	TitleUrl            string
 	LoginUrl            string
 	RegisterUrl         string
@@ -29,7 +30,7 @@ func ManuscriptPage(p ManuscriptProps) g.Node {
 				Div(Class("flex justify-center"),
 					partials.TitleRegular(p.TitleUrl, p.ExcerptTitle),
 				),
-				g.El("arabic-input", Class("grow"), g.Attr("url", p.SubmitUrl), g.Attr("punctuation", p.AcceptedPunctuation), Value(p.Content), g.If(p.ReadOnly, ReadOnly())),
+				g.El("arabic-input", Class("grow"), g.Attr("url", p.SaveUrl), g.Attr("punctuation", p.AcceptedPunctuation), Value(p.Content), g.If(p.ReadOnly, ReadOnly())),
 			)},
 		Nav: partials.SimpleNav(p.Username, p.LoginUrl, p.RegisterUrl, p.LogoutUrl),
 		Footer: []g.Node{
@@ -39,7 +40,7 @@ func ManuscriptPage(p ManuscriptProps) g.Node {
 				g.El("delete-vowels"),
 			),
 			g.If(!p.ReadOnly,
-				FormEl(Method("post"), Action(p.SubmitUrl),
+				FormEl(Method("post"), Action(p.LockUrl),
 					Button(Class("bg-sky-600 text-white rounded-lg p-2"),
 						g.Text("Next"),
 					),

@@ -1,47 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/amrojjeh/arabic-tags/ui"
 	"github.com/julienschmidt/httprouter"
 	"github.com/justinas/alice"
 )
-
-type url struct{}
-
-func (u url) index() string {
-	return "/"
-}
-
-func (u url) login() string {
-	return "/login"
-}
-
-func (u url) register() string {
-	return "/register"
-}
-
-func (u url) logout() string {
-	return "/logout"
-}
-
-func (u url) home() string {
-	return "/home"
-}
-
-func (u url) createExcerpt() string {
-	return "/excerpt"
-}
-
-func (u url) excerpt(id any) string {
-	return fmt.Sprintf("/excerpt/%v", id)
-}
-
-func (u url) excerptTitle(id any) string {
-	return fmt.Sprintf("/excerpt/%v/title", id)
-}
 
 // TODO(Amr Ojjeh): Setup secure headers
 func (app *application) routes() http.Handler {
@@ -70,6 +35,9 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodPost, app.u.excerpt(":id"), excerptRequired.Then(app.excerptPost()))
 	router.Handler(http.MethodGet, app.u.excerptTitle(":id"), excerptRequired.Then(app.excerptTitleGet()))
 	router.Handler(http.MethodPost, app.u.excerptTitle(":id"), excerptRequired.Then(app.excerptTitlePost()))
+
+	ownerRequired := excerptRequired.Extend(authRequired)
+	router.Handler(http.MethodPost, app.u.excerptLock(":id"), ownerRequired.Then(app.excerptLockPost()))
 
 	base := alice.New(app.session.LoadAndSave, app.recoverPanic, app.logRequest)
 	return base.Then(router)

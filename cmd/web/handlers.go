@@ -271,7 +271,8 @@ func (app *application) excerptGet() http.Handler {
 			AcceptedPunctuation: kalam.PunctuationRegex().String(),
 			Content:             manuscript.Content,
 			Error:               app.session.PopString(r.Context(), errorSessionKey),
-			SubmitUrl:           r.URL.String(),
+			SaveUrl:             app.u.excerpt(excerpt.Id),
+			LockUrl:             app.u.excerptLock(excerpt.Id),
 			TitleUrl:            app.u.excerptTitle(excerpt.Id),
 			LoginUrl:            app.u.login(),
 			RegisterUrl:         app.u.register(),
@@ -370,5 +371,22 @@ func (app *application) excerptTitlePost() http.Handler {
 		if err != nil {
 			app.serverError(w, err)
 		}
+	})
+}
+
+func (app *application) excerptLockPost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		e := getExcerptFromContext(r.Context())
+		ms, err := app.manuscript.GetByExcerptId(e.Id)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		err = app.word.GenerateWordsFromManuscript(ms)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		w.Write([]byte("Success!"))
 	})
 }

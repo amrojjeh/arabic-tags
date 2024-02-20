@@ -22,6 +22,7 @@ type application struct {
 	page       map[string]*template.Template
 	user       models.UserModel
 	excerpt    models.ExcerptModel
+	word       models.WordModel
 	manuscript models.ManuscriptModel
 	session    *scs.SessionManager
 }
@@ -60,6 +61,7 @@ func main() {
 		user:       models.UserModel{Db: db},
 		excerpt:    models.ExcerptModel{Db: db},
 		manuscript: models.ManuscriptModel{Db: db},
+		word:       models.WordModel{Db: db},
 		session:    session,
 	}
 
