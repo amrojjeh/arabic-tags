@@ -4,7 +4,7 @@
 
 @layer base {
   *[dir="rtl"] {
-    font-family: "Amiri", sans-serif;
+    font-family: "Noto Sans Arabic", sans-serif;
   }
 }
 

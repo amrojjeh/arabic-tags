@@ -37,7 +37,7 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodPost, app.u.excerptTitle(":id"), excerptRequired.Then(app.excerptTitlePost()))
 
 	ownerRequired := excerptRequired.Extend(authRequired)
-	router.Handler(http.MethodPost, app.u.excerptLock(":id"), ownerRequired.Then(app.excerptLockPost()))
+	router.Handler(http.MethodPost, app.u.excerptLock(":id"), ownerRequired.Then(app.excerptNextPost()))
 
 	base := alice.New(app.session.LoadAndSave, app.recoverPanic, app.logRequest)
 	return base.Then(router)

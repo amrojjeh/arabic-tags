@@ -15,7 +15,7 @@ type ManuscriptProps struct {
 	Error               string
 	Username            string
 	SaveUrl             string
-	LockUrl             string
+	NextUrl             string
 	TitleUrl            string
 	LoginUrl            string
 	RegisterUrl         string
@@ -35,12 +35,11 @@ func ManuscriptPage(p ManuscriptProps) g.Node {
 		Nav: partials.SimpleNav(p.Username, p.LoginUrl, p.RegisterUrl, p.LogoutUrl),
 		Footer: []g.Node{
 			Div(
-				// TODO(Amr Ojjeh): Move to backend
 				g.El("delete-errors"),
 				g.El("delete-vowels"),
 			),
 			g.If(!p.ReadOnly,
-				FormEl(Method("post"), Action(p.LockUrl),
+				FormEl(Method("post"), Action(p.NextUrl),
 					Button(Class("bg-sky-600 text-white rounded-lg p-2"),
 						g.Text("Next"),
 					),

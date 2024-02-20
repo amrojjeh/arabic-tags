@@ -19,7 +19,7 @@ func ExcerptLayer(postUrl string) g.Node {
 		Main: []g.Node{
 			FormEl(Class("flex flex-col gap-2"), Method("post"), Action(postUrl), u.Layer("root"),
 				H1(Class("text-center text-xl"), g.Text("Create excerpt")),
-				Input(Class("border-2 border-solid"), Name("title"), AutoFocus(), Type("text"), Required(), Placeholder("Enter title")),
+				Input(AutoComplete("off"), Class("border-2 border-solid"), Name("title"), AutoFocus(), Type("text"), Required(), Placeholder("Enter title")),
 				Button(Class("text-xl bg-sky-600 text-white rounded px-4 py-2"), Type("submit"),
 					g.Text("Create"),
 				),

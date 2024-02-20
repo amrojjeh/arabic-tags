@@ -27,7 +27,7 @@ type SelectedWordProps struct {
 type WordProps struct {
 	Word        string
 	Punctuation bool
-	Preceding   bool
+	Connected   bool
 	Selected    bool
 }
 
@@ -107,7 +107,7 @@ func EditPage(p EditProps) g.Node {
 								if p.Punctuation {
 									return Span(
 										g.Text(p.Word),
-										g.If(!p.Preceding, g.Text(" ")),
+										g.If(!p.Connected, g.Text(" ")),
 									)
 								}
 								return Span(c.Classes{
@@ -115,7 +115,7 @@ func EditPage(p EditProps) g.Node {
 									"text-sky-600":                      p.Selected,
 								},
 									g.Text(p.Word),
-									g.If(!p.Preceding, g.Text(" ")),
+									g.If(!p.Connected, g.Text(" ")),
 								)
 							})),
 						),

@@ -95,9 +95,9 @@ func (m ManuscriptModel) GetByExcerptId(excerpt_id int) (Manuscript, error) {
 	return ms, nil
 }
 
-func (m ManuscriptModel) Delete(excerpt_id int) error {
-	stmt := `DELETE FROM manuscript WHERE excerpt_id=?`
-	_, err := m.Db.Exec(stmt, excerpt_id)
+func (m ManuscriptModel) Delete(id int) error {
+	stmt := `DELETE FROM manuscript WHERE id=?`
+	_, err := m.Db.Exec(stmt, id)
 	if err != nil {
 		return err
 	}

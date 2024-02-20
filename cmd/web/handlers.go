@@ -258,27 +258,83 @@ func (app *application) excerptGet() http.Handler {
 		manuscript, err := app.manuscript.GetByExcerptId(excerpt.Id)
 		if err != nil {
 			if errors.Is(err, models.ErrNoRecord) {
-				app.notFound().ServeHTTP(w, r)
+				words, err := app.word.GetWordsByExcerptId(excerpt.Id)
+				if err != nil {
+					app.serverError(w, err)
+					return
+				}
+				app.excerptEditGet(words).ServeHTTP(w, r)
 				return
 			}
 			app.serverError(w, err)
 			return
 		}
 
+		app.excerptManuscriptGet(manuscript).ServeHTTP(w, r)
+	})
+}
+
+func (app *application) excerptEditGet(ws []models.Word) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		e := getExcerptFromContext(r.Context())
+		props := pages.EditProps{
+			ExcerptTitle: e.Title,
+			Username:     "", // added later
+			SelectedWord: pages.SelectedWordProps{
+				Word:    "",
+				Letters: []pages.LetterProps{},
+			}, // completed later
+			Words:       []pages.WordProps{}, // completed later
+			Error:       app.session.PopString(r.Context(), errorSessionKey),
+			Warning:     "", // added later
+			TitleUrl:    app.u.excerptTitle(e.Id),
+			ExportUrl:   "#",
+			LoginUrl:    app.u.login(),
+			RegisterUrl: app.u.register(),
+			LogoutUrl:   app.u.logout(),
+		}
+
+		selected := app.session.GetInt(r.Context(), selectedWordPosSessionKey)
+
+		for _, w := range ws {
+			wp := pages.WordProps{
+				Word:        w.Word,
+				Punctuation: w.Punctuation,
+				Connected:   w.Connected,
+				Selected:    selected == w.WordPos,
+			}
+			props.Words = append(props.Words, wp)
+
+			if w.WordPos == selected {
+				props.SelectedWord.Word = w.Word
+			}
+		}
+
+		err := pages.EditPage(props).Render(w)
+		if err != nil {
+			app.serverError(w, err)
+		}
+	})
+}
+
+func (app *application) excerptManuscriptGet(ms models.Manuscript) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		e := getExcerptFromContext(r.Context())
 		props := pages.ManuscriptProps{
-			ExcerptTitle:        excerpt.Title,
+			ExcerptTitle:        e.Title,
 			ReadOnly:            false,
 			AcceptedPunctuation: kalam.PunctuationRegex().String(),
-			Content:             manuscript.Content,
+			Content:             ms.Content,
+			Warning:             "", // added later
 			Error:               app.session.PopString(r.Context(), errorSessionKey),
-			SaveUrl:             app.u.excerpt(excerpt.Id),
-			LockUrl:             app.u.excerptLock(excerpt.Id),
-			TitleUrl:            app.u.excerptTitle(excerpt.Id),
+			Username:            "", // added later
+			SaveUrl:             app.u.excerpt(e.Id),
+			NextUrl:             app.u.excerptLock(e.Id),
+			TitleUrl:            app.u.excerptTitle(e.Id),
 			LoginUrl:            app.u.login(),
 			RegisterUrl:         app.u.register(),
 			LogoutUrl:           app.u.logout(),
 		}
-
 		email := app.getAuthenticatedEmail(r)
 		if loggedIn := email != ""; !loggedIn {
 			props.ReadOnly = true
@@ -291,18 +347,19 @@ func (app *application) excerptGet() http.Handler {
 			}
 			props.Username = user.Username
 
-			if owner := email == excerpt.AuthorEmail; !owner {
+			if owner := email == e.AuthorEmail; !owner {
 				props.ReadOnly = true
 				props.Warning = "You cannot make changes as you're not the owner of the excerpt"
 			}
 		}
 
-		err = pages.ManuscriptPage(props).Render(w)
+		err := pages.ManuscriptPage(props).Render(w)
 
 		if err != nil {
 			app.serverError(w, err)
 		}
 	})
+
 }
 
 func (app *application) excerptPost() http.Handler {
@@ -374,7 +431,7 @@ func (app *application) excerptTitlePost() http.Handler {
 	})
 }
 
-func (app *application) excerptLockPost() http.Handler {
+func (app *application) excerptNextPost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		e := getExcerptFromContext(r.Context())
 		ms, err := app.manuscript.GetByExcerptId(e.Id)
@@ -387,6 +444,12 @@ func (app *application) excerptLockPost() http.Handler {
 			app.serverError(w, err)
 			return
 		}
-		w.Write([]byte("Success!"))
+		err = app.manuscript.Delete(ms.Id)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		http.Redirect(w, r, app.u.excerpt(e.Id), http.StatusSeeOther)
 	})
 }

@@ -11,16 +11,28 @@ import (
 )
 
 type Word struct {
-	Id        int
-	Word      string
-	WordPos   int
-	ExcerptId int
-	Created   time.Time
-	Updated   time.Time
+	Id          int
+	Word        string
+	WordPos     int
+	Connected   bool
+	Punctuation bool
+	ExcerptId   int
+	Created     time.Time
+	Updated     time.Time
 }
 
 type WordModel struct {
 	Db *sql.DB
+}
+
+func (m WordModel) DeleteByExcerptId(excerpt_id int) error {
+	stmt := `DELETE FROM word WHERE excerpt_id=?`
+	_, err := m.Db.Exec(stmt, excerpt_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m WordModel) GenerateWordsFromManuscript(ms Manuscript) error {
@@ -32,15 +44,15 @@ func (m WordModel) GenerateWordsFromManuscript(ms Manuscript) error {
 		return nil
 	}
 
-	vals := []any{}
 	var stmt strings.Builder
-	stmt.WriteString(`INSERT INTO word (word, word_pos, connected, excerpt_id, created, updated) VALUES `)
+	stmt.WriteString(`INSERT INTO word (word, word_pos, connected, punctuation, excerpt_id, created, updated) VALUES `)
+	vals := []any{}
 	for i, w := range words {
-		stmt.WriteString("(?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
+		stmt.WriteString("(?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
 		if i != len(words)-1 {
 			stmt.WriteString(", ")
 		}
-		vals = append(vals, w.Word, i, w.Connected, ms.ExcerptId)
+		vals = append(vals, w.Word, i, w.Connected, w.Punctuation, ms.ExcerptId)
 	}
 
 	_, err = m.Db.Exec(stmt.String(), vals...)
@@ -49,4 +61,28 @@ func (m WordModel) GenerateWordsFromManuscript(ms Manuscript) error {
 	}
 
 	return nil
+}
+
+func (m WordModel) GetWordsByExcerptId(excerpt_id int) ([]Word, error) {
+	stmt := `SELECT id, word, word_pos, connected, punctuation, excerpt_id, created, updated
+	FROM word
+	WHERE excerpt_id=?
+	ORDER BY word_pos`
+
+	ws := []Word{}
+	rows, err := m.Db.Query(stmt, excerpt_id)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var w Word
+		err = rows.Scan(&w.Id, &w.Word, &w.WordPos, &w.Connected, &w.Punctuation, &w.ExcerptId, &w.Created, &w.Updated)
+		if err != nil {
+			return nil, err
+		}
+		ws = append(ws, w)
+	}
+
+	return ws, nil
 }

@@ -21,7 +21,7 @@ func HTML5(p HTML5Props) g.Node {
 				Meta(Charset("utf-8")),
 				Meta(Name("viewport"), Content("width=device-width, initial-scale=1")),
 				Link(Rel("preconnect"), Href("https://fonts.googleapis.com")),
-				Link(Rel("stylesheet"), Href("https://fonts.googleapis.com/css2?family=Amiri&display=swap")),
+				Link(Href("https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400..700&display=swap"), Rel("stylesheet")),
 				Link(Rel("stylesheet"), Href("/static/unpoly.min.css")),
 				Script(Src("/static/unpoly.min.js")),
 				Link(Rel("stylesheet"), Href("/static/main.css")),
