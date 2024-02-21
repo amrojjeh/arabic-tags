@@ -41,6 +41,7 @@ type EditProps struct {
 	Error        string
 	Warning      string
 	TitleUrl     string
+	EditWordUrl  string
 	ExportUrl    string
 	LoginUrl     string
 	RegisterUrl  string
@@ -57,7 +58,9 @@ func EditPage(p EditProps) g.Node {
 				),
 				Div(g.Attr("dir", "rtl"), Class("grid grid-rows-1 grid-cols-[400px_auto] gap-4 h-[97%]"),
 					Div(ID("inspector"), Class("border-e-2 m-1 h-full overflow-y-auto"),
-						partials.InspectorWord(p.SelectedWord.Word),
+						Div(Class("flex justify-center"),
+							partials.InspectorWordRegular(p.EditWordUrl, p.SelectedWord.Word),
+						),
 						Div(Class("border-solid border-2 border-black bg-slate-200 align-center m-1 p-1"),
 							P(
 								g.Text("Stuff..."),

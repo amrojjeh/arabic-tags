@@ -309,6 +309,7 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 			Error:       app.session.PopString(r.Context(), errorSessionKey),
 			Warning:     "", // added later
 			TitleUrl:    app.u.excerptTitle(e.Id),
+			EditWordUrl: "", // added later
 			ExportUrl:   "#",
 			LoginUrl:    app.u.login(),
 			RegisterUrl: app.u.register(),
@@ -347,6 +348,7 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 			if w.WordPos == selected {
 				props.SelectedWord.Word = w.Word
 				props.SelectedWord.Id = strconv.Itoa(w.Id)
+				props.EditWordUrl = app.u.excerptEditWordArgs(e.Id, w.WordPos)
 				ls := kalam.LetterPacks(w.Word)
 				for i, l := range ls {
 					props.SelectedWord.Letters = append(props.SelectedWord.Letters,
@@ -420,12 +422,93 @@ func (app *application) excerptEditLetterPost() http.Handler {
 		}
 
 		err = partials.EditLetter(strconv.Itoa(word.Id),
+			app.u.excerptEditWordArgs(e.Id, word.WordPos),
 			app.u.excerptEditSelectWord(e.Id, word.WordPos),
 			kalam.LetterPacksToString(ls),
 			word.Connected).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
+	})
+}
+
+func (app *application) excerptEditWordGet() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		e := getExcerptFromContext(r.Context())
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		wordPos, err := strconv.Atoi(r.Form.Get("word_pos"))
+		if err != nil {
+			app.clientError(w, http.StatusUnprocessableEntity)
+			return
+		}
+
+		words, err := app.word.GetWordsByExcerptId(e.Id)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		if wordPos < 0 || wordPos > len(words) {
+			app.clientError(w, http.StatusUnprocessableEntity)
+			return
+		}
+
+		word := words[wordPos]
+		err = partials.InspectorWordForm(
+			app.u.excerptEditWordArgs(e.Id, wordPos), word.Word).Render(w)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+	})
+}
+
+func (app *application) excerptEditWordPost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseForm()
+		e := getExcerptFromContext(r.Context())
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		wordPos, err := strconv.Atoi(r.Form.Get("word_pos"))
+		if err != nil {
+			app.clientError(w, http.StatusUnprocessableEntity)
+			return
+		}
+
+		words, err := app.word.GetWordsByExcerptId(e.Id)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		if wordPos < 0 || wordPos > len(words) {
+			app.clientError(w, http.StatusUnprocessableEntity)
+			return
+		}
+
+		word := words[wordPos]
+		wordStr := r.Form.Get("word")
+		if !kalam.IsContentClean(wordStr) {
+			app.session.Put(r.Context(), errorSessionKey, "Invalid characters -- tashkeel is not allowed")
+			http.Redirect(w, r, app.u.excerpt(e.Id), http.StatusSeeOther)
+			return
+		}
+
+		err = app.word.Update(word.Id, wordStr)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		http.Redirect(w, r, app.u.excerpt(e.Id), http.StatusSeeOther)
 	})
 }
 
@@ -549,6 +632,11 @@ func (app *application) excerptNextPost() http.Handler {
 		ms, err := app.manuscript.GetByExcerptId(e.Id)
 		if err != nil {
 			app.serverError(w, err)
+			return
+		}
+		if !kalam.IsContentClean(ms.Content) {
+			app.session.Put(r.Context(), errorSessionKey, "Manuscript has invalid characters")
+			http.Redirect(w, r, app.u.excerpt(e.Id), http.StatusSeeOther)
 			return
 		}
 		err = app.word.GenerateWordsFromManuscript(ms)

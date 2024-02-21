@@ -12,9 +12,9 @@ func Error(err string) g.Node {
 	)
 }
 
-func WithError(err string, node g.Node) g.Node {
+func WithError(err string, node ...g.Node) g.Node {
 	return Div(
 		Error(err),
-		node,
+		g.Group(node),
 	)
 }

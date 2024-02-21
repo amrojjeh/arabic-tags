@@ -44,6 +44,14 @@ func (u url) excerptEditSelectWord(id, word_pos any) string {
 	return fmt.Sprintf("/excerpt/%v?word_pos=%v", id, word_pos)
 }
 
+func (u url) excerptEditWord(id any) string {
+	return fmt.Sprintf("/excerpt/%v/word", id)
+}
+
+func (u url) excerptEditWordArgs(id, word_pos any) string {
+	return fmt.Sprintf("/excerpt/%v/word?word_pos=%v", id, word_pos)
+}
+
 func (u url) excerptEditLetter(id any) string {
 	return fmt.Sprintf("/excerpt/%v/letter", id)
 }
