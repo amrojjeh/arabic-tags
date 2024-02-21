@@ -313,6 +313,24 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 			LogoutUrl:   app.u.logout(),
 		}
 
+		email := app.getAuthenticatedEmail(r)
+		if loggedIn := email != ""; loggedIn {
+			user, err := app.user.Get(email)
+			if err != nil {
+				app.serverError(w, err)
+				return
+			}
+			props.Username = user.Username
+		} else {
+			// TODO(Amr Ojjeh): Add ReadOnly
+			props.Warning = "Log in as the owner if you wish to edit the excerpt"
+		}
+
+		if owner := email == e.AuthorEmail; !owner {
+			// TODO(Amr Ojjeh): Add ReadOnly
+			props.Warning = "You cannot make changes as you're not the owner of the excerpt"
+		}
+
 		for _, w := range ws {
 			wp := pages.WordProps{
 				Word:        kalam.Prettify(w.Word),
