@@ -12,6 +12,14 @@ github.com/amrojjeh/kalam v0.7.6-0.20240220223955-cf866b0c5193 h1:sHvZEjAp4pEFO+
 github.com/amrojjeh/kalam v0.7.6-0.20240220223955-cf866b0c5193/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
 github.com/amrojjeh/kalam v0.7.6-0.20240220224126-8c359def25f0 h1:5Lwn1Iuc6h8O8PL6+2GnT3cP4IFZDB35gMe70Kr7x+8=
 github.com/amrojjeh/kalam v0.7.6-0.20240220224126-8c359def25f0/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
+github.com/amrojjeh/kalam v0.7.6-0.20240221002959-7edd7b807497 h1:1czy08WRM5n9We7a71//NggtxnRbkbgxudYnrqL8xKo=
+github.com/amrojjeh/kalam v0.7.6-0.20240221002959-7edd7b807497/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
+github.com/amrojjeh/kalam v0.7.6-0.20240221005334-fa8008f16694 h1:ciyxHAF+lNDzvsk1HT8MC9O8D5Y19Dzk0n/Uc9Ad+2c=
+github.com/amrojjeh/kalam v0.7.6-0.20240221005334-fa8008f16694/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
+github.com/amrojjeh/kalam v0.7.6-0.20240221005822-f0083c5627cb h1:Rx3G8RFzg8raB+KVujyiYWwX71rJWm2w83u5y+PaMrQ=
+github.com/amrojjeh/kalam v0.7.6-0.20240221005822-f0083c5627cb/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
+github.com/amrojjeh/kalam v0.7.6-0.20240221010455-a914294e9652 h1:nGqD3zlyrHUCVM9rk80HfW4hkUfCRLhfZfIsRHydOLI=
+github.com/amrojjeh/kalam v0.7.6-0.20240221010455-a914294e9652/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
 github.com/go-sql-driver/mysql v1.7.1 h1:lUIinVbN1DY0xBg0eMOzmmtGoHwWBbvnWubQUrtU8EI=
 github.com/go-sql-driver/mysql v1.7.1/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=

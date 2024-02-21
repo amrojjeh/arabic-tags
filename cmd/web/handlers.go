@@ -298,7 +298,7 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 
 		for _, w := range ws {
 			wp := pages.WordProps{
-				Word:        w.Word,
+				Word:        kalam.Prettify(w.Word),
 				Punctuation: w.Punctuation,
 				Connected:   w.Connected,
 				Selected:    selected == w.WordPos,
