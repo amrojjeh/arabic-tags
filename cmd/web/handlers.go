@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"unicode/utf8"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/amrojjeh/arabic-tags/internal/validator"
@@ -300,6 +301,7 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 			ExcerptTitle: e.Title,
 			Username:     "", // added later
 			SelectedWord: pages.SelectedWordProps{
+				Id:      "",
 				Word:    "",
 				Letters: []pages.LetterProps{},
 			}, // completed later
@@ -333,31 +335,94 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 
 		for _, w := range ws {
 			wp := pages.WordProps{
+				Id:          strconv.Itoa(w.Id),
 				Word:        kalam.Prettify(w.Word),
 				Punctuation: w.Punctuation,
 				Connected:   w.Connected,
 				Selected:    selected == w.WordPos,
-				GetUrl:      app.u.excerptSelectWord(e.Id, w.WordPos),
+				GetUrl:      app.u.excerptEditSelectWord(e.Id, w.WordPos),
 			}
 			props.Words = append(props.Words, wp)
 
 			if w.WordPos == selected {
 				props.SelectedWord.Word = w.Word
+				props.SelectedWord.Id = strconv.Itoa(w.Id)
 				ls := kalam.LetterPacks(w.Word)
 				for i, l := range ls {
 					props.SelectedWord.Letters = append(props.SelectedWord.Letters,
 						pages.LetterProps{
-							Letter:     l.Unpointed(false),
-							ShortVowel: l.Vowel,
-							Shadda:     l.Shadda,
-							Index:      i,
-							PostUrl:    "#",
+							Letter:          l.Unpointed(false),
+							ShortVowel:      l.Vowel,
+							Shadda:          l.Shadda,
+							SuperscriptAlef: l.SuperscriptAlef,
+							Index:           i,
+							PostUrl:         app.u.excerptEditLetterArgs(e.Id, w.WordPos, i),
 						})
 				}
 			}
 		}
 
 		err = pages.EditPage(props).Render(w)
+		if err != nil {
+			app.serverError(w, err)
+		}
+	})
+}
+
+func (app *application) excerptEditLetterPost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		e := getExcerptFromContext(r.Context())
+		word_pos, err := strconv.Atoi(r.Form.Get("word_pos"))
+		if err != nil {
+			app.clientError(w, http.StatusUnprocessableEntity)
+			return
+		}
+		letter_pos, err := strconv.Atoi(r.Form.Get("letter_pos"))
+		if err != nil {
+			app.clientError(w, http.StatusUnprocessableEntity)
+			return
+		}
+		vowel := r.Form.Get("vowel")
+		superscript_alef := r.Form.Get("superscript_alef")
+		shadda := r.Form.Get("shadda")
+
+		words, err := app.word.GetWordsByExcerptId(e.Id)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		if word_pos < 0 || word_pos >= len(words) {
+			app.clientError(w, http.StatusUnprocessableEntity)
+			return
+		}
+
+		word := words[word_pos]
+		ls := kalam.LetterPacks(word.Word)
+		if letter_pos < 0 || letter_pos > len(ls) {
+			app.clientError(w, http.StatusUnprocessableEntity)
+			return
+		}
+
+		ls[letter_pos].Vowel, _ = utf8.DecodeRuneInString(vowel)
+		ls[letter_pos].Shadda = shadda == "true"
+		ls[letter_pos].SuperscriptAlef = superscript_alef == "true"
+
+		err = app.word.Update(word.Id, kalam.LetterPacksToString(ls))
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		err = partials.EditLetter(strconv.Itoa(word.Id),
+			app.u.excerptEditSelectWord(e.Id, word.WordPos),
+			kalam.LetterPacksToString(ls),
+			word.Connected).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}

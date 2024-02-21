@@ -86,3 +86,13 @@ func (m WordModel) GetWordsByExcerptId(excerpt_id int) ([]Word, error) {
 
 	return ws, nil
 }
+
+func (m WordModel) Update(id int, word string) error {
+	stmt := `UPDATE word SET word=?, updated=UTC_TIMESTAMP() WHERE id=?`
+	_, err := m.Db.Exec(stmt, word, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

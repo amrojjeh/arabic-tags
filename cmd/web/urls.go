@@ -40,6 +40,15 @@ func (u url) excerptLock(id any) string {
 	return fmt.Sprintf("/excerpt/%v/lock", id)
 }
 
-func (u url) excerptSelectWord(id, word_pos any) string {
+func (u url) excerptEditSelectWord(id, word_pos any) string {
 	return fmt.Sprintf("/excerpt/%v?word_pos=%v", id, word_pos)
+}
+
+func (u url) excerptEditLetter(id any) string {
+	return fmt.Sprintf("/excerpt/%v/letter", id)
+}
+
+func (u url) excerptEditLetterArgs(id, word_pos, letter_pos any) string {
+	return fmt.Sprintf("/excerpt/%v/letter?word_pos=%v&letter_pos=%v",
+		id, word_pos, letter_pos)
 }

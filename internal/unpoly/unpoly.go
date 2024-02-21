@@ -26,3 +26,7 @@ func Target(selector string) g.Node {
 func Hungry() g.Node {
 	return g.Attr("up-hungry")
 }
+
+func AutoSubmit() g.Node {
+	return g.Attr("up-autosubmit")
+}

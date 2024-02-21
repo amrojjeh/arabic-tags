@@ -1,9 +1,7 @@
 package pages
 
 import (
-	"fmt"
-	"strconv"
-
+	up "github.com/amrojjeh/arabic-tags/internal/unpoly"
 	"github.com/amrojjeh/arabic-tags/ui/partials"
 	"github.com/amrojjeh/kalam"
 	g "github.com/maragudk/gomponents"
@@ -12,19 +10,22 @@ import (
 )
 
 type LetterProps struct {
-	Letter     string
-	ShortVowel rune
-	Shadda     bool
-	Index      int
-	PostUrl    string
+	Letter          string
+	ShortVowel      rune
+	Shadda          bool
+	SuperscriptAlef bool
+	Index           int
+	PostUrl         string
 }
 
 type SelectedWordProps struct {
+	Id      string
 	Word    string
 	Letters []LetterProps
 }
 
 type WordProps struct {
+	Id          string
 	Word        string
 	Punctuation bool
 	Connected   bool
@@ -56,47 +57,52 @@ func EditPage(p EditProps) g.Node {
 				),
 				Div(g.Attr("dir", "rtl"), Class("grid grid-rows-1 grid-cols-[400px_auto] gap-4 h-[97%]"),
 					Div(ID("inspector"), Class("border-e-2 m-1 h-full overflow-y-auto"),
-						P(ID("inspector-word"), Class("text-5xl text-center leading-loose"),
-							g.Text(p.SelectedWord.Word)),
+						partials.InspectorWord(p.SelectedWord.Word),
 						Div(Class("border-solid border-2 border-black bg-slate-200 align-center m-1 p-1"),
 							P(
 								g.Text("Stuff..."),
 							),
 						),
-						g.Group(g.Map(p.SelectedWord.Letters, func(p LetterProps) g.Node {
+						g.Group(g.Map(p.SelectedWord.Letters, func(lp LetterProps) g.Node {
 							return FieldSet(c.Classes{
 								"text-3xl m-1 p-4 leading-loose":      true,
-								"border-dashed border-2 border-black": p.Index%2 != 0},
+								"border-dashed border-2 border-black": lp.Index%2 != 0},
 								Legend(Class("text-4xl"),
-									g.Text(p.Letter),
+									g.Text(lp.Letter),
 								),
-								FormEl(Method("post"), Action(p.PostUrl),
-									Select(Name(strconv.Itoa(p.Index)), Class("block"), ID(fmt.Sprintf("letter-%v", p.Index)),
-										Option(Value(string(kalam.Damma)), g.If(p.ShortVowel == kalam.Damma, Selected()),
+								FormEl(Method("post"), Action(lp.PostUrl), up.AutoSubmit(), up.Target("#inspector-word, #w"+p.SelectedWord.Id),
+									Select(Name("vowel"), Class("block"),
+										Option(Value(string(kalam.Damma)), g.If(lp.ShortVowel == kalam.Damma, Selected()),
 											g.Text(string(kalam.Placeholder)+string(kalam.Damma)),
 										),
-										Option(Value(string(kalam.Dammatan)), g.If(p.ShortVowel == kalam.Dammatan, Selected()),
+										Option(Value(string(kalam.Dammatan)), g.If(lp.ShortVowel == kalam.Dammatan, Selected()),
 											g.Text(string(kalam.Placeholder)+string(kalam.Dammatan)),
 										),
-										Option(Value(string(kalam.Fatha)), g.If(p.ShortVowel == kalam.Fatha, Selected()),
+										Option(Value(string(kalam.Fatha)), g.If(lp.ShortVowel == kalam.Fatha, Selected()),
 											g.Text(string(kalam.Placeholder)+string(kalam.Fatha)),
 										),
-										Option(Value(string(kalam.Fathatan)), g.If(p.ShortVowel == kalam.Fathatan, Selected()),
+										Option(Value(string(kalam.Fathatan)), g.If(lp.ShortVowel == kalam.Fathatan, Selected()),
 											g.Text(string(kalam.Placeholder)+string(kalam.Fathatan)),
 										),
-										Option(Value(string(kalam.Kasra)), g.If(p.ShortVowel == kalam.Kasra, Selected()),
+										Option(Value(string(kalam.Kasra)), g.If(lp.ShortVowel == kalam.Kasra, Selected()),
 											g.Text(string(kalam.Placeholder)+string(kalam.Kasra)),
 										),
-										Option(Value(string(kalam.Kasratan)), g.If(p.ShortVowel == kalam.Kasratan, Selected()),
+										Option(Value(string(kalam.Kasratan)), g.If(lp.ShortVowel == kalam.Kasratan, Selected()),
 											g.Text(string(kalam.Placeholder)+string(kalam.Kasratan)),
 										),
-										Option(Value(string(kalam.Sukoon)), g.If(p.ShortVowel == kalam.Sukoon, Selected()),
+										Option(Value(string(kalam.Sukoon)), g.If(lp.ShortVowel == kalam.Sukoon, Selected()),
 											g.Text(string(kalam.Placeholder)+string(kalam.Sukoon)),
 										),
 									),
-									Label(
-										Input(Type("checkbox"), Value("true"), Name("shadda"), g.If(p.Shadda, Checked())),
-										g.Text(string(kalam.Shadda)),
+									Div(Class("flex gap-2"),
+										Label(
+											Input(Type("checkbox"), Value("true"), Name("shadda"), g.If(lp.Shadda, Checked())),
+											g.Text(string(kalam.Shadda)),
+										),
+										Label(
+											Input(Type("checkbox"), Value("true"), Name("superscript_alef"), g.If(lp.SuperscriptAlef, Checked())),
+											g.Text(string(kalam.SuperscriptAlef)),
+										),
 									),
 								),
 							)
@@ -111,13 +117,7 @@ func EditPage(p EditProps) g.Node {
 										g.If(!p.Connected, g.Text(" ")),
 									)
 								}
-								return A(Href(p.GetUrl), c.Classes{
-									"cursor-pointer hover:text-red-700": !p.Selected,
-									"text-sky-600":                      p.Selected,
-								},
-									g.Text(p.Word),
-									g.If(!p.Connected, g.Text(" ")),
-								)
+								return partials.TextWord(p.Id, p.GetUrl, p.Word, p.Connected, p.Selected)
 							})),
 						),
 					),
