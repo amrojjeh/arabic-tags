@@ -39,3 +39,7 @@ func (u url) excerptTitle(id any) string {
 func (u url) excerptLock(id any) string {
 	return fmt.Sprintf("/excerpt/%v/lock", id)
 }
+
+func (u url) excerptSelectWord(id, word_pos any) string {
+	return fmt.Sprintf("/excerpt/%v?word_pos=%v", id, word_pos)
+}

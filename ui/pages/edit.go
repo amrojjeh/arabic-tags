@@ -29,6 +29,7 @@ type WordProps struct {
 	Punctuation bool
 	Connected   bool
 	Selected    bool
+	GetUrl      string
 }
 
 type EditProps struct {
@@ -110,7 +111,7 @@ func EditPage(p EditProps) g.Node {
 										g.If(!p.Connected, g.Text(" ")),
 									)
 								}
-								return Span(c.Classes{
+								return A(Href(p.GetUrl), c.Classes{
 									"cursor-pointer hover:text-red-700": !p.Selected,
 									"text-sky-600":                      p.Selected,
 								},

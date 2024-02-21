@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/amrojjeh/arabic-tags/internal/validator"
@@ -277,6 +278,24 @@ func (app *application) excerptGet() http.Handler {
 func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		e := getExcerptFromContext(r.Context())
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		wordPosStr := r.Form.Get("word_pos")
+		var selected int
+		if wordPosStr == "" {
+			selected = 0
+		} else {
+			selected, err = strconv.Atoi(wordPosStr)
+			if err != nil {
+				app.clientError(w, http.StatusUnprocessableEntity)
+				return
+			}
+		}
+
 		props := pages.EditProps{
 			ExcerptTitle: e.Title,
 			Username:     "", // added later
@@ -294,14 +313,13 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 			LogoutUrl:   app.u.logout(),
 		}
 
-		selected := app.session.GetInt(r.Context(), selectedWordPosSessionKey)
-
 		for _, w := range ws {
 			wp := pages.WordProps{
 				Word:        kalam.Prettify(w.Word),
 				Punctuation: w.Punctuation,
 				Connected:   w.Connected,
 				Selected:    selected == w.WordPos,
+				GetUrl:      app.u.excerptSelectWord(e.Id, w.WordPos),
 			}
 			props.Words = append(props.Words, wp)
 
@@ -321,7 +339,7 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 			}
 		}
 
-		err := pages.EditPage(props).Render(w)
+		err = pages.EditPage(props).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
