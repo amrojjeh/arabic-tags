@@ -19,25 +19,17 @@ type LetterProps struct {
 }
 
 type SelectedWordProps struct {
-	Id      string
-	Word    string
-	Letters []LetterProps
-}
-
-type WordProps struct {
-	Id          string
-	Word        string
-	Punctuation bool
-	Connected   bool
-	Selected    bool
-	GetUrl      string
+	Id           string
+	Word         string
+	Letters      []LetterProps
+	MoveRightUrl string
 }
 
 type EditProps struct {
 	ExcerptTitle string
 	Username     string
 	SelectedWord SelectedWordProps
-	Words        []WordProps
+	Words        []partials.WordProps
 	Error        string
 	Warning      string
 	TitleUrl     string
@@ -61,6 +53,19 @@ func EditPage(p EditProps) g.Node {
 						Div(Class("flex justify-center"),
 							partials.InspectorWordRegular(p.EditWordUrl, p.SelectedWord.Word),
 						),
+						Div(Class("flex justify-center mx-2 gap-2"),
+							FormEl(Class("w-full"), Method("post"), Action(p.SelectedWord.MoveRightUrl), up.Target("#text"),
+								Button(Type("submit"), Class("w-full bg-sky-600 text-white rounded-lg p-2"),
+									Img(Class("mx-auto h-5 invert"), Src("/static/icons/angles-right-solid.svg")),
+								),
+							),
+							FormEl(Class("w-full"), Method("post"), Action(p.SelectedWord.MoveRightUrl), up.Target("#text"),
+								Button(Type("submit"), Class("w-full bg-sky-600 text-white rounded-lg p-2"),
+									Img(Class("mx-auto h-5 invert"), Src("/static/icons/angles-left-solid.svg")),
+								),
+							),
+						),
+
 						Div(Class("border-solid border-2 border-black bg-slate-200 align-center m-1 p-1"),
 							P(
 								g.Text("Stuff..."),
@@ -111,19 +116,7 @@ func EditPage(p EditProps) g.Node {
 							)
 						})),
 					),
-					Div(ID("text"),
-						P(Class("text-4xl leading-loose"),
-							g.Group(g.Map(p.Words, func(p WordProps) g.Node {
-								if p.Punctuation {
-									return Span(
-										g.Text(p.Word),
-										g.If(!p.Connected, g.Text(" ")),
-									)
-								}
-								return partials.TextWord(p.Id, p.GetUrl, p.Word, p.Connected, p.Selected)
-							})),
-						),
-					),
+					partials.Text(p.Words),
 				),
 			),
 		},

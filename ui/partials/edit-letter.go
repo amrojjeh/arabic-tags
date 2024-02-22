@@ -8,6 +8,15 @@ import (
 	. "github.com/maragudk/gomponents/html"
 )
 
+type WordProps struct {
+	Id          string
+	Word        string
+	Punctuation bool
+	Connected   bool
+	Selected    bool
+	GetUrl      string
+}
+
 func EditLetter(id, editUrl, selectUrl, selectedWord string, connected bool) g.Node {
 	return Div(
 		InspectorWordRegular(editUrl, selectedWord),
@@ -36,5 +45,20 @@ func TextWord(id, getUrl, word string, connected, selected bool) g.Node {
 	},
 		g.Text(word),
 		g.If(!connected, g.Text(" ")),
+	)
+}
+func Text(words []WordProps) g.Node {
+	return Div(ID("text"),
+		P(Class("text-4xl leading-loose"),
+			g.Group(g.Map(words, func(p WordProps) g.Node {
+				if p.Punctuation {
+					return Span(
+						g.Text(p.Word),
+						g.If(!p.Connected, g.Text(" ")),
+					)
+				}
+				return TextWord(p.Id, p.GetUrl, p.Word, p.Connected, p.Selected)
+			})),
+		),
 	)
 }

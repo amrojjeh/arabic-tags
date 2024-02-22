@@ -7,4 +7,5 @@ var (
 	ErrDuplicateUsername = errors.New("models: username already taken")
 	ErrDuplicateEmail    = errors.New("models: email already taken")
 	ErrEmailDoesNotExist = errors.New("models: email does not exist")
+	ErrNotSwappable      = errors.New("models: word can't be swapped")
 )

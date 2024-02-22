@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
@@ -12,6 +14,7 @@ import (
 	"github.com/amrojjeh/arabic-tags/ui/pages"
 	"github.com/amrojjeh/arabic-tags/ui/partials"
 	"github.com/amrojjeh/kalam"
+	"github.com/julienschmidt/httprouter"
 )
 
 func (app *application) notFound() http.Handler {
@@ -272,7 +275,7 @@ func (app *application) excerptGet() http.Handler {
 			return
 		}
 
-		app.excerptManuscriptGet(manuscript).ServeHTTP(w, r)
+		app.manuscriptGet(manuscript).ServeHTTP(w, r)
 	})
 }
 
@@ -305,7 +308,7 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 				Word:    "",
 				Letters: []pages.LetterProps{},
 			}, // completed later
-			Words:       []pages.WordProps{}, // completed later
+			Words:       []partials.WordProps{}, // completed later
 			Error:       app.session.PopString(r.Context(), errorSessionKey),
 			Warning:     "", // added later
 			TitleUrl:    app.u.excerptTitle(e.Id),
@@ -335,7 +338,7 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 		}
 
 		for _, w := range ws {
-			wp := pages.WordProps{
+			wp := partials.WordProps{
 				Id:          strconv.Itoa(w.Id),
 				Word:        kalam.Prettify(w.Word),
 				Punctuation: w.Punctuation,
@@ -348,6 +351,7 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 			if w.WordPos == selected {
 				props.SelectedWord.Word = w.Word
 				props.SelectedWord.Id = strconv.Itoa(w.Id)
+				props.SelectedWord.MoveRightUrl = app.u.wordRight(e.Id, w.Id)
 				props.EditWordUrl = app.u.excerptEditWordArgs(e.Id, w.WordPos)
 				ls := kalam.LetterPacks(w.Word)
 				for i, l := range ls {
@@ -496,8 +500,8 @@ func (app *application) excerptEditWordPost() http.Handler {
 
 		word := words[wordPos]
 		wordStr := r.Form.Get("word")
-		if !kalam.IsContentClean(wordStr) {
-			app.session.Put(r.Context(), errorSessionKey, "Invalid characters -- tashkeel is not allowed")
+		if !kalam.IsContentClean(wordStr) || strings.ContainsFunc(wordStr, unicode.IsSpace) {
+			app.session.Put(r.Context(), errorSessionKey, "Invalid characters")
 			http.Redirect(w, r, app.u.excerpt(e.Id), http.StatusSeeOther)
 			return
 		}
@@ -512,7 +516,52 @@ func (app *application) excerptEditWordPost() http.Handler {
 	})
 }
 
-func (app *application) excerptManuscriptGet(ms models.Manuscript) http.Handler {
+func (app *application) wordRightPost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		e := getExcerptFromContext(r.Context())
+		params := httprouter.ParamsFromContext(r.Context())
+		wid, err := strconv.Atoi(params.ByName("wid"))
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		err = app.word.MoveRight(wid)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		words, err := app.word.GetWordsByExcerptId(e.Id)
+		if err != nil {
+			app.serverError(w, err)
+		}
+
+		wps := []partials.WordProps{}
+		for _, word := range words {
+			wps = append(wps, partials.WordProps{
+				Id:          strconv.Itoa(word.Id),
+				Word:        word.Word,
+				Punctuation: word.Punctuation,
+				Connected:   word.Connected,
+				Selected:    word.Id == wid,
+				GetUrl:      app.u.excerptEditSelectWord(e.Id, word.WordPos),
+			})
+		}
+
+		err = partials.Text(wps).Render(w)
+		if err != nil {
+			app.serverError(w, err)
+		}
+	})
+}
+
+func (app *application) wordLeftPost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+	})
+}
+
+func (app *application) manuscriptGet(ms models.Manuscript) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		e := getExcerptFromContext(r.Context())
 		props := pages.ManuscriptProps{

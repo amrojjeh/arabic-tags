@@ -60,3 +60,11 @@ func (u url) excerptEditLetterArgs(id, word_pos, letter_pos any) string {
 	return fmt.Sprintf("/excerpt/%v/letter?word_pos=%v&letter_pos=%v",
 		id, word_pos, letter_pos)
 }
+
+func (u url) wordRight(excerpt_id, word_id any) string {
+	return fmt.Sprintf("/excerpt/%v/word/%v/right", excerpt_id, word_id)
+}
+
+func (u url) wordLeft(excerpt_id, word_id any) string {
+	return fmt.Sprintf("/excerpt/%v/word/%v/left", excerpt_id, word_id)
+}
