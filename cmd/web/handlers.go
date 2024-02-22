@@ -500,7 +500,7 @@ func (app *application) excerptEditWordPost() http.Handler {
 
 		word := words[wordPos]
 		wordStr := r.Form.Get("word")
-		if !kalam.IsContentClean(wordStr) || strings.ContainsFunc(wordStr, unicode.IsSpace) {
+		if wordStr == "" || !kalam.IsContentClean(wordStr) || strings.ContainsFunc(wordStr, unicode.IsSpace) {
 			app.session.Put(r.Context(), errorSessionKey, "Invalid characters")
 			http.Redirect(w, r, app.u.excerpt(e.Id), http.StatusSeeOther)
 			return
