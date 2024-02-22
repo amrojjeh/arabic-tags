@@ -110,7 +110,7 @@ func (m WordModel) MoveRight(id int) error {
 		FROM word AS w0
 		INNER JOIN word AS w1
 		ON w0.word_pos=w1.word_pos+1 AND w0.excerpt_id=w1.excerpt_id
-		WHERE w0.id=? AND w1.word_pos>0`, id)
+		WHERE w0.id=? AND w0.word_pos>0`, id)
 
 	err = r.Scan(&idOfOther)
 	if err != nil {
@@ -134,5 +134,37 @@ func (m WordModel) MoveRight(id int) error {
 }
 
 func (m WordModel) MoveLeft(id int) error {
-	return nil
+	t, err := m.Db.Begin()
+	if err != nil {
+		return err
+	}
+	defer t.Rollback()
+
+	var idOfOther int
+
+	r := t.QueryRow(`SELECT w1.id
+		FROM word AS w0
+		INNER JOIN word AS w1
+		ON w0.word_pos=w1.word_pos-1 AND w0.excerpt_id=w1.excerpt_id
+		WHERE w0.id=? AND w1.word_pos>0`, id)
+
+	err = r.Scan(&idOfOther)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.Join(ErrNotSwappable, err)
+		}
+		return err
+	}
+
+	_, err = t.Exec(`UPDATE word SET word_pos=word_pos+1 WHERE id=?`, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = t.Exec(`UPDATE word SET word_pos=word_pos-1 WHERE id=?`, idOfOther)
+	if err != nil {
+		return err
+	}
+
+	return t.Commit()
 }

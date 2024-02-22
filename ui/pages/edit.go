@@ -23,6 +23,7 @@ type SelectedWordProps struct {
 	Word         string
 	Letters      []LetterProps
 	MoveRightUrl string
+	MoveLeftUrl  string
 }
 
 type EditProps struct {
@@ -59,7 +60,7 @@ func EditPage(p EditProps) g.Node {
 									Img(Class("mx-auto h-5 invert"), Src("/static/icons/angles-right-solid.svg")),
 								),
 							),
-							FormEl(Class("w-full"), Method("post"), Action(p.SelectedWord.MoveRightUrl), up.Target("#text"),
+							FormEl(Class("w-full"), Method("post"), Action(p.SelectedWord.MoveLeftUrl), up.Target("#text"),
 								Button(Type("submit"), Class("w-full bg-sky-600 text-white rounded-lg p-2"),
 									Img(Class("mx-auto h-5 invert"), Src("/static/icons/angles-left-solid.svg")),
 								),

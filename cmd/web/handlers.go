@@ -352,6 +352,7 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 				props.SelectedWord.Word = w.Word
 				props.SelectedWord.Id = strconv.Itoa(w.Id)
 				props.SelectedWord.MoveRightUrl = app.u.wordRight(e.Id, w.Id)
+				props.SelectedWord.MoveLeftUrl = app.u.wordLeft(e.Id, w.Id)
 				props.EditWordUrl = app.u.excerptEditWordArgs(e.Id, w.WordPos)
 				ls := kalam.LetterPacks(w.Word)
 				for i, l := range ls {
@@ -527,6 +528,10 @@ func (app *application) wordRightPost() http.Handler {
 		}
 		err = app.word.MoveRight(wid)
 		if err != nil {
+			if errors.Is(err, models.ErrNotSwappable) {
+				w.WriteHeader(http.StatusNotModified)
+				return
+			}
 			app.serverError(w, err)
 			return
 		}
@@ -557,7 +562,44 @@ func (app *application) wordRightPost() http.Handler {
 
 func (app *application) wordLeftPost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		e := getExcerptFromContext(r.Context())
+		params := httprouter.ParamsFromContext(r.Context())
+		wid, err := strconv.Atoi(params.ByName("wid"))
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		err = app.word.MoveLeft(wid)
+		if err != nil {
+			if errors.Is(err, models.ErrNotSwappable) {
+				w.WriteHeader(http.StatusNotModified)
+				return
+			}
+			app.serverError(w, err)
+			return
+		}
 
+		words, err := app.word.GetWordsByExcerptId(e.Id)
+		if err != nil {
+			app.serverError(w, err)
+		}
+
+		wps := []partials.WordProps{}
+		for _, word := range words {
+			wps = append(wps, partials.WordProps{
+				Id:          strconv.Itoa(word.Id),
+				Word:        word.Word,
+				Punctuation: word.Punctuation,
+				Connected:   word.Connected,
+				Selected:    word.Id == wid,
+				GetUrl:      app.u.excerptEditSelectWord(e.Id, word.WordPos),
+			})
+		}
+
+		err = partials.Text(wps).Render(w)
+		if err != nil {
+			app.serverError(w, err)
+		}
 	})
 }
 
