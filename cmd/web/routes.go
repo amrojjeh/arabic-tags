@@ -45,6 +45,11 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodPost, app.u.wordRight(":id", ":wid"), ownerRequired.Then(app.wordRightPost()))
 	router.Handler(http.MethodPost, app.u.wordLeft(":id", ":wid"), ownerRequired.Then(app.wordLeftPost()))
 
-	base := alice.New(app.session.LoadAndSave, app.recoverPanic, app.logRequest)
+	base := alice.New(
+		app.recoverPanic,
+		app.logRequest,
+		app.session.LoadAndSave,
+		app.getUser,
+	)
 	return base.Then(router)
 }

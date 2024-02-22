@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 )
@@ -24,6 +25,16 @@ func (app *application) excerptNotFound(w http.ResponseWriter, r *http.Request) 
 	http.Redirect(w, r, "/?error=Excerpt not found", http.StatusSeeOther)
 }
 
-func (app *application) getAuthenticatedEmail(r *http.Request) string {
-	return app.session.GetString(r.Context(), authorizedEmailSessionKey)
+func loggedIn(c context.Context) bool {
+	return getUserFromContext(c).Email != ""
+}
+
+// returns false if there's no excerpt
+func ownerOfExcerpt(c context.Context) bool {
+	e := getExcerptFromContext(c)
+	if e.AuthorEmail == "" {
+		return false
+	}
+
+	return e.AuthorEmail == getUserFromContext(c).Email
 }

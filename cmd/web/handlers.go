@@ -179,13 +179,8 @@ func (app *application) logoutPost() http.Handler {
 
 func (app *application) homeGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		email := app.getAuthenticatedEmail(r)
-		user, err := app.user.Get(email)
-		if err != nil {
-			app.serverError(w, err)
-			return
-		}
-		excerpts, err := app.excerpt.GetByEmail(email)
+		user := getUserFromContext(r.Context())
+		excerpts, err := app.excerpt.GetByEmail(user.Email)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -288,88 +283,23 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 			return
 		}
 
-		wordPosStr := r.Form.Get("word_pos")
-		var selected int
-		if wordPosStr == "" {
-			selected = 0
-		} else {
-			selected, err = strconv.Atoi(wordPosStr)
-			if err != nil {
-				app.clientError(w, http.StatusUnprocessableEntity)
-				return
-			}
+		selected, _ := strconv.Atoi(r.Form.Get("word_pos")) // 0 if err
+		words, err := app.word.GetWordsByExcerptId(e.Id)
+		if err != nil {
+			app.serverError(w, err)
+			return
 		}
 
-		props := pages.EditProps{
-			ExcerptTitle: e.Title,
-			Username:     "", // added later
-			SelectedWord: pages.SelectedWordProps{
-				Id:      "",
-				Word:    "",
-				Letters: []pages.LetterProps{},
-			}, // completed later
-			Words:       []partials.WordProps{}, // completed later
-			Error:       app.session.PopString(r.Context(), errorSessionKey),
-			Warning:     "", // added later
-			TitleUrl:    app.u.excerptTitle(e.Id),
-			EditWordUrl: "", // added later
-			ExportUrl:   "#",
-			LoginUrl:    app.u.login(),
-			RegisterUrl: app.u.register(),
-			LogoutUrl:   app.u.logout(),
+		error := app.session.PopString(r.Context(), errorSessionKey)
+		var warning string
+		user := getUserFromContext(r.Context())
+		if user.Username == "" {
+			warning = "Log in as the owner if you wish to edit the excerpt"
+		} else if !ownerOfExcerpt(r.Context()) {
+			warning = "You cannot make changes as you're not the owner of the excerpt"
 		}
 
-		email := app.getAuthenticatedEmail(r)
-		if loggedIn := email != ""; loggedIn {
-			user, err := app.user.Get(email)
-			if err != nil {
-				app.serverError(w, err)
-				return
-			}
-			props.Username = user.Username
-		} else {
-			// TODO(Amr Ojjeh): Add ReadOnly
-			props.Warning = "Log in as the owner if you wish to edit the excerpt"
-		}
-
-		if owner := email == e.AuthorEmail; !owner {
-			// TODO(Amr Ojjeh): Add ReadOnly
-			props.Warning = "You cannot make changes as you're not the owner of the excerpt"
-		}
-
-		for _, w := range ws {
-			wp := partials.WordProps{
-				Id:          strconv.Itoa(w.Id),
-				Word:        kalam.Prettify(w.Word),
-				Punctuation: w.Punctuation,
-				Connected:   w.Connected,
-				Selected:    selected == w.WordPos,
-				GetUrl:      app.u.excerptEditSelectWord(e.Id, w.WordPos),
-			}
-			props.Words = append(props.Words, wp)
-
-			if w.WordPos == selected {
-				props.SelectedWord.Word = w.Word
-				props.SelectedWord.Id = strconv.Itoa(w.Id)
-				props.SelectedWord.MoveRightUrl = app.u.wordRight(e.Id, w.Id)
-				props.SelectedWord.MoveLeftUrl = app.u.wordLeft(e.Id, w.Id)
-				props.EditWordUrl = app.u.excerptEditWordArgs(e.Id, w.WordPos)
-				ls := kalam.LetterPacks(w.Word)
-				for i, l := range ls {
-					props.SelectedWord.Letters = append(props.SelectedWord.Letters,
-						pages.LetterProps{
-							Letter:          l.Unpointed(false),
-							ShortVowel:      l.Vowel,
-							Shadda:          l.Shadda,
-							SuperscriptAlef: l.SuperscriptAlef,
-							Index:           i,
-							PostUrl:         app.u.excerptEditLetterArgs(e.Id, w.WordPos, i),
-						})
-				}
-			}
-		}
-
-		err = pages.EditPage(props).Render(w)
+		err = renderEdit(app.u, e, user, words, selected, error, warning).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
@@ -606,41 +536,16 @@ func (app *application) wordLeftPost() http.Handler {
 func (app *application) manuscriptGet(ms models.Manuscript) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		e := getExcerptFromContext(r.Context())
-		props := pages.ManuscriptProps{
-			ExcerptTitle:        e.Title,
-			ReadOnly:            false,
-			AcceptedPunctuation: kalam.PunctuationRegex().String(),
-			Content:             ms.Content,
-			Warning:             "", // added later
-			Error:               app.session.PopString(r.Context(), errorSessionKey),
-			Username:            "", // added later
-			SaveUrl:             app.u.excerpt(e.Id),
-			NextUrl:             app.u.excerptLock(e.Id),
-			TitleUrl:            app.u.excerptTitle(e.Id),
-			LoginUrl:            app.u.login(),
-			RegisterUrl:         app.u.register(),
-			LogoutUrl:           app.u.logout(),
-		}
-		email := app.getAuthenticatedEmail(r)
-		if loggedIn := email != ""; !loggedIn {
-			props.ReadOnly = true
-			props.Warning = "Log in as the owner if you wish to edit the excerpt"
-		} else {
-			user, err := app.user.Get(email)
-			if err != nil {
-				app.serverError(w, err)
-				return
-			}
-			props.Username = user.Username
-
-			if owner := email == e.AuthorEmail; !owner {
-				props.ReadOnly = true
-				props.Warning = "You cannot make changes as you're not the owner of the excerpt"
-			}
+		error := app.session.PopString(r.Context(), errorSessionKey)
+		warning := ""
+		if !loggedIn(r.Context()) {
+			warning = "Log in as the owner if you wish to edit the excerpt"
+		} else if !ownerOfExcerpt(r.Context()) {
+			warning = "You cannot make changes as you're not the owner of the excerpt"
 		}
 
-		err := pages.ManuscriptPage(props).Render(w)
-
+		err := renderManuscript(app.u, e, ms, getUserFromContext(r.Context()),
+			error, warning).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}

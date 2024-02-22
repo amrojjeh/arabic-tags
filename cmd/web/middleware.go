@@ -37,11 +37,30 @@ func (app *application) logRequest(h http.Handler) http.Handler {
 
 func (app *application) authRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		email := app.getAuthenticatedEmail(r)
+		email := app.session.GetString(r.Context(), authorizedEmailSessionKey)
 		if email == "" {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
+		h.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) getUser(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if app.session.GetString(r.Context(), authorizedEmailSessionKey) != "" {
+			user, err := app.user.Get(app.session.GetString(
+				r.Context(),
+				authorizedEmailSessionKey))
+			if err != nil {
+				app.serverError(w, err)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), userContextKey, user)
+			r = r.WithContext(ctx)
+		}
+
 		h.ServeHTTP(w, r)
 	})
 }
@@ -74,4 +93,8 @@ func (app *application) excerptRequired(h http.Handler) http.Handler {
 
 func getExcerptFromContext(c context.Context) models.Excerpt {
 	return c.Value(excerptContextKey).(models.Excerpt)
+}
+
+func getUserFromContext(c context.Context) models.User {
+	return c.Value(userContextKey).(models.User)
 }
