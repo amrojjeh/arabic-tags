@@ -63,6 +63,24 @@ func renderEdit(u url,
 	return pages.EditPage(props)
 }
 
+func renderText(u url,
+	e models.Excerpt, words []models.Word,
+	selected int) g.Node {
+	wps := []partials.WordProps{}
+	for _, word := range words {
+		wps = append(wps, partials.WordProps{
+			Id:          strconv.Itoa(word.Id),
+			Word:        word.Word,
+			Punctuation: word.Punctuation,
+			Connected:   word.Connected,
+			Selected:    word.Id == selected,
+			GetUrl:      u.excerptEditSelectWord(e.Id, word.WordPos),
+		})
+	}
+
+	return partials.Text(wps)
+}
+
 func renderManuscript(u url,
 	e models.Excerpt, ms models.Manuscript, user models.User,
 	error, warning string) g.Node {

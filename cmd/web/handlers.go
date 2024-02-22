@@ -471,19 +471,7 @@ func (app *application) wordRightPost() http.Handler {
 			app.serverError(w, err)
 		}
 
-		wps := []partials.WordProps{}
-		for _, word := range words {
-			wps = append(wps, partials.WordProps{
-				Id:          strconv.Itoa(word.Id),
-				Word:        word.Word,
-				Punctuation: word.Punctuation,
-				Connected:   word.Connected,
-				Selected:    word.Id == wid,
-				GetUrl:      app.u.excerptEditSelectWord(e.Id, word.WordPos),
-			})
-		}
-
-		err = partials.Text(wps).Render(w)
+		err = renderText(app.u, e, words, wid).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
@@ -514,19 +502,7 @@ func (app *application) wordLeftPost() http.Handler {
 			app.serverError(w, err)
 		}
 
-		wps := []partials.WordProps{}
-		for _, word := range words {
-			wps = append(wps, partials.WordProps{
-				Id:          strconv.Itoa(word.Id),
-				Word:        word.Word,
-				Punctuation: word.Punctuation,
-				Connected:   word.Connected,
-				Selected:    word.Id == wid,
-				GetUrl:      app.u.excerptEditSelectWord(e.Id, word.WordPos),
-			})
-		}
-
-		err = partials.Text(wps).Render(w)
+		err = renderText(app.u, e, words, wid).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
