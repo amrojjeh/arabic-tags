@@ -120,12 +120,12 @@ func (m WordModel) MoveRight(id int) error {
 		return err
 	}
 
-	_, err = t.Exec(`UPDATE word SET word_pos=word_pos-1 WHERE id=?`, id)
+	_, err = t.Exec(`UPDATE word SET word_pos=word_pos-1, updated=UTC_TIMESTAMP() WHERE id=?`, id)
 	if err != nil {
 		return err
 	}
 
-	_, err = t.Exec(`UPDATE word SET word_pos=word_pos+1 WHERE id=?`, idOfOther)
+	_, err = t.Exec(`UPDATE word SET word_pos=word_pos+1, updated=UTC_TIMESTAMP() WHERE id=?`, idOfOther)
 	if err != nil {
 		return err
 	}
@@ -156,15 +156,97 @@ func (m WordModel) MoveLeft(id int) error {
 		return err
 	}
 
-	_, err = t.Exec(`UPDATE word SET word_pos=word_pos+1 WHERE id=?`, id)
+	_, err = t.Exec(`UPDATE word SET word_pos=word_pos+1, updated=UTC_TIMESTAMP() WHERE id=?`, id)
 	if err != nil {
 		return err
 	}
 
-	_, err = t.Exec(`UPDATE word SET word_pos=word_pos-1 WHERE id=?`, idOfOther)
+	_, err = t.Exec(`UPDATE word SET word_pos=word_pos-1, updated=UTC_TIMESTAMP() WHERE id=?`, idOfOther)
 	if err != nil {
 		return err
 	}
 
 	return t.Commit()
+}
+
+func (m WordModel) InsertAfter(id int, word string) (int, error) {
+	t, err := m.Db.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer t.Rollback()
+	var excerptId, wordPos int
+	q := t.QueryRow(`SELECT excerpt_id, word_pos FROM word WHERE id=?`, id)
+	err = q.Scan(&excerptId, &wordPos)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, errors.Join(ErrNoRecord, err)
+		}
+		return 0, err
+	}
+
+	_, err = t.Exec(`UPDATE word SET word_pos=word_pos+1, updated=UTC_TIMESTAMP() WHERE excerpt_id=? AND word_pos>?`,
+		excerptId, wordPos)
+	if err != nil {
+		return 0, err
+	}
+
+	r, err := t.Exec(`INSERT INTO word (word, word_pos, connected, punctuation, excerpt_id, created, updated)
+		VALUES (?, ?, false, false, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
+		word, wordPos+1, excerptId)
+	if err != nil {
+		return 0, err
+	}
+
+	new_id, err := r.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(new_id), t.Commit()
+}
+
+func (m WordModel) Delete(id int) error {
+	t, err := m.Db.Begin()
+	if err != nil {
+		return err
+	}
+	defer t.Rollback()
+	var excerptId, wordPos int
+	q := t.QueryRow(`SELECT excerpt_id, word_pos FROM word WHERE id=?`, id)
+	err = q.Scan(&excerptId, &wordPos)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.Join(ErrNoRecord, err)
+		}
+		return err
+	}
+
+	_, err = t.Exec(`UPDATE word SET word_pos=word_pos-1, updated=UTC_TIMESTAMP() WHERE excerpt_id=? AND word_pos>?`,
+		excerptId, wordPos)
+	if err != nil {
+		return err
+	}
+
+	_, err = t.Exec(`DELETE FROM word WHERE id=?`, id)
+	if err != nil {
+		return err
+	}
+
+	return t.Commit()
+}
+func (m WordModel) Get(id int) (Word, error) {
+	stmt := `SELECT (id, word, word_pos, connected, excerpt_id, punctuation, created, updated)
+	FROM word
+	WHERE id=?`
+
+	var word Word
+	q := m.Db.QueryRow(stmt, id)
+	err := q.Scan(&word.Id, &word.Word, &word.WordPos, &word.Connected,
+		&word.ExcerptId, &word.Punctuation, &word.Created, &word.Updated)
+	if err != nil {
+		return Word{}, err
+	}
+
+	return word, nil
 }

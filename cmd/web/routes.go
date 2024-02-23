@@ -39,11 +39,13 @@ func (app *application) routes() http.Handler {
 	// TODO(Amr Ojjeh): ownerRequired doesn't check if auth is owner
 	ownerRequired := excerptRequired.Extend(authRequired)
 	router.Handler(http.MethodPost, app.u.excerptLock(":id"), ownerRequired.Then(app.excerptNextPost()))
-	router.Handler(http.MethodPost, app.u.excerptEditLetter(":id"), ownerRequired.Then(app.excerptEditLetterPost()))
+	router.Handler(http.MethodPost, app.u.excerptEditLetter(":id", ":wid", ":lid"), ownerRequired.Then(app.excerptEditLetterPost()))
 	router.Handler(http.MethodGet, app.u.excerptEditWord(":id"), ownerRequired.Then(app.excerptEditWordGet()))
 	router.Handler(http.MethodPost, app.u.excerptEditWord(":id"), ownerRequired.Then(app.excerptEditWordPost()))
 	router.Handler(http.MethodPost, app.u.wordRight(":id", ":wid"), ownerRequired.Then(app.wordRightPost()))
 	router.Handler(http.MethodPost, app.u.wordLeft(":id", ":wid"), ownerRequired.Then(app.wordLeftPost()))
+	router.Handler(http.MethodPost, app.u.wordAdd(":id", ":wid"), ownerRequired.Then(app.wordAddPost()))
+	router.Handler(http.MethodPost, app.u.wordRemove(":id", ":wid"), ownerRequired.Then(app.wordRemovePost()))
 
 	base := alice.New(
 		app.recoverPanic,

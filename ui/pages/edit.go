@@ -19,11 +19,13 @@ type LetterProps struct {
 }
 
 type SelectedWordProps struct {
-	Id           string
-	Word         string
-	Letters      []LetterProps
-	MoveRightUrl string
-	MoveLeftUrl  string
+	Id            string
+	Word          string
+	Letters       []LetterProps
+	MoveRightUrl  string
+	MoveLeftUrl   string
+	AddWordUrl    string
+	RemoveWordUrl string
 }
 
 type EditProps struct {
@@ -54,19 +56,30 @@ func EditPage(p EditProps) g.Node {
 						Div(Class("flex justify-center"),
 							partials.InspectorWordRegular(p.EditWordUrl, p.SelectedWord.Word),
 						),
-						Div(Class("flex justify-center mx-2 gap-2"),
-							FormEl(Class("w-full"), Method("post"), Action(p.SelectedWord.MoveRightUrl), up.Target("#text"),
-								Button(Type("submit"), Class("w-full bg-sky-600 text-white rounded-lg p-2"),
-									Img(Class("mx-auto h-5 invert"), Src("/static/icons/angles-right-solid.svg")),
+						Div(Class("flex flex-col gap-2 mx-2 "),
+							Div(Class("flex justify-center gap-2"),
+								FormEl(Class("w-full"), Method("post"), Action(p.SelectedWord.MoveRightUrl), up.Target("#text"),
+									Button(Type("submit"), Class("w-full bg-sky-600 text-white rounded-lg p-2"),
+										Img(Class("mx-auto h-5 invert"), Src("/static/icons/angles-right-solid.svg")),
+									),
+								),
+								FormEl(Class("w-full"), Method("post"), Action(p.SelectedWord.MoveLeftUrl), up.Target("#text"),
+									Button(Type("submit"), Class("w-full bg-sky-600 text-white rounded-lg p-2"),
+										Img(Class("mx-auto h-5 invert"), Src("/static/icons/angles-left-solid.svg")),
+									),
 								),
 							),
-							FormEl(Class("w-full"), Method("post"), Action(p.SelectedWord.MoveLeftUrl), up.Target("#text"),
+							FormEl(Class("w-full"), Method("post"), Action(p.SelectedWord.AddWordUrl),
 								Button(Type("submit"), Class("w-full bg-sky-600 text-white rounded-lg p-2"),
-									Img(Class("mx-auto h-5 invert"), Src("/static/icons/angles-left-solid.svg")),
+									Img(Class("mx-auto h-5 invert"), Src("/static/icons/plus-solid.svg")),
+								),
+							),
+							FormEl(Class("w-full"), Method("post"), Action(p.SelectedWord.RemoveWordUrl), g.Attr("onsubmit", `return confirm("Are you sure you want to delete this word?")`),
+								Button(Type("submit"), Class("w-full bg-red-600 text-white rounded-lg p-2"),
+									Img(Class("mx-auto h-5 invert"), Src("/static/icons/trash-solid.svg")),
 								),
 							),
 						),
-
 						Div(Class("border-solid border-2 border-black bg-slate-200 align-center m-1 p-1"),
 							P(
 								g.Text("Stuff..."),

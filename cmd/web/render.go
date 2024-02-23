@@ -34,17 +34,19 @@ func renderEdit(u url,
 			Word:        kalam.Prettify(w.Word),
 			Punctuation: w.Punctuation,
 			Connected:   w.Connected,
-			Selected:    selected == w.WordPos,
-			GetUrl:      u.excerptEditSelectWord(e.Id, w.WordPos),
+			Selected:    selected == w.Id,
+			GetUrl:      u.excerptEditSelectWord(e.Id, w.Id),
 		}
 		props.Words = append(props.Words, wp)
 
-		if w.WordPos == selected {
+		if w.Id == selected {
 			props.SelectedWord.Word = w.Word
 			props.SelectedWord.Id = strconv.Itoa(w.Id)
 			props.SelectedWord.MoveRightUrl = u.wordRight(e.Id, w.Id)
 			props.SelectedWord.MoveLeftUrl = u.wordLeft(e.Id, w.Id)
-			props.EditWordUrl = u.excerptEditWordArgs(e.Id, w.WordPos)
+			props.SelectedWord.AddWordUrl = u.wordAdd(e.Id, w.Id)
+			props.SelectedWord.RemoveWordUrl = u.wordRemove(e.Id, w.Id)
+			props.EditWordUrl = u.excerptEditWordArgs(e.Id, w.Id)
 			ls := kalam.LetterPacks(w.Word)
 			for i, l := range ls {
 				props.SelectedWord.Letters = append(props.SelectedWord.Letters,
@@ -54,7 +56,7 @@ func renderEdit(u url,
 						Shadda:          l.Shadda,
 						SuperscriptAlef: l.SuperscriptAlef,
 						Index:           i,
-						PostUrl:         u.excerptEditLetterArgs(e.Id, w.WordPos, i),
+						PostUrl:         u.excerptEditLetter(e.Id, w.Id, i),
 					})
 			}
 		}
@@ -74,7 +76,7 @@ func renderText(u url,
 			Punctuation: word.Punctuation,
 			Connected:   word.Connected,
 			Selected:    word.Id == selected,
-			GetUrl:      u.excerptEditSelectWord(e.Id, word.WordPos),
+			GetUrl:      u.excerptEditSelectWord(e.Id, word.Id),
 		})
 	}
 

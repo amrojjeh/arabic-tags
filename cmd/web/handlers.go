@@ -283,11 +283,14 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 			return
 		}
 
-		selected, _ := strconv.Atoi(r.Form.Get("word_pos")) // 0 if err
 		words, err := app.word.GetWordsByExcerptId(e.Id)
 		if err != nil {
 			app.serverError(w, err)
 			return
+		}
+		selected, err := strconv.Atoi(r.Form.Get("word"))
+		if err != nil {
+			selected = words[0].Id
 		}
 
 		error := app.session.PopString(r.Context(), errorSessionKey)
@@ -315,12 +318,13 @@ func (app *application) excerptEditLetterPost() http.Handler {
 		}
 
 		e := getExcerptFromContext(r.Context())
-		word_pos, err := strconv.Atoi(r.Form.Get("word_pos"))
+		params := httprouter.ParamsFromContext(r.Context())
+		word_id, err := strconv.Atoi(params.ByName("wid"))
 		if err != nil {
 			app.clientError(w, http.StatusUnprocessableEntity)
 			return
 		}
-		letter_pos, err := strconv.Atoi(r.Form.Get("letter_pos"))
+		letter_pos, err := strconv.Atoi(params.ByName("lid"))
 		if err != nil {
 			app.clientError(w, http.StatusUnprocessableEntity)
 			return
@@ -329,17 +333,12 @@ func (app *application) excerptEditLetterPost() http.Handler {
 		superscript_alef := r.Form.Get("superscript_alef")
 		shadda := r.Form.Get("shadda")
 
-		words, err := app.word.GetWordsByExcerptId(e.Id)
+		word, err := app.word.Get(word_id)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
-		if word_pos < 0 || word_pos >= len(words) {
-			app.clientError(w, http.StatusUnprocessableEntity)
-			return
-		}
 
-		word := words[word_pos]
 		ls := kalam.LetterPacks(word.Word)
 		if letter_pos < 0 || letter_pos > len(ls) {
 			app.clientError(w, http.StatusUnprocessableEntity)
@@ -503,6 +502,58 @@ func (app *application) wordLeftPost() http.Handler {
 		}
 
 		err = renderText(app.u, e, words, wid).Render(w)
+		if err != nil {
+			app.serverError(w, err)
+		}
+	})
+}
+
+func (app *application) wordAddPost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params := httprouter.ParamsFromContext(r.Context())
+		wid, err := strconv.Atoi(params.ByName("wid"))
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		new_id, err := app.word.InsertAfter(wid, kalam.FromBuckwalter("mmm"))
+		if err != nil {
+			app.serverError(w, err)
+		}
+
+		e := getExcerptFromContext(r.Context())
+		u := getUserFromContext(r.Context())
+		words, err := app.word.GetWordsByExcerptId(e.Id)
+		err = renderEdit(app.u, e, u, words, new_id, "", "").Render(w)
+		if err != nil {
+			app.serverError(w, err)
+		}
+	})
+}
+
+func (app *application) wordRemovePost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params := httprouter.ParamsFromContext(r.Context())
+		wid, err := strconv.Atoi(params.ByName("wid"))
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		err = app.word.Delete(wid)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		e := getExcerptFromContext(r.Context())
+		u := getUserFromContext(r.Context())
+		words, err := app.word.GetWordsByExcerptId(e.Id)
+		if err != nil {
+			app.serverError(w, err)
+		}
+		err = renderEdit(app.u, e, u, words, words[0].Id, "", "").Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
