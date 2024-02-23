@@ -236,7 +236,7 @@ func (m WordModel) Delete(id int) error {
 	return t.Commit()
 }
 func (m WordModel) Get(id int) (Word, error) {
-	stmt := `SELECT (id, word, word_pos, connected, excerpt_id, punctuation, created, updated)
+	stmt := `SELECT id, word, word_pos, connected, excerpt_id, punctuation, created, updated
 	FROM word
 	WHERE id=?`
 

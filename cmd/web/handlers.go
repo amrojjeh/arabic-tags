@@ -375,26 +375,20 @@ func (app *application) excerptEditWordGet() http.Handler {
 			return
 		}
 
-		wordPos, err := strconv.Atoi(r.Form.Get("word_pos"))
+		word_id, err := strconv.Atoi(r.Form.Get("word"))
 		if err != nil {
 			app.clientError(w, http.StatusUnprocessableEntity)
 			return
 		}
 
-		words, err := app.word.GetWordsByExcerptId(e.Id)
+		word, err := app.word.Get(word_id)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
 
-		if wordPos < 0 || wordPos > len(words) {
-			app.clientError(w, http.StatusUnprocessableEntity)
-			return
-		}
-
-		word := words[wordPos]
 		err = partials.InspectorWordForm(
-			app.u.excerptEditWordArgs(e.Id, wordPos), word.Word).Render(w)
+			app.u.excerptEditWordArgs(e.Id, word_id), word.Word).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -411,25 +405,19 @@ func (app *application) excerptEditWordPost() http.Handler {
 			return
 		}
 
-		wordPos, err := strconv.Atoi(r.Form.Get("word_pos"))
+		word_id, err := strconv.Atoi(r.Form.Get("word"))
 		if err != nil {
 			app.clientError(w, http.StatusUnprocessableEntity)
 			return
 		}
 
-		words, err := app.word.GetWordsByExcerptId(e.Id)
+		word, err := app.word.Get(word_id)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
 
-		if wordPos < 0 || wordPos > len(words) {
-			app.clientError(w, http.StatusUnprocessableEntity)
-			return
-		}
-
-		word := words[wordPos]
-		wordStr := r.Form.Get("word")
+		wordStr := r.Form.Get("new_word")
 		if wordStr == "" || !kalam.IsContentClean(wordStr) || strings.ContainsFunc(wordStr, unicode.IsSpace) {
 			app.session.Put(r.Context(), errorSessionKey, "Invalid characters")
 			http.Redirect(w, r, app.u.excerpt(e.Id), http.StatusSeeOther)

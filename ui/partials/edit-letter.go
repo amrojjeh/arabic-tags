@@ -26,7 +26,7 @@ func EditLetter(id, editUrl, selectUrl, selectedWord string, connected bool) g.N
 
 func InspectorWordForm(editUrl, word string) g.Node {
 	return FormEl(ID("inspector-word"), Action(editUrl), Method("post"), Class("flex items-center gap-2"),
-		Input(AutoComplete("off"), ui.SelectAttr(), Name("word"), AutoFocus(), Value(word), Class("mr-2")),
+		Input(AutoComplete("off"), ui.SelectAttr(), Name("new_word"), AutoFocus(), Value(word), Class("mr-2")),
 		Button(Type("submit"), Img(Src("/static/icons/check-solid.svg"), Class("w-4"))),
 	)
 }
