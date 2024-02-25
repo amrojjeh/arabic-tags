@@ -91,10 +91,48 @@ func (app *application) excerptRequired(h http.Handler) http.Handler {
 	})
 }
 
+func (app *application) wordIdRequired(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params := httprouter.ParamsFromContext(r.Context())
+		wid, err := strconv.Atoi(params.ByName("wid"))
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), wordIdContextKey, wid)
+		r = r.WithContext(ctx)
+		h.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) letterPosRequired(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params := httprouter.ParamsFromContext(r.Context())
+		lid, err := strconv.Atoi(params.ByName("lid"))
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), letterPosContextKey, lid)
+		r = r.WithContext(ctx)
+		h.ServeHTTP(w, r)
+	})
+}
+
 func getExcerptFromContext(c context.Context) models.Excerpt {
 	return c.Value(excerptContextKey).(models.Excerpt)
 }
 
 func getUserFromContext(c context.Context) models.User {
 	return c.Value(userContextKey).(models.User)
+}
+
+func getWordIdFromContext(c context.Context) int {
+	return c.Value(wordIdContextKey).(int)
+}
+
+func getLetterPosFromContext(c context.Context) int {
+	return c.Value(letterPosContextKey).(int)
 }

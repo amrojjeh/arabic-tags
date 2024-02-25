@@ -39,14 +39,20 @@ func (app *application) routes() http.Handler {
 	// TODO(Amr Ojjeh): ownerRequired doesn't check if auth is owner
 	ownerRequired := excerptRequired.Extend(authRequired)
 	router.Handler(http.MethodPost, app.u.excerptLock(":id"), ownerRequired.Then(app.excerptNextPost()))
-	router.Handler(http.MethodPost, app.u.excerptEditLetter(":id", ":wid", ":lid"), ownerRequired.Then(app.excerptEditLetterPost()))
 	router.Handler(http.MethodGet, app.u.excerptEditWord(":id"), ownerRequired.Then(app.excerptEditWordGet()))
 	router.Handler(http.MethodPost, app.u.excerptEditWord(":id"), ownerRequired.Then(app.excerptEditWordPost()))
+
+	ownerRequired = ownerRequired.Append(app.wordIdRequired)
 	router.Handler(http.MethodPost, app.u.wordRight(":id", ":wid"), ownerRequired.Then(app.wordRightPost()))
 	router.Handler(http.MethodPost, app.u.wordLeft(":id", ":wid"), ownerRequired.Then(app.wordLeftPost()))
 	router.Handler(http.MethodPost, app.u.wordAdd(":id", ":wid"), ownerRequired.Then(app.wordAddPost()))
 	router.Handler(http.MethodPost, app.u.wordRemove(":id", ":wid"), ownerRequired.Then(app.wordRemovePost()))
 	router.Handler(http.MethodPost, app.u.wordConnect(":id", ":wid"), ownerRequired.Then(app.wordConnectPost()))
+	router.Handler(http.MethodPost, app.u.wordSentenceStart(":id", ":wid"), ownerRequired.Then(app.wordSentenceStartPost()))
+	router.Handler(http.MethodPost, app.u.wordIgnore(":id", ":wid"), ownerRequired.Then(app.wordIgnorePost()))
+
+	ownerRequired = ownerRequired.Append(app.letterPosRequired)
+	router.Handler(http.MethodPost, app.u.excerptEditLetter(":id", ":wid", ":lid"), ownerRequired.Then(app.excerptEditLetterPost()))
 
 	base := alice.New(
 		app.recoverPanic,

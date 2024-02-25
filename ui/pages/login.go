@@ -43,7 +43,7 @@ func LoginPage(p LoginProps) g.Node {
 					)),
 					Div(Class("flex gap-1"),
 						Img(Class("w-4 opacity-30"), Src("/static/icons/envelope-solid.svg")),
-						Input(Required(), Name("email"), Value(p.EmailField), Class("w-full block"), ID("email"), Placeholder("Enter email")),
+						Input(Type("email"), Required(), Name("email"), Value(p.EmailField), Class("w-full block"), ID("email"), Placeholder("Enter email")),
 					),
 					g.If(p.PasswordError != "", P(Class("w-60 text-md text-red-500 font-bold text-center"),
 						g.Text(p.PasswordError),

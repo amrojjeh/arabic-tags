@@ -19,15 +19,19 @@ type LetterProps struct {
 }
 
 type SelectedWordProps struct {
-	Id            string
-	Word          string
-	Letters       []LetterProps
-	Connected     bool
-	MoveRightUrl  string
-	MoveLeftUrl   string
-	AddWordUrl    string
-	RemoveWordUrl string
-	ConnectedUrl  string
+	Id               string
+	Word             string
+	Letters          []LetterProps
+	Connected        bool
+	Ignore           bool
+	SentenceStart    bool
+	MoveRightUrl     string
+	MoveLeftUrl      string
+	AddWordUrl       string
+	RemoveWordUrl    string
+	ConnectedUrl     string
+	IgnoreUrl        string
+	SentenceStartUrl string
 }
 
 type EditProps struct {
@@ -84,6 +88,8 @@ func EditPage(p EditProps) g.Node {
 						),
 						Div(Class("border-solid border-2 border-black bg-slate-200 align-center m-2 p-1"),
 							partials.KeyValueCheckbox(p.SelectedWord.ConnectedUrl, "Connected", p.SelectedWord.Connected),
+							partials.KeyValueCheckbox(p.SelectedWord.SentenceStartUrl, "Sentence Start", p.SelectedWord.SentenceStart),
+							partials.KeyValueCheckbox(p.SelectedWord.IgnoreUrl, "Ignore", p.SelectedWord.Ignore),
 						),
 						g.Group(g.Map(p.SelectedWord.Letters, func(lp LetterProps) g.Node {
 							return FieldSet(c.Classes{

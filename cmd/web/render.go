@@ -41,15 +41,19 @@ func renderEdit(u url,
 
 		if w.Id == selectedId {
 			props.SelectedWord = pages.SelectedWordProps{
-				Id:            strconv.Itoa(w.Id),
-				Word:          w.Word,
-				Letters:       []pages.LetterProps{},
-				Connected:     w.Connected,
-				MoveRightUrl:  u.wordRight(e.Id, w.Id),
-				MoveLeftUrl:   u.wordLeft(e.Id, w.Id),
-				AddWordUrl:    u.wordAdd(e.Id, w.Id),
-				RemoveWordUrl: u.wordRemove(e.Id, w.Id),
-				ConnectedUrl:  u.wordConnect(e.Id, w.Id),
+				Id:               strconv.Itoa(w.Id),
+				Word:             w.Word,
+				Letters:          []pages.LetterProps{},
+				Connected:        w.Connected,
+				Ignore:           w.Ignore,
+				SentenceStart:    w.SentenceStart,
+				MoveRightUrl:     u.wordRight(e.Id, w.Id),
+				MoveLeftUrl:      u.wordLeft(e.Id, w.Id),
+				AddWordUrl:       u.wordAdd(e.Id, w.Id),
+				RemoveWordUrl:    u.wordRemove(e.Id, w.Id),
+				ConnectedUrl:     u.wordConnect(e.Id, w.Id),
+				IgnoreUrl:        u.wordIgnore(e.Id, w.Id),
+				SentenceStartUrl: u.wordSentenceStart(e.Id, w.Id),
 			}
 			props.EditWordUrl = u.excerptEditWordArgs(e.Id, w.Id)
 			ls := kalam.LetterPacks(w.Word)

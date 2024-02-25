@@ -35,6 +35,10 @@ CREATE TABLE IF NOT EXISTS word (
     created DATETIME NOT NULL,
     updated DATETIME NOT NULL,
 
+    -- Should be made more versatile but for now it will do
+    na_ignore BOOLEAN NOT NULL,
+    na_sentence_start BOOLEAN NOT NULL,
+
     FOREIGN KEY (excerpt_id)
         REFERENCES excerpt(id)
         ON DELETE CASCADE
@@ -58,7 +62,7 @@ CREATE TABLE IF NOT EXISTS manuscript (
 
 -- For: https://github.com/alexedwards/scs/tree/master/mysqlstore
 -- Should be "session" :(
-CREATE TABLE sessions (
+CREATE TABLE IF NOT EXISTS sessions (
 	token CHAR(43) PRIMARY KEY,
 	data BLOB NOT NULL,
 	expiry TIMESTAMP(6) NOT NULL

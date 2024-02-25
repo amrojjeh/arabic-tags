@@ -11,14 +11,16 @@ import (
 )
 
 type Word struct {
-	Id          int
-	Word        string
-	WordPos     int
-	Connected   bool
-	Punctuation bool
-	ExcerptId   int
-	Created     time.Time
-	Updated     time.Time
+	Id            int
+	Word          string
+	WordPos       int
+	Connected     bool
+	Punctuation   bool
+	ExcerptId     int
+	Ignore        bool
+	SentenceStart bool
+	Created       time.Time
+	Updated       time.Time
 }
 
 type WordModel struct {
@@ -45,10 +47,11 @@ func (m WordModel) GenerateWordsFromManuscript(ms Manuscript) error {
 	}
 
 	var stmt strings.Builder
-	stmt.WriteString(`INSERT INTO word (word, word_pos, connected, punctuation, excerpt_id, created, updated) VALUES `)
+	stmt.WriteString(`INSERT INTO word (word, word_pos, connected, punctuation,
+		excerpt_id, na_ignore, na_sentence_start, created, updated) VALUES `)
 	vals := []any{}
 	for i, w := range words {
-		stmt.WriteString("(?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
+		stmt.WriteString("(?, ?, ?, ?, ?, false, false, UTC_TIMESTAMP(), UTC_TIMESTAMP())")
 		if i != len(words)-1 {
 			stmt.WriteString(", ")
 		}
@@ -64,7 +67,8 @@ func (m WordModel) GenerateWordsFromManuscript(ms Manuscript) error {
 }
 
 func (m WordModel) GetWordsByExcerptId(excerpt_id int) ([]Word, error) {
-	stmt := `SELECT id, word, word_pos, connected, punctuation, excerpt_id, created, updated
+	stmt := `SELECT id, word, word_pos, connected, punctuation, excerpt_id,
+	na_ignore, na_sentence_start, created, updated
 	FROM word
 	WHERE excerpt_id=?
 	ORDER BY word_pos`
@@ -77,7 +81,9 @@ func (m WordModel) GetWordsByExcerptId(excerpt_id int) ([]Word, error) {
 
 	for rows.Next() {
 		var w Word
-		err = rows.Scan(&w.Id, &w.Word, &w.WordPos, &w.Connected, &w.Punctuation, &w.ExcerptId, &w.Created, &w.Updated)
+		err = rows.Scan(&w.Id, &w.Word, &w.WordPos, &w.Connected,
+			&w.Punctuation, &w.ExcerptId, &w.Ignore, &w.SentenceStart,
+			&w.Created, &w.Updated)
 		if err != nil {
 			return nil, err
 		}
@@ -236,14 +242,16 @@ func (m WordModel) Delete(id int) error {
 	return t.Commit()
 }
 func (m WordModel) Get(id int) (Word, error) {
-	stmt := `SELECT id, word, word_pos, connected, excerpt_id, punctuation, created, updated
+	stmt := `SELECT id, word, word_pos, connected, excerpt_id, na_ignore,
+	na_sentence_start, punctuation, created, updated
 	FROM word
 	WHERE id=?`
 
 	var word Word
 	q := m.Db.QueryRow(stmt, id)
 	err := q.Scan(&word.Id, &word.Word, &word.WordPos, &word.Connected,
-		&word.ExcerptId, &word.Punctuation, &word.Created, &word.Updated)
+		&word.ExcerptId, &word.Ignore, &word.SentenceStart, &word.Punctuation,
+		&word.Created, &word.Updated)
 	if err != nil {
 		return Word{}, err
 	}
@@ -251,14 +259,26 @@ func (m WordModel) Get(id int) (Word, error) {
 	return word, nil
 }
 
-func (m WordModel) Connect(id int, connect bool) error {
-	stmt := `UPDATE word SET connected=?, UPDATED=UTC_TIMESTAMP()
-	WHERE id=?`
+func (m WordModel) updateBool(id int, name string, val bool) error {
+	stmt := fmt.Sprintf(`UPDATE word SET %v=?, UPDATED=UTC_TIMESTAMP()
+	WHERE id=?`, name)
 
-	_, err := m.Db.Exec(stmt, connect, id)
+	_, err := m.Db.Exec(stmt, val, id)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (m WordModel) Connect(id int, connect bool) error {
+	return m.updateBool(id, "connected", connect)
+}
+
+func (m WordModel) Ignore(id int, ignore bool) error {
+	return m.updateBool(id, "na_ignore", ignore)
+}
+
+func (m WordModel) SentenceStart(id int, sentence_start bool) error {
+	return m.updateBool(id, "na_sentence_start", sentence_start)
 }

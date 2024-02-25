@@ -14,7 +14,6 @@ import (
 	"github.com/amrojjeh/arabic-tags/ui/pages"
 	"github.com/amrojjeh/arabic-tags/ui/partials"
 	"github.com/amrojjeh/kalam"
-	"github.com/julienschmidt/httprouter"
 )
 
 func (app *application) notFound() http.Handler {
@@ -318,17 +317,8 @@ func (app *application) excerptEditLetterPost() http.Handler {
 		}
 
 		e := getExcerptFromContext(r.Context())
-		params := httprouter.ParamsFromContext(r.Context())
-		word_id, err := strconv.Atoi(params.ByName("wid"))
-		if err != nil {
-			app.clientError(w, http.StatusUnprocessableEntity)
-			return
-		}
-		letter_pos, err := strconv.Atoi(params.ByName("lid"))
-		if err != nil {
-			app.clientError(w, http.StatusUnprocessableEntity)
-			return
-		}
+		word_id := getWordIdFromContext(r.Context())
+		letter_pos := getLetterPosFromContext(r.Context())
 		vowel := r.Form.Get("vowel")
 		superscript_alef := r.Form.Get("superscript_alef")
 		shadda := r.Form.Get("shadda")
@@ -437,13 +427,8 @@ func (app *application) excerptEditWordPost() http.Handler {
 func (app *application) wordRightPost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		e := getExcerptFromContext(r.Context())
-		params := httprouter.ParamsFromContext(r.Context())
-		wid, err := strconv.Atoi(params.ByName("wid"))
-		if err != nil {
-			app.serverError(w, err)
-			return
-		}
-		err = app.word.MoveRight(wid)
+		wid := getWordIdFromContext(r.Context())
+		err := app.word.MoveRight(wid)
 		if err != nil {
 			if errors.Is(err, models.ErrNotSwappable) {
 				w.WriteHeader(http.StatusNotModified)
@@ -468,13 +453,8 @@ func (app *application) wordRightPost() http.Handler {
 func (app *application) wordLeftPost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		e := getExcerptFromContext(r.Context())
-		params := httprouter.ParamsFromContext(r.Context())
-		wid, err := strconv.Atoi(params.ByName("wid"))
-		if err != nil {
-			app.serverError(w, err)
-			return
-		}
-		err = app.word.MoveLeft(wid)
+		wid := getWordIdFromContext(r.Context())
+		err := app.word.MoveLeft(wid)
 		if err != nil {
 			if errors.Is(err, models.ErrNotSwappable) {
 				w.WriteHeader(http.StatusNotModified)
@@ -498,13 +478,7 @@ func (app *application) wordLeftPost() http.Handler {
 
 func (app *application) wordAddPost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		params := httprouter.ParamsFromContext(r.Context())
-		wid, err := strconv.Atoi(params.ByName("wid"))
-		if err != nil {
-			app.serverError(w, err)
-			return
-		}
-
+		wid := getWordIdFromContext(r.Context())
 		new_id, err := app.word.InsertAfter(wid, kalam.FromBuckwalter("mmm"))
 		if err != nil {
 			app.serverError(w, err)
@@ -522,14 +496,8 @@ func (app *application) wordAddPost() http.Handler {
 
 func (app *application) wordRemovePost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		params := httprouter.ParamsFromContext(r.Context())
-		wid, err := strconv.Atoi(params.ByName("wid"))
-		if err != nil {
-			app.serverError(w, err)
-			return
-		}
-
-		err = app.word.Delete(wid)
+		wid := getWordIdFromContext(r.Context())
+		err := app.word.Delete(wid)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -550,14 +518,8 @@ func (app *application) wordRemovePost() http.Handler {
 
 func (app *application) wordConnectPost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		params := httprouter.ParamsFromContext(r.Context())
-		wid, err := strconv.Atoi(params.ByName("wid"))
-		if err != nil {
-			app.serverError(w, err)
-			return
-		}
-
-		err = r.ParseForm()
+		wid := getWordIdFromContext(r.Context())
+		err := r.ParseForm()
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest)
 			return
@@ -583,6 +545,42 @@ func (app *application) wordConnectPost() http.Handler {
 			app.serverError(w, err)
 			return
 		}
+	})
+}
+
+func (app *application) wordSentenceStartPost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wid := getWordIdFromContext(r.Context())
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		val := r.Form.Get("value") != ""
+		err = app.word.SentenceStart(wid, val)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
+}
+
+func (app *application) wordIgnorePost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wid := getWordIdFromContext(r.Context())
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		val := r.Form.Get("value") != ""
+		err = app.word.Ignore(wid, val)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
 	})
 }
 

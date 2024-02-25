@@ -76,3 +76,11 @@ func (u url) wordRemove(excerpt_id, word_id any) string {
 func (u url) wordConnect(excerpt_id, word_id any) string {
 	return fmt.Sprintf("/excerpt/%v/word/%v/connect", excerpt_id, word_id)
 }
+
+func (u url) wordSentenceStart(excerpt_id, word_id any) string {
+	return fmt.Sprintf("/excerpt/%v/word/%v/sentence_start", excerpt_id, word_id)
+}
+
+func (u url) wordIgnore(excerpt_id, word_id any) string {
+	return fmt.Sprintf("/excerpt/%v/word/%v/ignore", excerpt_id, word_id)
+}
