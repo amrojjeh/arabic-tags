@@ -66,8 +66,8 @@ func Text(words []WordProps) g.Node {
 func KeyValueCheckbox(postUrl, key string, value bool) g.Node {
 	return FormEl(Method("post"), Action(postUrl), up.AutoSubmit(), up.Target("#text"),
 		P(Class("pe-2 text-2xl flex justify-end gap-2"),
-			Input(Type("checkbox"), Name("value"), g.If(value, Checked())),
 			g.Text(key),
+			Input(Type("checkbox"), Name("value"), g.If(value, Checked())),
 		),
 	)
 }
