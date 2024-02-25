@@ -72,3 +72,7 @@ func (u url) wordAdd(excerpt_id, word_id any) string {
 func (u url) wordRemove(excerpt_id, word_id any) string {
 	return fmt.Sprintf("/excerpt/%v/word/%v/remove", excerpt_id, word_id)
 }
+
+func (u url) wordConnect(excerpt_id, word_id any) string {
+	return fmt.Sprintf("/excerpt/%v/word/%v/connect", excerpt_id, word_id)
+}

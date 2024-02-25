@@ -22,10 +22,12 @@ type SelectedWordProps struct {
 	Id            string
 	Word          string
 	Letters       []LetterProps
+	Connected     bool
 	MoveRightUrl  string
 	MoveLeftUrl   string
 	AddWordUrl    string
 	RemoveWordUrl string
+	ConnectedUrl  string
 }
 
 type EditProps struct {
@@ -80,10 +82,8 @@ func EditPage(p EditProps) g.Node {
 								),
 							),
 						),
-						Div(Class("border-solid border-2 border-black bg-slate-200 align-center m-1 p-1"),
-							P(
-								g.Text("Stuff..."),
-							),
+						Div(Class("border-solid border-2 border-black bg-slate-200 align-center m-2 p-1"),
+							partials.KeyValueCheckbox(p.SelectedWord.ConnectedUrl, "Connected", p.SelectedWord.Connected),
 						),
 						g.Group(g.Map(p.SelectedWord.Letters, func(lp LetterProps) g.Node {
 							return FieldSet(c.Classes{

@@ -548,6 +548,44 @@ func (app *application) wordRemovePost() http.Handler {
 	})
 }
 
+func (app *application) wordConnectPost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params := httprouter.ParamsFromContext(r.Context())
+		wid, err := strconv.Atoi(params.ByName("wid"))
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		err = r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+
+		connected := r.Form.Get("value") != ""
+
+		err = app.word.Connect(wid, connected)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		e := getExcerptFromContext(r.Context())
+		words, err := app.word.GetWordsByExcerptId(e.Id)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		err = renderText(app.u, e, words, wid).Render(w)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+	})
+}
+
 func (app *application) manuscriptGet(ms models.Manuscript) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		e := getExcerptFromContext(r.Context())

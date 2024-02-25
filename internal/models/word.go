@@ -250,3 +250,15 @@ func (m WordModel) Get(id int) (Word, error) {
 
 	return word, nil
 }
+
+func (m WordModel) Connect(id int, connect bool) error {
+	stmt := `UPDATE word SET connected=?, UPDATED=UTC_TIMESTAMP()
+	WHERE id=?`
+
+	_, err := m.Db.Exec(stmt, connect, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

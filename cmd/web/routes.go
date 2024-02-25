@@ -46,6 +46,7 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodPost, app.u.wordLeft(":id", ":wid"), ownerRequired.Then(app.wordLeftPost()))
 	router.Handler(http.MethodPost, app.u.wordAdd(":id", ":wid"), ownerRequired.Then(app.wordAddPost()))
 	router.Handler(http.MethodPost, app.u.wordRemove(":id", ":wid"), ownerRequired.Then(app.wordRemovePost()))
+	router.Handler(http.MethodPost, app.u.wordConnect(":id", ":wid"), ownerRequired.Then(app.wordConnectPost()))
 
 	base := alice.New(
 		app.recoverPanic,

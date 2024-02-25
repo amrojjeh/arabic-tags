@@ -12,7 +12,7 @@ import (
 
 func renderEdit(u url,
 	e models.Excerpt, user models.User, ws []models.Word,
-	selected int,
+	selectedId int,
 	error, warning string) g.Node {
 	props := pages.EditProps{
 		ExcerptTitle: e.Title,
@@ -34,18 +34,23 @@ func renderEdit(u url,
 			Word:        kalam.Prettify(w.Word),
 			Punctuation: w.Punctuation,
 			Connected:   w.Connected,
-			Selected:    selected == w.Id,
+			Selected:    selectedId == w.Id,
 			GetUrl:      u.excerptEditSelectWord(e.Id, w.Id),
 		}
 		props.Words = append(props.Words, wp)
 
-		if w.Id == selected {
-			props.SelectedWord.Word = w.Word
-			props.SelectedWord.Id = strconv.Itoa(w.Id)
-			props.SelectedWord.MoveRightUrl = u.wordRight(e.Id, w.Id)
-			props.SelectedWord.MoveLeftUrl = u.wordLeft(e.Id, w.Id)
-			props.SelectedWord.AddWordUrl = u.wordAdd(e.Id, w.Id)
-			props.SelectedWord.RemoveWordUrl = u.wordRemove(e.Id, w.Id)
+		if w.Id == selectedId {
+			props.SelectedWord = pages.SelectedWordProps{
+				Id:            strconv.Itoa(w.Id),
+				Word:          w.Word,
+				Letters:       []pages.LetterProps{},
+				Connected:     w.Connected,
+				MoveRightUrl:  u.wordRight(e.Id, w.Id),
+				MoveLeftUrl:   u.wordLeft(e.Id, w.Id),
+				AddWordUrl:    u.wordAdd(e.Id, w.Id),
+				RemoveWordUrl: u.wordRemove(e.Id, w.Id),
+				ConnectedUrl:  u.wordConnect(e.Id, w.Id),
+			}
 			props.EditWordUrl = u.excerptEditWordArgs(e.Id, w.Id)
 			ls := kalam.LetterPacks(w.Word)
 			for i, l := range ls {
@@ -67,15 +72,15 @@ func renderEdit(u url,
 
 func renderText(u url,
 	e models.Excerpt, words []models.Word,
-	selected int) g.Node {
+	selectedId int) g.Node {
 	wps := []partials.WordProps{}
 	for _, word := range words {
 		wps = append(wps, partials.WordProps{
 			Id:          strconv.Itoa(word.Id),
-			Word:        word.Word,
+			Word:        kalam.Prettify(word.Word),
 			Punctuation: word.Punctuation,
 			Connected:   word.Connected,
-			Selected:    word.Id == selected,
+			Selected:    word.Id == selectedId,
 			GetUrl:      u.excerptEditSelectWord(e.Id, word.Id),
 		})
 	}
