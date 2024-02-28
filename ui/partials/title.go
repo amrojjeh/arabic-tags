@@ -15,9 +15,14 @@ func TitleForm(cancelUrl, postUrl, title string) g.Node {
 	)
 }
 
-func TitleRegular(getUrl, title string) g.Node {
-	return A(ID("excerpt-title"), Class("group flex items-center"), Href(getUrl), up.Target("#excerpt-title"),
+func TitleRegular(getUrl, title string, readonly bool) g.Node {
+	if getUrl != "" && !readonly {
+		return A(ID("excerpt-title"), Class("group flex items-center"), Href(getUrl), up.Target("#excerpt-title"),
+			P(Class("text-2xl pr-2 inline"), g.Text(title)),
+			Img(Src("/static/icons/pencil-solid.svg"), Class("inline w-4 invisible group-hover:visible")),
+		)
+	}
+	return A(ID("excerpt-title"), Class("group flex items-center"),
 		P(Class("text-2xl pr-2 inline"), g.Text(title)),
-		Img(Src("/static/icons/pencil-solid.svg"), Class("inline w-4 invisible group-hover:visible")),
 	)
 }

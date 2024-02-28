@@ -624,7 +624,9 @@ func (app *application) wordCasePost() http.Handler {
 			app.serverError(w, err)
 			return
 		}
-		err = renderInspector(app.u, e, word).Render(w)
+
+		user := getUserFromContext(r.Context())
+		err = renderInspector(app.u, user, e, word).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
@@ -651,7 +653,9 @@ func (app *application) wordStatePost() http.Handler {
 			app.serverError(w, err)
 			return
 		}
-		err = renderInspector(app.u, e, word).Render(w)
+
+		user := getUserFromContext(r.Context())
+		err = renderInspector(app.u, user, e, word).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
@@ -723,7 +727,7 @@ func (app *application) excerptTitlePost() http.Handler {
 			Validate(&valid)
 		if !valid {
 			err = partials.WithError(msg, partials.TitleRegular(
-				app.u.excerptTitle(excerpt.Id), excerpt.Title)).Render(w)
+				app.u.excerptTitle(excerpt.Id), excerpt.Title, false)).Render(w)
 			if err != nil {
 				app.serverError(w, err)
 			}
@@ -735,7 +739,7 @@ func (app *application) excerptTitlePost() http.Handler {
 			return
 		}
 		err = partials.TitleRegular(app.u.excerptTitle(excerpt.Id),
-			title).Render(w)
+			title, false).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}

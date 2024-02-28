@@ -18,6 +18,7 @@ func renderEdit(u url,
 		ExcerptTitle: e.Title,
 		Inspector:    nil,
 		Text:         renderText(u, e, ws, selectedId),
+		ReadOnly:     user.Email != e.AuthorEmail,
 		Nav:          renderNav(u, user),
 		Error:        error,
 		Warning:      warning,
@@ -27,7 +28,7 @@ func renderEdit(u url,
 
 	for _, w := range ws {
 		if w.Id == selectedId {
-			props.Inspector = renderInspector(u, e, w)
+			props.Inspector = renderInspector(u, user, e, w)
 		}
 	}
 
@@ -58,19 +59,20 @@ func renderNav(u url,
 }
 
 func renderInspector(u url,
-	e models.Excerpt, w models.Word) g.Node {
+	user models.User, e models.Excerpt, w models.Word) g.Node {
 	if w.Punctuation {
-		return renderInspectorPunctuation(u, e, w)
+		return renderInspectorPunctuation(u, user, e, w)
 	}
-	return renderInspectorWord(u, e, w)
+	return renderInspectorWord(u, user, e, w)
 }
 
 func renderInspectorWord(u url,
-	e models.Excerpt, w models.Word) g.Node {
+	user models.User, e models.Excerpt, w models.Word) g.Node {
 	props := partials.InspectorProps{
 		Id:            strconv.Itoa(w.Id),
 		Word:          w.Word,
 		Letters:       []partials.LetterProps{},
+		ReadOnly:      user.Email != e.AuthorEmail,
 		Connected:     w.Connected,
 		Ignore:        w.Ignore,
 		SentenceStart: w.SentenceStart,
@@ -128,10 +130,11 @@ func renderInspectorWord(u url,
 }
 
 func renderInspectorPunctuation(u url,
-	e models.Excerpt, w models.Word) g.Node {
+	user models.User, e models.Excerpt, w models.Word) g.Node {
 	props := partials.InspectorProps{
 		Id:               strconv.Itoa(w.Id),
 		Word:             w.Word,
+		ReadOnly:         user.Email != e.AuthorEmail,
 		Connected:        w.Connected,
 		SentenceStart:    w.SentenceStart,
 		EditWordUrl:      u.excerptEditWordArgs(e.Id, w.Id),

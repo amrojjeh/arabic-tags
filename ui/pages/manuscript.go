@@ -28,7 +28,7 @@ func ManuscriptPage(p ManuscriptProps) g.Node {
 		Main: []g.Node{
 			Div(Class("flex flex-col h-full"),
 				Div(Class("flex justify-center"),
-					partials.TitleRegular(p.TitleUrl, p.ExcerptTitle),
+					partials.TitleRegular(p.TitleUrl, p.ExcerptTitle, p.ReadOnly),
 				),
 				g.El("arabic-input", Class("grow"), g.Attr("url", p.SaveUrl), g.Attr("punctuation", p.AcceptedPunctuation), Value(p.Content), g.If(p.ReadOnly, ReadOnly())),
 			)},

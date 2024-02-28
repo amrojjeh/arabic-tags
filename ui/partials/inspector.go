@@ -18,6 +18,7 @@ type InspectorProps struct {
 	SentenceStart    bool
 	CaseOptions      []DropdownOption
 	StateOptions     []DropdownOption
+	ReadOnly         bool
 	EditWordUrl      string
 	CaseUrl          string
 	StateUrl         string
@@ -41,7 +42,7 @@ type LetterProps struct {
 
 func EditLetter(id, editUrl, selectUrl, selectedWord string, connected bool) g.Node {
 	return Div(
-		InspectorWordRegular(editUrl, selectedWord),
+		InspectorWordRegular(editUrl, selectedWord, false),
 		TextWord(id, selectUrl, selectedWord, connected, true),
 	)
 }
@@ -49,9 +50,9 @@ func EditLetter(id, editUrl, selectUrl, selectedWord string, connected bool) g.N
 func Inspector(p InspectorProps) g.Node {
 	return Div(ID("inspector"), Class("border-e-2 m-1 h-full overflow-y-auto"),
 		Div(Class("flex justify-center"),
-			InspectorWordRegular(p.EditWordUrl, p.Word),
+			InspectorWordRegular(p.EditWordUrl, p.Word, p.ReadOnly),
 		),
-		Div(Class("flex flex-col gap-2 mx-2 "),
+		g.If(!p.ReadOnly, Div(Class("flex flex-col gap-2 mx-2 "),
 			Div(Class("flex justify-center gap-2"),
 				FormEl(Class("w-full"), Method("post"), Action(p.MoveRightUrl), up.Target("#text"),
 					Button(Type("submit"), Class("w-full bg-sky-600 text-white rounded-lg p-2"),
@@ -74,18 +75,18 @@ func Inspector(p InspectorProps) g.Node {
 					Img(Class("mx-auto h-5 invert"), Src("/static/icons/trash-solid.svg")),
 				),
 			),
-		),
+		)),
 		Div(Class("border-solid border-2 border-black bg-slate-200 align-center m-2 p-1"),
-			g.If(p.ConnectedUrl != "", KeyValueCheckbox(p.ConnectedUrl, "Connected", p.Connected)),
-			g.If(p.SentenceStartUrl != "", KeyValueCheckbox(p.SentenceStartUrl, "Sentence Start", p.SentenceStart)),
-			g.If(p.IgnoreUrl != "", KeyValueCheckbox(p.IgnoreUrl, "Ignore", p.Ignore)),
+			g.If(p.ConnectedUrl != "", KeyValueCheckbox(p.ConnectedUrl, "Connected", p.Connected, p.ReadOnly)),
+			g.If(p.SentenceStartUrl != "", KeyValueCheckbox(p.SentenceStartUrl, "Sentence Start", p.SentenceStart, p.ReadOnly)),
+			g.If(p.IgnoreUrl != "", KeyValueCheckbox(p.IgnoreUrl, "Ignore", p.Ignore, p.ReadOnly)),
 
 			Div(Class("flex flex-col py-1 gap-1"),
-				g.If(len(p.CaseOptions) != 0, KeyValueDropdown(p.CaseUrl, "Case", p.CaseOptions)),
-				g.If(len(p.StateOptions) != 0, KeyValueDropdown(p.StateUrl, "State", p.StateOptions)),
+				g.If(len(p.CaseOptions) != 0, KeyValueDropdown(p.CaseUrl, "Case", p.CaseOptions, p.ReadOnly)),
+				g.If(len(p.StateOptions) != 0, KeyValueDropdown(p.StateUrl, "State", p.StateOptions, p.ReadOnly)),
 			),
 		),
-		g.Group(g.Map(p.Letters, func(lp LetterProps) g.Node {
+		g.If(!p.ReadOnly, g.Group(g.Map(p.Letters, func(lp LetterProps) g.Node {
 			return FieldSet(c.Classes{
 				"text-3xl m-1 p-4 leading-loose":      true,
 				"border-dashed border-2 border-black": lp.Index%2 != 0},
@@ -128,7 +129,7 @@ func Inspector(p InspectorProps) g.Node {
 					),
 				),
 			)
-		})),
+		}))),
 	)
 
 }
@@ -141,19 +142,30 @@ func InspectorWordForm(cancelUrl, editUrl, id, word string) g.Node {
 	)
 }
 
-func InspectorWordRegular(editUrl, title string) g.Node {
-	return A(ID("inspector-word"), Class("group flex items-center gap-2"), Href(editUrl), up.Target("#inspector-word"),
+func InspectorWordRegular(editUrl, title string, readonly bool) g.Node {
+	if editUrl != "" && !readonly {
+		return A(ID("inspector-word"), Class("group flex items-center gap-2"), Href(editUrl), up.Target("#inspector-word"),
+			P(Class("text-5xl text-center leading-loose"), g.Text(title)),
+			Img(Src("/static/icons/pencil-solid.svg"), Class("inline w-4 invisible group-hover:visible")),
+		)
+	}
+	return A(ID("inspector-word"), Class("group flex items-center gap-2"),
 		P(Class("text-5xl text-center leading-loose"), g.Text(title)),
-		Img(Src("/static/icons/pencil-solid.svg"), Class("inline w-4 invisible group-hover:visible")),
 	)
 }
 
-func KeyValueCheckbox(postUrl, key string, value bool) g.Node {
-	return FormEl(Method("post"), Action(postUrl), up.AutoSubmit(), up.Target("#text"),
-		P(Class("pe-2 text-2xl flex justify-end gap-2"),
-			g.Text(key),
-			Input(Type("checkbox"), Name("value"), g.If(value, Checked())),
-		),
+func KeyValueCheckbox(postUrl, key string, value, readonly bool) g.Node {
+	if !readonly {
+		return FormEl(Method("post"), Action(postUrl), up.AutoSubmit(), up.Target("#text"),
+			P(Class("pe-2 text-2xl flex justify-end gap-2"),
+				g.Text(key),
+				Input(Type("checkbox"), Name("value"), g.If(value, Checked())),
+			),
+		)
+	}
+	return P(Class("pe-2 text-2xl flex justify-end gap-2"),
+		g.Text(key),
+		Input(Type("checkbox"), g.If(value, Checked()), Disabled()),
 	)
 }
 
@@ -162,15 +174,26 @@ type DropdownOption struct {
 	Selected bool
 }
 
-func KeyValueDropdown(postUrl, key string, values []DropdownOption) g.Node {
-	return FormEl(Method("post"), Action(postUrl), up.AutoSubmit(), up.Target("#inspector"),
-		P(Class("pe-2 text-2xl flex justify-end gap-2"),
-			Select(Name("value"), Class("bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-1"),
-				g.Group(g.Map(values, func(d DropdownOption) g.Node {
-					return Option(Value(d.Value), g.Text(d.Value), g.If(d.Selected, Selected()))
-				})),
+func KeyValueDropdown(postUrl, key string, values []DropdownOption, readonly bool) g.Node {
+	if !readonly {
+		return FormEl(Method("post"), Action(postUrl), up.AutoSubmit(), up.Target("#inspector"),
+			P(Class("pe-2 text-2xl flex justify-end gap-2"),
+				Select(Name("value"), Class("bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-1"),
+					g.Group(g.Map(values, func(d DropdownOption) g.Node {
+						return Option(Value(d.Value), g.Text(d.Value), g.If(d.Selected, Selected()))
+					})),
+				),
+				g.Text(key),
 			),
-			g.Text(key),
+		)
+	}
+
+	return P(Class("pe-2 text-2xl flex justify-end gap-2"),
+		Select(Class("bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-1"), Disabled(),
+			g.Group(g.Map(values, func(d DropdownOption) g.Node {
+				return Option(Value(d.Value), g.Text(d.Value), g.If(d.Selected, Selected()))
+			})),
 		),
+		g.Text(key),
 	)
 }

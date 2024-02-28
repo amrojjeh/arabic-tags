@@ -11,6 +11,7 @@ type EditProps struct {
 	Inspector    g.Node
 	Text         g.Node
 	Nav          []g.Node
+	ReadOnly     bool
 	Error        string
 	Warning      string
 	TitleUrl     string
@@ -23,7 +24,7 @@ func EditPage(p EditProps) g.Node {
 		Main: []g.Node{
 			Div(Class("flex flex-col h-[99%]"),
 				H2(Class("text-2xl flex justify-center"),
-					partials.TitleRegular(p.TitleUrl, p.ExcerptTitle),
+					partials.TitleRegular(p.TitleUrl, p.ExcerptTitle, p.ReadOnly),
 				),
 				Div(g.Attr("dir", "rtl"), Class("grid grid-rows-1 grid-cols-[400px_auto] gap-4 h-[97%]"),
 					p.Inspector,
