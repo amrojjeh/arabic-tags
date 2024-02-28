@@ -17,17 +17,15 @@ type WordProps struct {
 }
 
 func Text(words []WordProps) g.Node {
-	return Div(ID("text"),
-		P(Class("text-4xl leading-loose"),
-			g.Group(g.Map(words, func(p WordProps) g.Node {
-				return TextWord(p.Id, p.GetUrl, p.Word, p.Connected, p.Selected)
-			})),
-		),
+	return P(ID("text"), Class("text-4xl leading-loose"),
+		g.Group(g.Map(words, func(p WordProps) g.Node {
+			return TextWord(p.Id, p.GetUrl, p.Word, p.Connected, p.Selected)
+		})),
 	)
 }
 
 func TextWord(id, getUrl, word string, connected, selected bool) g.Node {
-	return A(ID("w"+id), Href(getUrl), up.History(false), c.Classes{
+	return A(ID("w"+id), Href(getUrl), up.History(false), up.Target("#inspector"), c.Classes{
 		"cursor-pointer hover:text-red-700": !selected,
 		"text-sky-600":                      selected,
 	},

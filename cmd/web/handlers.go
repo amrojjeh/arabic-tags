@@ -338,17 +338,15 @@ func (app *application) excerptEditLetterPost() http.Handler {
 		ls[letter_pos].Shadda = shadda == "true"
 		ls[letter_pos].SuperscriptAlef = superscript_alef == "true"
 
-		err = app.word.UpdateWord(word.Id, kalam.LetterPacksToString(ls), false)
+		new_word_str := kalam.LetterPacksToString(ls)
+		err = app.word.UpdateWord(word.Id, new_word_str, false)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
 
-		err = renderEditLetter(app.u, e, models.Word{
-			Id:          word_id,
-			Word:        kalam.LetterPacksToString(ls),
-			Punctuation: false,
-		}).Render(w)
+		word.Word = new_word_str
+		err = renderEditLetter(app.u, e, word).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
@@ -376,10 +374,9 @@ func (app *application) excerptEditWordGet() http.Handler {
 			return
 		}
 
-		// TODO(Amr Ojjeh): Return unpointed version
 		err = partials.InspectorWordForm(app.u.excerpt(e.Id),
 			app.u.excerptEditWordArgs(e.Id, word_id), strconv.Itoa(word.Id),
-			word.Word).Render(w)
+			kalam.Unpointed(word.Word, false)).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 			return

@@ -12,6 +12,14 @@ up.compiler("[select]", function(el) {
   })
 })
 
+// Selecting is handled by JS to stop flickering (which happens by loading stale cache)
+up.compiler("#text>a", function(el) {
+  el.addEventListener("click", (_) => {
+    document.querySelectorAll("#text>a").forEach((el) => el.className = "cursor-pointer hover:text-red-700")
+    el.className = "text-sky-600"
+  })
+})
+
 let defaultVisible = up.viewport.config.autoFocusVisible
 up.viewport.config.autoFocusVisible = (options) =>
   defaultVisible(options) && !up.fragment.matches(options.element, ':main')
