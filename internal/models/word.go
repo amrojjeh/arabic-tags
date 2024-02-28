@@ -95,7 +95,7 @@ func (m WordModel) GetWordsByExcerptId(excerpt_id int) ([]Word, error) {
 	return ws, nil
 }
 
-func (m WordModel) Update(id int, word string) error {
+func (m WordModel) UpdateWord(id int, word string) error {
 	stmt := `UPDATE word SET word=?, updated=UTC_TIMESTAMP() WHERE id=?`
 	_, err := m.Db.Exec(stmt, word, id)
 	if err != nil {
@@ -273,11 +273,23 @@ func (m WordModel) updateBool(id int, name string, val bool) error {
 	return nil
 }
 
-func (m WordModel) updateString(id int, name string, val string) error {
-	stmt := fmt.Sprintf(`UPDATE word SET %v=?, UPDATED=UTC_TIMESTAMP()
-	WHERE id=?`, name)
+func (m WordModel) UpdateConnect(id int, connect bool) error {
+	return m.updateBool(id, "connected", connect)
+}
 
-	_, err := m.Db.Exec(stmt, val, id)
+func (m WordModel) UpdateIgnore(id int, ignore bool) error {
+	return m.updateBool(id, "na_ignore", ignore)
+}
+
+func (m WordModel) UpdateSentenceStart(id int, sentence_start bool) error {
+	return m.updateBool(id, "na_sentence_start", sentence_start)
+}
+
+func (m WordModel) Irab(id int, word_case, state string) error {
+	stmt := `UPDATE word SET irab_case=?, irab_state=?, UPDATED=UTC_TIMESTAMP()
+	WHERE id=?`
+
+	_, err := m.Db.Exec(stmt, word_case, state, id)
 	if err != nil {
 		return err
 	}
@@ -285,22 +297,14 @@ func (m WordModel) updateString(id int, name string, val string) error {
 	return nil
 }
 
-func (m WordModel) Connect(id int, connect bool) error {
-	return m.updateBool(id, "connected", connect)
-}
+func (m WordModel) UpdateState(id int, state string) error {
+	stmt := `UPDATE word SET irab_state=?, UPDATED=UTC_TIMESTAMP()
+	WHERE id=?`
 
-func (m WordModel) Ignore(id int, ignore bool) error {
-	return m.updateBool(id, "na_ignore", ignore)
-}
+	_, err := m.Db.Exec(stmt, state, id)
+	if err != nil {
+		return err
+	}
 
-func (m WordModel) SentenceStart(id int, sentence_start bool) error {
-	return m.updateBool(id, "na_sentence_start", sentence_start)
-}
-
-func (m WordModel) Case(id int, val string) error {
-	return m.updateString(id, "irab_case", val)
-}
-
-func (m WordModel) State(id int, val string) error {
-	return m.updateString(id, "irab_state", val)
+	return nil
 }

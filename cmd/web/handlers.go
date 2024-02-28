@@ -339,7 +339,7 @@ func (app *application) excerptEditLetterPost() http.Handler {
 		ls[letter_pos].Shadda = shadda == "true"
 		ls[letter_pos].SuperscriptAlef = superscript_alef == "true"
 
-		err = app.word.Update(word.Id, kalam.LetterPacksToString(ls))
+		err = app.word.UpdateWord(word.Id, kalam.LetterPacksToString(ls))
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -414,7 +414,7 @@ func (app *application) excerptEditWordPost() http.Handler {
 			return
 		}
 
-		err = app.word.Update(word.Id, wordStr)
+		err = app.word.UpdateWord(word.Id, wordStr)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -527,7 +527,7 @@ func (app *application) wordConnectPost() http.Handler {
 
 		connected := r.Form.Get("value") != ""
 
-		err = app.word.Connect(wid, connected)
+		err = app.word.UpdateConnect(wid, connected)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -557,7 +557,7 @@ func (app *application) wordSentenceStartPost() http.Handler {
 			return
 		}
 		val := r.Form.Get("value") != ""
-		err = app.word.SentenceStart(wid, val)
+		err = app.word.UpdateSentenceStart(wid, val)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -575,7 +575,7 @@ func (app *application) wordIgnorePost() http.Handler {
 			return
 		}
 		val := r.Form.Get("value") != ""
-		err = app.word.Ignore(wid, val)
+		err = app.word.UpdateIgnore(wid, val)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -592,7 +592,12 @@ func (app *application) wordCasePost() http.Handler {
 			app.clientError(w, http.StatusBadRequest)
 			return
 		}
-		err = app.word.Case(wid, r.Form.Get("value"))
+		word_case := r.Form.Get("value")
+		state := ""
+		if len(kalam.States[word_case]) > 0 {
+			state = kalam.States[word_case][0]
+		}
+		err = app.word.Irab(wid, word_case, state)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -619,7 +624,7 @@ func (app *application) wordStatePost() http.Handler {
 			app.clientError(w, http.StatusBadRequest)
 			return
 		}
-		err = app.word.State(wid, r.Form.Get("value"))
+		err = app.word.UpdateState(wid, r.Form.Get("value"))
 		if err != nil {
 			app.serverError(w, err)
 			return
