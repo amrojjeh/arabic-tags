@@ -285,7 +285,7 @@ func (m WordModel) UpdateSentenceStart(id int, sentence_start bool) error {
 	return m.updateBool(id, "na_sentence_start", sentence_start)
 }
 
-func (m WordModel) Irab(id int, word_case, state string) error {
+func (m WordModel) UpdateIrab(id int, word_case, state string) error {
 	stmt := `UPDATE word SET irab_case=?, irab_state=?, UPDATED=UTC_TIMESTAMP()
 	WHERE id=?`
 

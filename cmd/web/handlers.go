@@ -597,7 +597,7 @@ func (app *application) wordCasePost() http.Handler {
 		if len(kalam.States[word_case]) > 0 {
 			state = kalam.States[word_case][0]
 		}
-		err = app.word.Irab(wid, word_case, state)
+		err = app.word.UpdateIrab(wid, word_case, state)
 		if err != nil {
 			app.serverError(w, err)
 			return
