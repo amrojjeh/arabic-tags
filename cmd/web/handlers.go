@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"unicode"
 	"unicode/utf8"
 
 	"github.com/amrojjeh/arabic-tags/internal/models"
@@ -339,17 +338,17 @@ func (app *application) excerptEditLetterPost() http.Handler {
 		ls[letter_pos].Shadda = shadda == "true"
 		ls[letter_pos].SuperscriptAlef = superscript_alef == "true"
 
-		err = app.word.UpdateWord(word.Id, kalam.LetterPacksToString(ls))
+		err = app.word.UpdateWord(word.Id, kalam.LetterPacksToString(ls), false)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
 
-		err = partials.EditLetter(strconv.Itoa(word.Id),
-			app.u.excerptEditWordArgs(e.Id, word.WordPos),
-			app.u.excerptEditSelectWord(e.Id, word.WordPos),
-			kalam.LetterPacksToString(ls),
-			word.Connected).Render(w)
+		err = renderEditLetter(app.u, e, models.Word{
+			Id:          word_id,
+			Word:        kalam.LetterPacksToString(ls),
+			Punctuation: false,
+		}).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
@@ -378,7 +377,7 @@ func (app *application) excerptEditWordGet() http.Handler {
 		}
 
 		err = partials.InspectorWordForm(
-			app.u.excerptEditWordArgs(e.Id, word_id), word.Word).Render(w)
+			app.u.excerptEditWordArgs(e.Id, word_id), strconv.Itoa(word.Id), word.Word).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -408,19 +407,36 @@ func (app *application) excerptEditWordPost() http.Handler {
 		}
 
 		wordStr := r.Form.Get("new_word")
-		if wordStr == "" || !kalam.IsContentClean(wordStr) || strings.ContainsFunc(wordStr, unicode.IsSpace) {
+		punc := false
+		if utf8.RuneCountInString(wordStr) == 1 {
+			r, _ := utf8.DecodeRuneInString(wordStr)
+			if kalam.IsPunctuation(r) {
+				punc = true
+			}
+		}
+
+		if !punc && (wordStr == "" || strings.TrimFunc(wordStr, kalam.IsArabicLetter) != "") {
 			app.session.Put(r.Context(), errorSessionKey, "Invalid characters")
 			http.Redirect(w, r, app.u.excerpt(e.Id), http.StatusSeeOther)
 			return
 		}
 
-		err = app.word.UpdateWord(word.Id, wordStr)
+		err = app.word.UpdateWord(word.Id, wordStr, punc)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
 
-		http.Redirect(w, r, app.u.excerpt(e.Id), http.StatusSeeOther)
+		u := getUserFromContext(r.Context())
+		ws, err := app.word.GetWordsByExcerptId(e.Id)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		err = renderEdit(app.u, e, u, ws, word.Id, "", "").Render(w)
+		if err != nil {
+			app.serverError(w, err)
+		}
 	})
 }
 

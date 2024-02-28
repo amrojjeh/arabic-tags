@@ -167,3 +167,9 @@ func renderManuscript(u url,
 
 	return pages.ManuscriptPage(props)
 }
+
+func renderEditLetter(u url,
+	e models.Excerpt, w models.Word) g.Node {
+	return partials.EditLetter(strconv.Itoa(w.Id), u.excerptEditWordArgs(e.Id, w.Id),
+		u.excerptEditSelectWord(e.Id, w.Id), w.Word, w.Connected)
+}
