@@ -46,6 +46,16 @@ func (app *application) authRequired(h http.Handler) http.Handler {
 	})
 }
 
+func (app *application) ownerOfExcerpt(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if ownerOfExcerpt(r.Context()) {
+			h.ServeHTTP(w, r)
+			return
+		}
+		app.clientError(w, http.StatusUnauthorized)
+	})
+}
+
 func (app *application) getUser(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if app.session.GetString(r.Context(), authorizedEmailSessionKey) != "" {
@@ -122,11 +132,19 @@ func (app *application) letterPosRequired(h http.Handler) http.Handler {
 }
 
 func getExcerptFromContext(c context.Context) models.Excerpt {
-	return c.Value(excerptContextKey).(models.Excerpt)
+	e, ok := c.Value(excerptContextKey).(models.Excerpt)
+	if ok {
+		return e
+	}
+	return models.Excerpt{}
 }
 
 func getUserFromContext(c context.Context) models.User {
-	return c.Value(userContextKey).(models.User)
+	user, ok := c.Value(userContextKey).(models.User)
+	if ok {
+		return user
+	}
+	return models.User{}
 }
 
 func getWordIdFromContext(c context.Context) int {

@@ -124,7 +124,7 @@ func renderManuscript(u url,
 	error, warning string) g.Node {
 	props := pages.ManuscriptProps{
 		ExcerptTitle:        e.Title,
-		ReadOnly:            false,
+		ReadOnly:            user.Email != e.AuthorEmail,
 		AcceptedPunctuation: kalam.PunctuationRegex().String(),
 		Content:             ms.Content,
 		Warning:             warning,

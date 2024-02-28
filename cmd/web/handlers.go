@@ -667,11 +667,6 @@ func (app *application) excerptPost() http.Handler {
 		}
 
 		e := getExcerptFromContext(r.Context())
-		if err != nil {
-			app.serverError(w, err)
-			return
-		}
-
 		c := r.Form.Get("content")
 		err = app.manuscript.UpdateByExcerptId(e.Id, c)
 		if err != nil {

@@ -32,12 +32,11 @@ func (app *application) routes() http.Handler {
 
 	excerptRequired := alice.New(app.excerptRequired)
 	router.Handler(http.MethodGet, app.u.excerpt(":id"), excerptRequired.Then(app.excerptGet()))
-	router.Handler(http.MethodPost, app.u.excerpt(":id"), excerptRequired.Then(app.excerptPost()))
 	router.Handler(http.MethodGet, app.u.excerptTitle(":id"), excerptRequired.Then(app.excerptTitleGet()))
-	router.Handler(http.MethodPost, app.u.excerptTitle(":id"), excerptRequired.Then(app.excerptTitlePost()))
 
-	// TODO(Amr Ojjeh): ownerRequired doesn't check if auth is owner
-	ownerRequired := excerptRequired.Extend(authRequired)
+	ownerRequired := excerptRequired.Extend(authRequired).Append(app.ownerOfExcerpt)
+	router.Handler(http.MethodPost, app.u.excerpt(":id"), ownerRequired.Then(app.excerptPost()))
+	router.Handler(http.MethodPost, app.u.excerptTitle(":id"), ownerRequired.Then(app.excerptTitlePost()))
 	router.Handler(http.MethodPost, app.u.excerptLock(":id"), ownerRequired.Then(app.excerptNextPost()))
 	router.Handler(http.MethodGet, app.u.excerptEditWord(":id"), ownerRequired.Then(app.excerptEditWordGet()))
 	router.Handler(http.MethodPost, app.u.excerptEditWord(":id"), ownerRequired.Then(app.excerptEditWordPost()))
