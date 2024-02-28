@@ -584,6 +584,60 @@ func (app *application) wordIgnorePost() http.Handler {
 	})
 }
 
+func (app *application) wordCasePost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wid := getWordIdFromContext(r.Context())
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		err = app.word.Case(wid, r.Form.Get("value"))
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		e := getExcerptFromContext(r.Context())
+		word, err := app.word.Get(wid)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		err = renderInspector(app.u, e, word).Render(w)
+		if err != nil {
+			app.serverError(w, err)
+		}
+	})
+}
+
+func (app *application) wordStatePost() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wid := getWordIdFromContext(r.Context())
+		err := r.ParseForm()
+		if err != nil {
+			app.clientError(w, http.StatusBadRequest)
+			return
+		}
+		err = app.word.State(wid, r.Form.Get("value"))
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		e := getExcerptFromContext(r.Context())
+		word, err := app.word.Get(wid)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+		err = renderInspector(app.u, e, word).Render(w)
+		if err != nil {
+			app.serverError(w, err)
+		}
+	})
+}
+
 func (app *application) manuscriptGet(ms models.Manuscript) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		e := getExcerptFromContext(r.Context())

@@ -50,6 +50,8 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodPost, app.u.wordConnect(":id", ":wid"), ownerRequired.Then(app.wordConnectPost()))
 	router.Handler(http.MethodPost, app.u.wordSentenceStart(":id", ":wid"), ownerRequired.Then(app.wordSentenceStartPost()))
 	router.Handler(http.MethodPost, app.u.wordIgnore(":id", ":wid"), ownerRequired.Then(app.wordIgnorePost()))
+	router.Handler(http.MethodPost, app.u.wordCase(":id", ":wid"), ownerRequired.Then(app.wordCasePost()))
+	router.Handler(http.MethodPost, app.u.wordState(":id", ":wid"), ownerRequired.Then(app.wordStatePost()))
 
 	ownerRequired = ownerRequired.Append(app.letterPosRequired)
 	router.Handler(http.MethodPost, app.u.excerptEditLetter(":id", ":wid", ":lid"), ownerRequired.Then(app.excerptEditLetterPost()))

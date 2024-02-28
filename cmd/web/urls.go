@@ -84,3 +84,11 @@ func (u url) wordSentenceStart(excerpt_id, word_id any) string {
 func (u url) wordIgnore(excerpt_id, word_id any) string {
 	return fmt.Sprintf("/excerpt/%v/word/%v/ignore", excerpt_id, word_id)
 }
+
+func (u url) wordCase(excerpt_id, word_id any) string {
+	return fmt.Sprintf("/excerpt/%v/word/%v/case", excerpt_id, word_id)
+}
+
+func (u url) wordState(excerpt_id, word_id any) string {
+	return fmt.Sprintf("/excerpt/%v/word/%v/state", excerpt_id, word_id)
+}

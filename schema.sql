@@ -39,6 +39,10 @@ CREATE TABLE IF NOT EXISTS word (
     na_ignore BOOLEAN NOT NULL,
     na_sentence_start BOOLEAN NOT NULL,
 
+    -- irab
+    irab_case VARCHAR(30) NOT NULL, -- ism mrfwE/ism mnSwb/etc...
+    irab_state VARCHAR(30) NOT NULL, -- xbr/mbtd>/etc...
+
     FOREIGN KEY (excerpt_id)
         REFERENCES excerpt(id)
         ON DELETE CASCADE
