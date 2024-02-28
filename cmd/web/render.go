@@ -16,19 +16,14 @@ func renderEdit(u url,
 	error, warning string) g.Node {
 	props := pages.EditProps{
 		ExcerptTitle: e.Title,
-		Username:     user.Username,
 		Inspector:    nil,
-		Text:         nil,
+		Text:         renderText(u, e, ws, selectedId),
+		Nav:          renderNav(u, user),
 		Error:        error,
 		Warning:      warning,
 		TitleUrl:     u.excerptTitle(e.Id),
 		ExportUrl:    "#",
-		LoginUrl:     u.login(),
-		RegisterUrl:  u.register(),
-		LogoutUrl:    u.logout(),
 	}
-
-	props.Text = renderText(u, e, ws, selectedId)
 
 	for _, w := range ws {
 		if w.Id == selectedId {
@@ -57,9 +52,22 @@ func renderText(u url,
 	return partials.Text(wps)
 }
 
+func renderNav(u url,
+	user models.User) []g.Node {
+	return partials.SimpleNav(user.Username, u.login(), u.register(), u.logout())
+}
+
 func renderInspector(u url,
 	e models.Excerpt, w models.Word) g.Node {
-	props := partials.SelectedWordProps{
+	if w.Punctuation {
+		return renderInspectorPunctuation(u, e, w)
+	}
+	return renderInspectorWord(u, e, w)
+}
+
+func renderInspectorWord(u url,
+	e models.Excerpt, w models.Word) g.Node {
+	props := partials.InspectorProps{
 		Id:            strconv.Itoa(w.Id),
 		Word:          w.Word,
 		Letters:       []partials.LetterProps{},
@@ -73,6 +81,7 @@ func renderInspector(u url,
 			},
 		},
 		StateOptions:     []partials.DropdownOption{},
+		EditWordUrl:      u.excerptEditWordArgs(e.Id, w.Id),
 		CaseUrl:          u.wordCase(e.Id, w.Id),
 		StateUrl:         u.wordState(e.Id, w.Id),
 		MoveRightUrl:     u.wordRight(e.Id, w.Id),
@@ -102,7 +111,6 @@ func renderInspector(u url,
 		}
 	}
 
-	props.EditWordUrl = u.excerptEditWordArgs(e.Id, w.Id)
 	ls := kalam.LetterPacks(w.Word)
 	for i, l := range ls {
 		props.Letters = append(props.Letters,
@@ -114,6 +122,25 @@ func renderInspector(u url,
 				Index:           i,
 				PostUrl:         u.excerptEditLetter(e.Id, w.Id, i),
 			})
+	}
+
+	return partials.Inspector(props)
+}
+
+func renderInspectorPunctuation(u url,
+	e models.Excerpt, w models.Word) g.Node {
+	props := partials.InspectorProps{
+		Id:               strconv.Itoa(w.Id),
+		Word:             w.Word,
+		Connected:        w.Connected,
+		SentenceStart:    w.SentenceStart,
+		EditWordUrl:      u.excerptEditWordArgs(e.Id, w.Id),
+		MoveRightUrl:     u.wordRight(e.Id, w.Id),
+		MoveLeftUrl:      u.wordLeft(e.Id, w.Id),
+		AddWordUrl:       u.wordAdd(e.Id, w.Id),
+		RemoveWordUrl:    u.wordRemove(e.Id, w.Id),
+		ConnectedUrl:     u.wordConnect(e.Id, w.Id),
+		SentenceStartUrl: u.wordSentenceStart(e.Id, w.Id),
 	}
 
 	return partials.Inspector(props)

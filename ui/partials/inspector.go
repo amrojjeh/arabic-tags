@@ -9,16 +9,7 @@ import (
 	. "github.com/maragudk/gomponents/html"
 )
 
-type WordProps struct {
-	Id          string
-	Word        string
-	Punctuation bool
-	Connected   bool
-	Selected    bool
-	GetUrl      string
-}
-
-type SelectedWordProps struct {
+type InspectorProps struct {
 	Id               string
 	Word             string
 	Letters          []LetterProps
@@ -55,7 +46,7 @@ func EditLetter(id, editUrl, selectUrl, selectedWord string, connected bool) g.N
 	)
 }
 
-func Inspector(p SelectedWordProps) g.Node {
+func Inspector(p InspectorProps) g.Node {
 	return Div(ID("inspector"), Class("border-e-2 m-1 h-full overflow-y-auto"),
 		Div(Class("flex justify-center"),
 			InspectorWordRegular(p.EditWordUrl, p.Word),
@@ -85,12 +76,12 @@ func Inspector(p SelectedWordProps) g.Node {
 			),
 		),
 		Div(Class("border-solid border-2 border-black bg-slate-200 align-center m-2 p-1"),
-			KeyValueCheckbox(p.ConnectedUrl, "Connected", p.Connected),
-			KeyValueCheckbox(p.SentenceStartUrl, "Sentence Start", p.SentenceStart),
-			KeyValueCheckbox(p.IgnoreUrl, "Ignore", p.Ignore),
+			g.If(p.ConnectedUrl != "", KeyValueCheckbox(p.ConnectedUrl, "Connected", p.Connected)),
+			g.If(p.SentenceStartUrl != "", KeyValueCheckbox(p.SentenceStartUrl, "Sentence Start", p.SentenceStart)),
+			g.If(p.IgnoreUrl != "", KeyValueCheckbox(p.IgnoreUrl, "Ignore", p.Ignore)),
 
 			Div(Class("flex flex-col py-1 gap-1"),
-				KeyValueDropdown(p.CaseUrl, "Case", p.CaseOptions),
+				g.If(len(p.CaseOptions) != 0, KeyValueDropdown(p.CaseUrl, "Case", p.CaseOptions)),
 				g.If(len(p.StateOptions) != 0, KeyValueDropdown(p.StateUrl, "State", p.StateOptions)),
 			),
 		),
@@ -153,31 +144,6 @@ func InspectorWordRegular(editUrl, title string) g.Node {
 	return A(ID("inspector-word"), Class("group flex items-center gap-2"), Href(editUrl), up.Target("#inspector-word"),
 		P(Class("text-5xl text-center leading-loose"), g.Text(title)),
 		Img(Src("/static/icons/pencil-solid.svg"), Class("inline w-4 invisible group-hover:visible")),
-	)
-}
-
-func TextWord(id, getUrl, word string, connected, selected bool) g.Node {
-	return A(ID("w"+id), Href(getUrl), up.History(false), c.Classes{
-		"cursor-pointer hover:text-red-700": !selected,
-		"text-sky-600":                      selected,
-	},
-		g.Text(word),
-		g.If(!connected, g.Text(" ")),
-	)
-}
-func Text(words []WordProps) g.Node {
-	return Div(ID("text"),
-		P(Class("text-4xl leading-loose"),
-			g.Group(g.Map(words, func(p WordProps) g.Node {
-				if p.Punctuation {
-					return Span(
-						g.Text(p.Word),
-						g.If(!p.Connected, g.Text(" ")),
-					)
-				}
-				return TextWord(p.Id, p.GetUrl, p.Word, p.Connected, p.Selected)
-			})),
-		),
 	)
 }
 

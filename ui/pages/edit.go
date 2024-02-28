@@ -8,16 +8,13 @@ import (
 
 type EditProps struct {
 	ExcerptTitle string
-	Username     string
 	Inspector    g.Node
 	Text         g.Node
+	Nav          []g.Node
 	Error        string
 	Warning      string
 	TitleUrl     string
 	ExportUrl    string
-	LoginUrl     string
-	RegisterUrl  string
-	LogoutUrl    string
 }
 
 func EditPage(p EditProps) g.Node {
@@ -34,7 +31,7 @@ func EditPage(p EditProps) g.Node {
 				),
 			),
 		},
-		Nav: partials.SimpleNav(p.Username, p.LoginUrl, p.RegisterUrl, p.LogoutUrl),
+		Nav: p.Nav,
 		Footer: []g.Node{
 			A(Class("bg-sky-600 text-white rounded-lg p-2"), Href(p.ExportUrl), Target("_blank"),
 				g.Text("Export"),

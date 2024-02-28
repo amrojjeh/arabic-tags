@@ -199,8 +199,9 @@ func (m WordModel) InsertAfter(id int, word string) (int, error) {
 		return 0, err
 	}
 
-	r, err := t.Exec(`INSERT INTO word (word, word_pos, connected, punctuation, excerpt_id, created, updated)
-		VALUES (?, ?, false, false, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
+	r, err := t.Exec(`INSERT INTO word (word, word_pos, connected, punctuation, excerpt_id,
+		na_ignore, na_sentence_start, irab_case, irab_state, created, updated)
+		VALUES (?, ?, false, false, ?, false, false, "", "", UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
 		word, wordPos+1, excerptId)
 	if err != nil {
 		return 0, err
