@@ -2,16 +2,19 @@ up.link.config.instantSelectors.push('a[href]')
 up.link.config.followSelectors.push('a[href]')
 up.form.config.submitSelectors.push(['form'])
 up.compiler("[select]", function(el) {
-  el.select()
+  const input = el.querySelector("input")
+  input.select()
+  input.addEventListener("keydown", (e) => {
+    if (e.key == "Escape") {
+      e.preventDefault()
+      up.follow(el.querySelector("a"))
+    }
+  })
 })
 
-function setOffline(offline = true) {
-  if (offline) {
-    document.querySelector("#offline-warning").classList.remove("hidden")
-  } else {
-    document.querySelector("#offline-warning").classList.add("hidden")
-  }
-}
+let defaultVisible = up.viewport.config.autoFocusVisible
+up.viewport.config.autoFocusVisible = (options) =>
+  defaultVisible(options) && !up.fragment.matches(options.element, ':main')
 
 // Used for syntax highlighting
 const html = String.raw

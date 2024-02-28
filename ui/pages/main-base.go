@@ -27,14 +27,7 @@ func MainBase(p MainBaseProps) g.Node {
 				g.Group(p.Nav),
 			)),
 			partials.Error(p.Error),
-			// TODO(Amr Ojjeh): Make offline work
-			Main(
-				Class("grow p-0 overflow-y-hidden"),
-				Div(ID("offline-warning"),
-					Class("hidden text-center bg-yellow-300 text-black"),
-					Img(Src("/static/icons/warning.svg"), Class("inline align-bottom")),
-					g.Text("You're offline. Any changes you make will not be saved until you're back online."),
-				),
+			Main(Class("grow p-0 overflow-y-hidden"),
 				g.If(p.Warning != "", Div(ID("any-warning"),
 					Class("text-center bg-yellow-300 text-black"),
 					Img(Src("/static/icons/warning.svg"), Class("inline align-bottom")),

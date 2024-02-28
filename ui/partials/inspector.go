@@ -133,9 +133,10 @@ func Inspector(p InspectorProps) g.Node {
 
 }
 
-func InspectorWordForm(editUrl, id, word string) g.Node {
-	return FormEl(ID("inspector-word"), Action(editUrl), Method("post"), Class("flex items-center gap-2"),
-		Input(AutoComplete("off"), ui.SelectAttr(), Name("new_word"), AutoFocus(), Value(word), Class("mr-2")),
+func InspectorWordForm(cancelUrl, editUrl, id, word string) g.Node {
+	return FormEl(ID("inspector-word"), ui.SelectAttr(), Action(editUrl), Method("post"), Class("flex items-center gap-2"),
+		Input(AutoComplete("off"), Name("new_word"), AutoFocus(), Value(word), Class("mr-2")),
+		A(Href(cancelUrl), Img(Src("/static/icons/xmark-solid.svg"), Class("w-4"))),
 		Button(Type("submit"), Img(Src("/static/icons/check-solid.svg"), Class("w-4"))),
 	)
 }

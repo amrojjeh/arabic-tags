@@ -7,9 +7,10 @@ import (
 	. "github.com/maragudk/gomponents/html"
 )
 
-func TitleForm(postUrl, title string) g.Node {
-	return FormEl(ID("excerpt-title"), Action(postUrl), Method("post"), up.Target("#excerpt-title"), Class("flex items-center"),
-		Input(AutoComplete("off"), ui.SelectAttr(), Name("title"), AutoFocus(), Value(title), Class("mr-2")),
+func TitleForm(cancelUrl, postUrl, title string) g.Node {
+	return FormEl(ID("excerpt-title"), ui.SelectAttr(), Action(postUrl), Method("post"), up.Target("#excerpt-title"), Class("flex items-center gap-2"),
+		Input(AutoComplete("off"), Name("title"), AutoFocus(), Value(title), Class("mr-2")),
+		A(Href(cancelUrl), Img(Src("/static/icons/xmark-solid.svg"), Class("w-4"))),
 		Button(Type("submit"), Img(Src("/static/icons/check-solid.svg"), Class("w-4"))),
 	)
 }

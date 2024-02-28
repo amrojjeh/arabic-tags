@@ -376,8 +376,10 @@ func (app *application) excerptEditWordGet() http.Handler {
 			return
 		}
 
-		err = partials.InspectorWordForm(
-			app.u.excerptEditWordArgs(e.Id, word_id), strconv.Itoa(word.Id), word.Word).Render(w)
+		// TODO(Amr Ojjeh): Return unpointed version
+		err = partials.InspectorWordForm(app.u.excerpt(e.Id),
+			app.u.excerptEditWordArgs(e.Id, word_id), strconv.Itoa(word.Id),
+			word.Word).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 			return
@@ -700,7 +702,7 @@ func (app *application) excerptPost() http.Handler {
 func (app *application) excerptTitleGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		e := getExcerptFromContext(r.Context())
-		err := partials.TitleForm(app.u.excerptTitle(e.Id), e.Title).Render(w)
+		err := partials.TitleForm(app.u.excerpt(e.Id), app.u.excerptTitle(e.Id), e.Title).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
