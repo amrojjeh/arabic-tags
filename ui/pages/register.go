@@ -67,6 +67,9 @@ func RegisterPage(p RegisterProps) g.Node {
 						g.Text("Register"),
 					),
 				),
+				A(Class("underline"), Href(p.LoginUrl),
+					g.Text("Already have an account? Click here"),
+				),
 			),
 		},
 	})

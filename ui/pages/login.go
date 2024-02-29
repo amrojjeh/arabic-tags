@@ -56,6 +56,9 @@ func LoginPage(p LoginProps) g.Node {
 						g.Text("Login"),
 					),
 				),
+				A(Class("underline"), Href(p.RegisterUrl),
+					g.Text("Don't have an account? Click here"),
+				),
 			),
 		},
 	})
