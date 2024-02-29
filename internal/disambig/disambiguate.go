@@ -1,9 +1,9 @@
 package disambig
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -52,8 +52,15 @@ func Disambiguate(text string) ([]Word, error) {
 }
 
 func request(text string) (camelResponse, error) {
-	data := fmt.Sprintf(`{"dialect": "msa", "sentence": "%v"}`, text)
-	body := strings.NewReader(data)
+	data, err := json.Marshal(camelRequest{
+		Dialect:  "msa",
+		Sentence: text,
+	})
+	if err != nil {
+		return camelResponse{}, err
+	}
+
+	body := bytes.NewReader(data)
 	resp, err := http.Post("https://camelira.abudhabi.nyu.edu/api/disambig",
 		"application/json", body)
 	if err != nil {
@@ -94,6 +101,11 @@ func splitText(text string) []string {
 	}
 
 	return texts
+}
+
+type camelRequest struct {
+	Dialect string `json:"dialect"`
+	Sentence string `json:"sentence"`
 }
 
 type camelResponse struct {

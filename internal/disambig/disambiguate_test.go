@@ -2,6 +2,7 @@ package disambig
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/amrojjeh/kalam"
@@ -31,4 +32,13 @@ func TestDisambiguate(t *testing.T) {
 	assert.Equal(t, words[3].Word, ".")
 	assert.Equal(t, words[3].Connected, false)
 	assert.Equal(t, words[3].Punctuation, true)
+
+	bs, err := os.ReadFile("./testdata/hadith.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	words, err = Disambiguate(string(bs))
+	if err != nil {
+		t.Fatal(err)
+	}
 }
