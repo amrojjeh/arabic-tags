@@ -38,8 +38,8 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodPost, app.u.excerpt(":id"), ownerRequired.Then(app.excerptPost()))
 	router.Handler(http.MethodPost, app.u.excerptTitle(":id"), ownerRequired.Then(app.excerptTitlePost()))
 	router.Handler(http.MethodPost, app.u.excerptLock(":id"), ownerRequired.Then(app.excerptNextPost()))
-	router.Handler(http.MethodGet, app.u.excerptEditWord(":id"), ownerRequired.Then(app.excerptEditWordGet()))
-	router.Handler(http.MethodPost, app.u.excerptEditWord(":id"), ownerRequired.Then(app.excerptEditWordPost()))
+	router.Handler(http.MethodGet, app.u.wordEdit(":id"), ownerRequired.Then(app.wordEditGet()))
+	router.Handler(http.MethodPost, app.u.wordEdit(":id"), ownerRequired.Then(app.wordEditPost()))
 
 	ownerRequired = ownerRequired.Append(app.wordIdRequired)
 	router.Handler(http.MethodPost, app.u.wordRight(":id", ":wid"), ownerRequired.Then(app.wordRightPost()))
@@ -53,7 +53,7 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodPost, app.u.wordState(":id", ":wid"), ownerRequired.Then(app.wordStatePost()))
 
 	ownerRequired = ownerRequired.Append(app.letterPosRequired)
-	router.Handler(http.MethodPost, app.u.excerptEditLetter(":id", ":wid", ":lid"), ownerRequired.Then(app.excerptEditLetterPost()))
+	router.Handler(http.MethodPost, app.u.letterEdit(":id", ":wid", ":lid"), ownerRequired.Then(app.letterEditPost()))
 
 	base := alice.New(
 		app.recoverPanic,

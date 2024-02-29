@@ -39,7 +39,7 @@ func (m WordModel) DeleteByExcerptId(excerpt_id int) error {
 	return nil
 }
 
-func (m WordModel) GenerateWordsFromManuscript(ms Manuscript) error {
+func (m WordModel) GenerateWordsAndDeleteManuscript(ms Manuscript) error {
 	words, err := disambig.Disambiguate(strings.TrimSpace(ms.Content))
 	if err != nil {
 		return err
@@ -60,9 +60,25 @@ func (m WordModel) GenerateWordsFromManuscript(ms Manuscript) error {
 		vals = append(vals, w.Word, i, w.Connected, w.Punctuation, ms.ExcerptId)
 	}
 
-	_, err = m.Db.Exec(stmt.String(), vals...)
+	t, err := m.Db.Begin()
+	if err != nil {
+		return err
+	}
+	defer t.Rollback()
+
+	_, err = t.Exec(stmt.String(), vals...)
 	if err != nil {
 		return errors.Join(fmt.Errorf("WordModel.GenerateWordsFromManuscript: could not execute stmt %v", stmt.String()), err)
+	}
+
+	_, err = t.Exec(`DELETE FROM manuscript WHERE id=?`, ms.Id)
+	if err != nil {
+		return err
+	}
+
+	err = t.Commit()
+	if err != nil {
+		return err
 	}
 
 	return nil

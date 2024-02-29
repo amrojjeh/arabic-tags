@@ -307,7 +307,7 @@ func (app *application) excerptEditGet(ws []models.Word) http.Handler {
 	})
 }
 
-func (app *application) excerptEditLetterPost() http.Handler {
+func (app *application) letterEditPost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		if err != nil {
@@ -353,7 +353,7 @@ func (app *application) excerptEditLetterPost() http.Handler {
 	})
 }
 
-func (app *application) excerptEditWordGet() http.Handler {
+func (app *application) wordEditGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		e := getExcerptFromContext(r.Context())
 		err := r.ParseForm()
@@ -375,7 +375,7 @@ func (app *application) excerptEditWordGet() http.Handler {
 		}
 
 		err = partials.InspectorWordForm(app.u.excerpt(e.Id),
-			app.u.excerptEditWordArgs(e.Id, word_id), strconv.Itoa(word.Id),
+			app.u.wordEditArgs(e.Id, word_id), strconv.Itoa(word.Id),
 			kalam.Unpointed(word.Word, false)).Render(w)
 		if err != nil {
 			app.serverError(w, err)
@@ -384,7 +384,7 @@ func (app *application) excerptEditWordGet() http.Handler {
 	})
 }
 
-func (app *application) excerptEditWordPost() http.Handler {
+func (app *application) wordEditPost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		e := getExcerptFromContext(r.Context())
@@ -759,17 +759,11 @@ func (app *application) excerptNextPost() http.Handler {
 			http.Redirect(w, r, app.u.excerpt(e.Id), http.StatusSeeOther)
 			return
 		}
-		err = app.word.GenerateWordsFromManuscript(ms)
+		err = app.word.GenerateWordsAndDeleteManuscript(ms)
 		if err != nil {
 			app.serverError(w, err)
 			return
 		}
-		err = app.manuscript.Delete(ms.Id)
-		if err != nil {
-			app.serverError(w, err)
-			return
-		}
-
 		http.Redirect(w, r, app.u.excerpt(e.Id), http.StatusSeeOther)
 	})
 }

@@ -46,7 +46,7 @@ func renderText(u url,
 			Punctuation: word.Punctuation,
 			Connected:   word.Connected,
 			Selected:    word.Id == selectedId,
-			GetUrl:      u.excerptEditSelectWord(e.Id, word.Id),
+			GetUrl:      u.wordSelect(e.Id, word.Id),
 		})
 	}
 
@@ -83,7 +83,7 @@ func renderInspectorWord(u url,
 			},
 		},
 		StateOptions:     []partials.DropdownOption{},
-		EditWordUrl:      u.excerptEditWordArgs(e.Id, w.Id),
+		EditWordUrl:      u.wordEditArgs(e.Id, w.Id),
 		CaseUrl:          u.wordCase(e.Id, w.Id),
 		StateUrl:         u.wordState(e.Id, w.Id),
 		MoveRightUrl:     u.wordRight(e.Id, w.Id),
@@ -122,7 +122,7 @@ func renderInspectorWord(u url,
 				Shadda:          l.Shadda,
 				SuperscriptAlef: l.SuperscriptAlef,
 				Index:           i,
-				PostUrl:         u.excerptEditLetter(e.Id, w.Id, i),
+				PostUrl:         u.letterEdit(e.Id, w.Id, i),
 			})
 	}
 
@@ -137,7 +137,7 @@ func renderInspectorPunctuation(u url,
 		ReadOnly:         user.Email != e.AuthorEmail,
 		Connected:        w.Connected,
 		SentenceStart:    w.SentenceStart,
-		EditWordUrl:      u.excerptEditWordArgs(e.Id, w.Id),
+		EditWordUrl:      u.wordEditArgs(e.Id, w.Id),
 		MoveRightUrl:     u.wordRight(e.Id, w.Id),
 		MoveLeftUrl:      u.wordLeft(e.Id, w.Id),
 		AddWordUrl:       u.wordAdd(e.Id, w.Id),
@@ -173,6 +173,6 @@ func renderManuscript(u url,
 
 func renderEditLetter(u url,
 	e models.Excerpt, w models.Word) g.Node {
-	return partials.EditLetter(strconv.Itoa(w.Id), u.excerptEditWordArgs(e.Id, w.Id),
-		u.excerptEditSelectWord(e.Id, w.Id), w.Word, w.Connected)
+	return partials.EditLetter(strconv.Itoa(w.Id), u.wordEditArgs(e.Id, w.Id),
+		u.wordSelect(e.Id, w.Id), w.Word, w.Connected)
 }
