@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
 	"strings"
 	"unicode/utf8"
 
+	"github.com/amrojjeh/arabic-tags/internal/export"
 	"github.com/amrojjeh/arabic-tags/internal/models"
 	"github.com/amrojjeh/arabic-tags/internal/validator"
 	"github.com/amrojjeh/arabic-tags/ui/layers"
@@ -195,7 +197,7 @@ func (app *application) homeGet() http.Handler {
 			Username:    user.Username,
 			Excerpts:    homeExcerpts,
 			Error:       app.session.PopString(r.Context(), errorSessionKey),
-			AddUrl:      app.u.createExcerpt(),
+			AddUrl:      app.u.excerptCreate(),
 			LoginUrl:    app.u.login(),
 			RegisterUrl: app.u.register(),
 			LogoutUrl:   app.u.logout(),
@@ -206,16 +208,16 @@ func (app *application) homeGet() http.Handler {
 	})
 }
 
-func (app *application) createExcerptGet() http.Handler {
+func (app *application) excerptCreateGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := layers.ExcerptLayer(app.u.createExcerpt()).Render(w)
+		err := layers.ExcerptLayer(app.u.excerptCreate()).Render(w)
 		if err != nil {
 			app.serverError(w, err)
 		}
 	})
 }
 
-func (app *application) createExcerptPost() http.Handler {
+func (app *application) excerptCreatePost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		res, err := layers.NewExcerptResponse(r)
 		if err != nil {
@@ -246,6 +248,27 @@ func (app *application) createExcerptPost() http.Handler {
 		}
 
 		http.Redirect(w, r, app.u.excerpt(id), http.StatusSeeOther)
+	})
+}
+
+func (app *application) excerptExportGet() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		e := getExcerptFromContext(r.Context())
+		ws, err := app.word.GetWordsByExcerptId(e.Id)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		export := export.Export(e, ws)
+		js, err := json.Marshal(export)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		w.Write(js)
 	})
 }
 

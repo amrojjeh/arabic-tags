@@ -24,7 +24,7 @@ func (u url) home() string {
 	return "/home"
 }
 
-func (u url) createExcerpt() string {
+func (u url) excerptCreate() string {
 	return "/excerpt"
 }
 
@@ -38,6 +38,10 @@ func (u url) excerptTitle(id any) string {
 
 func (u url) excerptLock(id any) string {
 	return fmt.Sprintf("/excerpt/%v/lock", id)
+}
+
+func (u url) excerptExport(excerpt_id any) string {
+	return fmt.Sprintf("/excerpt/%v/export", excerpt_id)
 }
 
 func (u url) wordSelect(id, word_id any) string {

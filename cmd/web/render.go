@@ -23,7 +23,7 @@ func renderEdit(u url,
 		Error:        error,
 		Warning:      warning,
 		TitleUrl:     u.excerptTitle(e.Id),
-		ExportUrl:    "#",
+		ExportUrl:    u.excerptExport(e.Id),
 	}
 
 	for _, w := range ws {
