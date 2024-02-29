@@ -17,12 +17,17 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/static/*file",
 		http.FileServer(http.FS(ui.Files)))
 
-	router.Handler(http.MethodGet, app.u.register(), app.registerGet())
-	router.Handler(http.MethodPost, app.u.register(), app.registerPost())
-	router.Handler(http.MethodGet, app.u.login(), app.loginGet())
-	router.Handler(http.MethodPost, app.u.login(), app.loginPost())
+	dynamic := alice.New(
+		app.session.LoadAndSave,
+		app.getUser,
+	)
 
-	authRequired := alice.New(app.authRequired)
+	router.Handler(http.MethodGet, app.u.register(), dynamic.Then(app.registerGet()))
+	router.Handler(http.MethodPost, app.u.register(), dynamic.Then(app.registerPost()))
+	router.Handler(http.MethodGet, app.u.login(), dynamic.Then(app.loginGet()))
+	router.Handler(http.MethodPost, app.u.login(), dynamic.Then(app.loginPost()))
+
+	authRequired := dynamic.Append(app.authRequired)
 	// TODO(Amr Ojjeh): Write an index page
 	router.Handler(http.MethodGet, app.u.index(), authRequired.Then(app.homeGet()))
 	router.Handler(http.MethodPost, app.u.logout(), authRequired.Then(app.logoutPost()))
@@ -30,7 +35,7 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, app.u.excerptCreate(), authRequired.Then(app.excerptCreateGet()))
 	router.Handler(http.MethodPost, app.u.excerptCreate(), authRequired.Then(app.excerptCreatePost()))
 
-	excerptRequired := alice.New(app.excerptRequired)
+	excerptRequired := dynamic.Append(app.excerptRequired)
 	router.Handler(http.MethodGet, app.u.excerpt(":id"), excerptRequired.Then(app.excerptGet()))
 	router.Handler(http.MethodGet, app.u.excerptExport(":id"), excerptRequired.Then(app.excerptExportGet()))
 
@@ -59,8 +64,7 @@ func (app *application) routes() http.Handler {
 	base := alice.New(
 		app.recoverPanic,
 		app.logRequest,
-		app.session.LoadAndSave,
-		app.getUser,
+		app.secureHeaders,
 	)
 	return base.Then(router)
 }

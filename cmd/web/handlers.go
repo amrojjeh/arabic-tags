@@ -25,6 +25,10 @@ func (app *application) notFound() http.Handler {
 
 func (app *application) registerGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if getUserFromContext(r.Context()).Username != "" {
+			http.Redirect(w, r, app.u.home(), http.StatusSeeOther)
+			return
+		}
 		err := pages.RegisterPage(pages.RegisterProps{
 			LoginUrl:    app.u.login(),
 			RegisterUrl: app.u.register(),
@@ -100,6 +104,10 @@ func (app *application) registerPost() http.Handler {
 
 func (app *application) loginGet() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if getUserFromContext(r.Context()).Username != "" {
+			http.Redirect(w, r, app.u.home(), http.StatusSeeOther)
+			return
+		}
 		err := pages.LoginPage(pages.LoginProps{
 			LoginUrl:    app.u.login(),
 			RegisterUrl: app.u.register(),

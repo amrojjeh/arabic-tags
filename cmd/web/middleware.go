@@ -35,6 +35,20 @@ func (app *application) logRequest(h http.Handler) http.Handler {
 	})
 }
 
+func (app *application) secureHeaders(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Security-Policy",
+			"style-src 'self' fonts.googleapis.com; font-src fonts.gstatic.com")
+
+		w.Header().Set("Referrer-Policy", "origin-when-cross-origin")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "deny")
+		w.Header().Set("X-XSS-Protection", "0")
+
+		h.ServeHTTP(w, r)
+	})
+}
+
 func (app *application) authRequired(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		email := app.session.GetString(r.Context(), authorizedEmailSessionKey)
