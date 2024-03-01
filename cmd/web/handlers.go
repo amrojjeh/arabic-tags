@@ -365,7 +365,11 @@ func (app *application) letterEditPost() http.Handler {
 			return
 		}
 
-		ls[letter_pos].Vowel, _ = utf8.DecodeRuneInString(vowel)
+		if vowel == "blank" {
+			ls[letter_pos].Vowel = 0
+		} else {
+			ls[letter_pos].Vowel, _ = utf8.DecodeRuneInString(vowel)
+		}
 		ls[letter_pos].Shadda = shadda == "true"
 		ls[letter_pos].SuperscriptAlef = superscript_alef == "true"
 

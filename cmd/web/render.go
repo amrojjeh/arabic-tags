@@ -42,7 +42,7 @@ func renderText(u url,
 	for _, word := range words {
 		wps = append(wps, partials.WordProps{
 			Id:          strconv.Itoa(word.Id),
-			Word:        kalam.Prettify(word.Word),
+			Word:        word.Word,
 			Punctuation: word.Punctuation,
 			Connected:   word.Connected,
 			Selected:    word.Id == selectedId,

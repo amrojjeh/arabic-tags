@@ -28,6 +28,10 @@ github.com/amrojjeh/kalam v0.7.6-0.20240227224354-f5c761b088d7 h1:Ut2dROL3zZX//y
 github.com/amrojjeh/kalam v0.7.6-0.20240227224354-f5c761b088d7/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
 github.com/amrojjeh/kalam v0.7.6-0.20240228200611-994b9341415f h1:q1ttLVyDCn/t8zK0OdeMR/cr9qLogo1pB310BhyoRhk=
 github.com/amrojjeh/kalam v0.7.6-0.20240228200611-994b9341415f/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
+github.com/amrojjeh/kalam v0.7.6-0.20240301181140-24f316642514 h1:zomzYldMejuRtvjm9Cr9uHp4hLe7982bj/1wvNabfto=
+github.com/amrojjeh/kalam v0.7.6-0.20240301181140-24f316642514/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
+github.com/amrojjeh/kalam v0.7.6-0.20240301181915-6bacaa338850 h1:P04/NOXl9kVVwJKsnq3C6pLeshDXNSsLTDOGdBxqMZY=
+github.com/amrojjeh/kalam v0.7.6-0.20240301181915-6bacaa338850/go.mod h1:jewlKAOZrUc6JsJbBksn/KrtzbjEkI3hAVI7ToHROcs=
 github.com/go-sql-driver/mysql v1.7.1 h1:lUIinVbN1DY0xBg0eMOzmmtGoHwWBbvnWubQUrtU8EI=
 github.com/go-sql-driver/mysql v1.7.1/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=

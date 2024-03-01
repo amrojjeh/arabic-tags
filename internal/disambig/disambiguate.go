@@ -31,12 +31,12 @@ func Disambiguate(text string) ([]Word, error) {
 			a := cWord.Analyses[0].Analysis
 			if a.Pos == "punc" {
 				words = append(words, Word{
-					Word:        a.ATBTok,
+					Word:        a.ATBSeg,
 					Connected:   false,
 					Punctuation: true,
 				})
 			} else {
-				ts := strings.Split(strings.ReplaceAll(a.ATBTok, "_", ""), "+")
+				ts := strings.Split(strings.ReplaceAll(a.ATBSeg, "_", ""), "+")
 				ts_len := len(ts)
 				for i, t := range ts {
 					words = append(words, Word{
@@ -104,7 +104,7 @@ func splitText(text string) []string {
 }
 
 type camelRequest struct {
-	Dialect string `json:"dialect"`
+	Dialect  string `json:"dialect"`
 	Sentence string `json:"sentence"`
 }
 
@@ -126,5 +126,5 @@ type camelAnalysisMeta struct {
 
 type camelAnalysis struct {
 	Pos    string `json:"pos"`
-	ATBTok string `json:"atbtok"`
+	ATBSeg string `json:"atbseg"`
 }
