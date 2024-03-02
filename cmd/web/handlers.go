@@ -783,6 +783,12 @@ func (app *application) excerptTitlePost() http.Handler {
 
 func (app *application) excerptNextPost() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Ideally, we'd have a mutex per excerpt kind of thing going on,
+		// and I'd be smart enough to implement it. I'm not smart, so
+		// we're doing a system wide mutex :)
+
+		app.mutex.Lock()
+		defer app.mutex.Unlock()
 		e := getExcerptFromContext(r.Context())
 		ms, err := app.manuscript.GetByExcerptId(e.Id)
 		if err != nil {

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/alexedwards/scs/mysqlstore"
@@ -25,6 +26,7 @@ type application struct {
 	word       models.WordModel
 	manuscript models.ManuscriptModel
 	session    *scs.SessionManager
+	mutex      sync.Mutex
 }
 
 func main() {

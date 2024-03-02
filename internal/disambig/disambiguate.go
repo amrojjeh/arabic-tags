@@ -19,14 +19,13 @@ type Word struct {
 // TODO(Amr Ojjeh): Use goroutines
 func Disambiguate(text string) ([]Word, error) {
 	texts := splitText(text)
-	var words []Word
+	words := []Word{}
 	for _, t := range texts {
 		res, err := request(t)
 		if err != nil {
 			return nil, err
 		}
 
-		words = make([]Word, 0, len(res.Output.Disambig))
 		for _, cWord := range res.Output.Disambig {
 			a := cWord.Analyses[0].Analysis
 			if a.Pos == "punc" {
@@ -84,7 +83,7 @@ func request(text string) (camelResponse, error) {
 func splitText(text string) []string {
 	texts := []string{}
 	for utf8.RuneCountInString(text) > 400 {
-		words := strings.Split(text, " ")
+		words := strings.Fields(text)
 		running := 0
 		lastIndex := 0 // exclusive
 		for running < 400 {

@@ -39,8 +39,9 @@ func ManuscriptPage(p ManuscriptProps) g.Node {
 				g.El("delete-vowels"),
 			),
 			g.If(!p.ReadOnly,
-				FormEl(Method("post"), Action(p.NextUrl),
-					Button(Class("bg-sky-600 text-white rounded-lg p-2"),
+				FormEl(Method("post"), Action(p.NextUrl), ID("next"),
+					// TODO(Amr Ojjeh): Not secure yes, but sue me (after I fix it more properly later via web component)
+					Button(Type("submit"), Class("bg-sky-600 text-white rounded-lg p-2"), g.Attr("onclick", "up.submit(`#next`); this.disabled = true"),
 						g.Text("Next"),
 					),
 				),
