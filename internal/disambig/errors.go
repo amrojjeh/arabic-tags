@@ -8,6 +8,7 @@ import (
 var (
 	ErrRequest     = errors.New("disambiguate: request was not completed successfuly")
 	ErrBadResponse = errors.New("disambiguate: response buffer could not be read")
+	ErrTruncated   = errors.New("disambiguate: response truncated input")
 )
 
 type BadFormatError struct {

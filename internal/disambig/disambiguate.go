@@ -18,12 +18,16 @@ type Word struct {
 
 // TODO(Amr Ojjeh): Use goroutines
 func Disambiguate(text string) ([]Word, error) {
-	texts := splitText(text)
+	texts := splitText(text, 200)
 	words := []Word{}
 	for _, t := range texts {
 		res, err := request(t)
 		if err != nil {
 			return nil, err
+		}
+
+		if res.Output.Truncated {
+			return nil, ErrTruncated
 		}
 
 		for _, cWord := range res.Output.Disambig {
@@ -80,13 +84,13 @@ func request(text string) (camelResponse, error) {
 	return inter, nil
 }
 
-func splitText(text string) []string {
+func splitText(text string, maxSize int) []string {
 	texts := []string{}
-	for utf8.RuneCountInString(text) > 400 {
+	for utf8.RuneCountInString(text) > maxSize {
 		words := strings.Fields(text)
 		running := 0
 		lastIndex := 0 // exclusive
-		for running < 400 {
+		for running < maxSize {
 			// Adding one to account for space
 			running += utf8.RuneCountInString(words[lastIndex]) + 1
 			lastIndex += 1
@@ -112,7 +116,9 @@ type camelResponse struct {
 }
 
 type camelOutput struct {
-	Disambig []camelWord `json:"disambig"`
+	Disambig  []camelWord `json:"disambig"`
+	Truncated bool        `json:"truncated"`
+	Tokens    []string    `json:"tokens"`
 }
 
 type camelWord struct {
